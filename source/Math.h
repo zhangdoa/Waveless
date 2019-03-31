@@ -1,27 +1,39 @@
+#pragma once
 #include "stdafx.h"
 
-using SignalArray = std::vector<double>;
-using FrequencyArray = std::vector<std::complex<double>>;
-
-class Math
+namespace Waveless
 {
-public:
-	Math() = default;
-	~Math() = default;
+	using ComplexArray = std::vector<std::complex<double>>;
+	using FrequencyBin = std::pair<double, std::complex<double>>;
+	using FrequencyBinArray = std::vector<FrequencyBin>;
 
-	double dB2LinearAmp(double dB);
+	class Math
+	{
+	public:
+		Math() = default;
+		~Math() = default;
 
-	double linear2dBAmp(double linear);
+		double dB2LinearAmp(double dB);
 
-	double dB2LinearMag(double dB);
+		double linear2dBAmp(double linear);
 
-	double linear2dBMag(double linear);
+		double dB2LinearMag(double dB);
 
-	// Return in angular frequency
-	FrequencyArray DFT(const SignalArray& x);
+		double linear2dBMag(double linear);
 
-	// Input in angular frequency
-	SignalArray IDFT(const FrequencyArray& X);
+		ComplexArray DFT(const ComplexArray& x);
 
-	const double PI = 3.1415926536;
-};
+		ComplexArray IDFT(const ComplexArray& X);
+
+		ComplexArray FFT(const ComplexArray& x);
+
+		ComplexArray IFFT(const ComplexArray& x);
+
+		// freq in Hz, magnitude in dB
+		FrequencyBinArray getFreqBin(const ComplexArray& X, double sampleRate);
+
+		ComplexArray synth(const FrequencyBinArray & XBin);
+
+		const double PI = 3.1415926536;
+	};
+}
