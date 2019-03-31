@@ -1,9 +1,4 @@
-#include <cmath>
-#include <algorithm>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <vector>
+#include "stdafx.h"
 
 enum class WavHeaderType
 {

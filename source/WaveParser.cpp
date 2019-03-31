@@ -1,24 +1,5 @@
 #include "WaveParser.h"
-
-float dBtoLinearAmp(float dB)
-{
-	return powf(10, dB / 10.0f);
-}
-
-float linearToDBAmp(float linear)
-{
-	return 10.0f * log10f(linear);
-}
-
-float dBtoLinearMag(float dB)
-{
-	return powf(10, dB / 20.0f);
-}
-
-float linearToDBMag(float linear)
-{
-	return 20.0f * log10f(linear);
-}
+#include "Math.h"
 
 void printLog(const std::string& rhs)
 {
@@ -292,6 +273,7 @@ bool WaveParser::writeFile(const std::string & path, const WaveData& waveData)
 
 WaveData WaveParser::gain(float gainLevel, const WaveData& waveData)
 {
+	Math l_math;
 	WaveData l_result;
 
 	l_result.wavHeader = waveData.wavHeader;
@@ -299,7 +281,7 @@ WaveData WaveParser::gain(float gainLevel, const WaveData& waveData)
 
 	for (size_t i = 0; i < waveData.rawData.size(); i++)
 	{
-		l_result.rawData.emplace_back((short)((float)waveData.rawData[i] * dBtoLinearMag(gainLevel)));
+		l_result.rawData.emplace_back((short)((double)waveData.rawData[i] * l_math.dB2LinearMag(gainLevel)));
 	}
 
 	return l_result;

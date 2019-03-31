@@ -14,4 +14,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-add_executable(WaveParser main.cpp WaveParser.h WaveParser.cpp)
+aux_source_directory(. DIR_SRCS)
+add_executable(WaveParser ${DIR_SRCS})
