@@ -182,14 +182,18 @@ namespace Waveless
 	FrequencyBinArray Math::FreqDomainSeries2FreqBin(const ComplexArray& X, double sampleRate)
 	{
 		FrequencyBinArray binArray;
-		auto N = X.size() / 2;
+		auto N = X.size();
 		binArray.reserve(N);
 
 		for (size_t i = 0; i < N; i++)
 		{
 			auto freq = sampleRate * (double)i / (double)N;
-			auto amp_real = linear2dBMag(std::abs(X[i].real()));
-			auto amp_imag = linear2dBMag(std::abs(X[i].imag()));
+			//auto amp_real = linear2dBMag(std::abs(X[i].real()));
+			//amp_real = X[i].real() > 0.0 ? amp_real : -amp_real;
+			auto amp_real = X[i].real();
+			//auto amp_imag = linear2dBMag(std::abs(X[i].imag()));
+			//amp_imag = X[i].imag() > 0.0 ? amp_imag : -amp_imag;
+			auto amp_imag = X[i].imag();
 			FrequencyBin bin(freq, std::complex<double>(amp_real, amp_imag));
 			binArray.emplace_back(bin);
 		}
@@ -201,19 +205,17 @@ namespace Waveless
 	{
 		ComplexArray X;
 		auto N = XBin.size();
-		X.reserve(N * 2);
+		X.reserve(N);
 
 		for (size_t i = 0; i < N; i++)
 		{
-			auto amp_real = dB2LinearMag(XBin[i].second.real());
-			auto amp_imag = dB2LinearMag(XBin[i].second.imag());
+			//auto amp_real = dB2LinearMag(XBin[i].second.real());
+			//amp_real = XBin[i].second.real() > 0.0 ? amp_real : -amp_real;
+			auto amp_real = XBin[i].second.real();
+			//auto amp_imag = dB2LinearMag(XBin[i].second.imag());
+			//amp_imag = XBin[i].second.imag() > 0.0 ? amp_imag : -amp_imag;
+			auto amp_imag = XBin[i].second.imag();
 			X.emplace_back(std::complex<double>(amp_real, amp_imag));
-		}
-
-		// @TODO: not correct coversion
-		for (size_t i = 1; i < N; i++)
-		{
-			X.emplace_back(X[N - i].real(), -X[N - i].imag());
 		}
 
 		return X;
@@ -222,6 +224,7 @@ namespace Waveless
 	ComplexArray Math::synth(const FrequencyBinArray & XBin)
 	{
 		auto l_X = FreqBin2FreqDomainSeries(XBin);
-		return IFFT_Impl(l_X);
+		return IDFT(l_X);
+		//return IFFT(l_X);
 	}
 }

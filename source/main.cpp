@@ -11,7 +11,7 @@ int main()
 	DSP l_DSP;
 
 	// test case : DFT, IDFT, FFT and IFFT
-	ComplexArray x = { 1.0, 2.0, 3.0, 4.0 };
+	ComplexArray x = { 1.0, 2.0, 3.0, 4.0, 5.0 };
 	ComplexArray X_DFT = l_math.DFT(x);
 	ComplexArray x_IDFT = l_math.IDFT(X_DFT);
 	ComplexArray X_FFT = l_math.FFT(x);
