@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "Math.h"
 
 namespace Waveless
 {
@@ -126,8 +127,10 @@ namespace Waveless
 		~WaveParser() = default;
 
 		WaveData loadFile(const std::string& path);
+		bool writeFile(const std::string & path, IWavHeader* wavHeader, const ComplexArray& x);
 		bool writeFile(const std::string & path, const WaveData& waveData);
 
+		StandardWavHeader genStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize);
 		void printWavHeader(IWavHeader* wavHeader);
 	};
 }

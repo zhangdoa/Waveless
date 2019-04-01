@@ -2,6 +2,8 @@
 
 namespace Waveless
 {
+	static unsigned int FFTSize[] = { 2, 4, 8, 16, 32,64,128,256,512,1024,2048 };
+
 	double Math::dB2LinearAmp(double dB)
 	{
 		return std::pow(10, dB / 10.0);
@@ -20,6 +22,23 @@ namespace Waveless
 	double Math::linear2dBMag(double linear)
 	{
 		return 20.0 * std::log10(linear);
+	}
+
+	ComplexArray Math::genSine(double A, double f, double phi, double fs, double t)
+	{
+		ComplexArray x;
+		auto N = size_t(std::round(t * fs));
+		x.reserve(N);
+
+		auto l_MagLinear = dB2LinearMag(A);
+
+		for (size_t i = 0; i < N; i++)
+		{
+			auto sample = l_MagLinear * std::cos(2 * PI * f * (double)i / fs + phi);
+			x.emplace_back(sample);
+		}
+
+		return x;
 	}
 
 	ComplexArray Math::DFT(const ComplexArray& x)
@@ -66,6 +85,18 @@ namespace Waveless
 
 	ComplexArray Math::FFT(const ComplexArray & x)
 	{
+		// @TODO: window and zero padding
+		auto N = x.size();
+		return FFT_Impl(x);
+	}
+
+	ComplexArray Math::IFFT(const ComplexArray & x)
+	{
+		return IFFT_Impl(x);
+	}
+
+	ComplexArray Math::FFT_Impl(const ComplexArray & x)
+	{
 		auto N = x.size();
 
 		// base case
@@ -92,8 +123,8 @@ namespace Waveless
 		}
 
 		// conquer
-		ComplexArray evenFreq = FFT(evenSamples);
-		ComplexArray oddFreq = FFT(oddSamples);
+		ComplexArray evenFreq = FFT_Impl(evenSamples);
+		ComplexArray oddFreq = FFT_Impl(oddSamples);
 
 		// combine result
 		ComplexArray result(N);
@@ -106,7 +137,7 @@ namespace Waveless
 		return result;
 	}
 
-	ComplexArray Math::IFFT(const ComplexArray & x)
+	ComplexArray Math::IFFT_Impl(const ComplexArray & x)
 	{
 		auto N = x.size();
 
@@ -134,8 +165,8 @@ namespace Waveless
 		}
 
 		// conquer
-		ComplexArray evenFreq = FFT(evenSamples);
-		ComplexArray oddFreq = FFT(oddSamples);
+		ComplexArray evenFreq = FFT_Impl(evenSamples);
+		ComplexArray oddFreq = FFT_Impl(oddSamples);
 
 		// combine result
 		ComplexArray result(N);
@@ -148,38 +179,49 @@ namespace Waveless
 		return result;
 	}
 
-	FrequencyBinArray Math::getFreqBin(const ComplexArray& X, double sampleRate)
+	FrequencyBinArray Math::FreqDomainSeries2FreqBin(const ComplexArray& X, double sampleRate)
 	{
 		FrequencyBinArray binArray;
-		auto N = X.size();
+		auto N = X.size() / 2;
 		binArray.reserve(N);
 
 		for (size_t i = 0; i < N; i++)
 		{
 			auto freq = sampleRate * (double)i / (double)N;
-			// @TODO: not correct coversion
-			auto amp = linear2dBMag(std::abs(X[i].real()));
-			FrequencyBin bin(freq, std::complex<double>(amp, 0.0));
+			auto amp_real = linear2dBMag(std::abs(X[i].real()));
+			auto amp_imag = linear2dBMag(std::abs(X[i].imag()));
+			FrequencyBin bin(freq, std::complex<double>(amp_real, amp_imag));
 			binArray.emplace_back(bin);
 		}
 
 		return binArray;
 	}
 
-	ComplexArray Math::synth(const FrequencyBinArray & XBin)
+	ComplexArray Math::FreqBin2FreqDomainSeries(const FrequencyBinArray & XBin)
 	{
-		ComplexArray x;
-		auto N = XBin.size();
-		x.reserve(N);
-
 		ComplexArray X;
-		X.reserve(N);
+		auto N = XBin.size();
+		X.reserve(N * 2);
 
 		for (size_t i = 0; i < N; i++)
 		{
-			X.emplace_back(dB2LinearMag(XBin[i].second.real()));
+			auto amp_real = dB2LinearMag(XBin[i].second.real());
+			auto amp_imag = dB2LinearMag(XBin[i].second.imag());
+			X.emplace_back(std::complex<double>(amp_real, amp_imag));
 		}
 
-		return IFFT(X);
+		// @TODO: not correct coversion
+		for (size_t i = 1; i < N; i++)
+		{
+			X.emplace_back(X[N - i].real(), -X[N - i].imag());
+		}
+
+		return X;
+	}
+
+	ComplexArray Math::synth(const FrequencyBinArray & XBin)
+	{
+		auto l_X = FreqBin2FreqDomainSeries(XBin);
+		return IFFT_Impl(l_X);
 	}
 }

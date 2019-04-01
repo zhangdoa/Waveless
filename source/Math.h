@@ -21,6 +21,17 @@ namespace Waveless
 
 		double linear2dBMag(double linear);
 
+		///
+		/// Generate A real sinusoid signal series.
+		///
+		ComplexArray genSine(
+			double A ///< Amplitude in dB
+			, double f ///< Frequency in Hz
+			, double phi ///< Initial phase offset
+			, double fs ///< Sample rate in Hz
+			, double t ///< Sample period in second
+		);
+
 		ComplexArray DFT(const ComplexArray& x);
 
 		ComplexArray IDFT(const ComplexArray& X);
@@ -29,11 +40,33 @@ namespace Waveless
 
 		ComplexArray IFFT(const ComplexArray& x);
 
-		// freq in Hz, magnitude in dB
-		FrequencyBinArray getFreqBin(const ComplexArray& X, double sampleRate);
+		///
+		/// Convert the frequency domain signal series to a frequency bin collection.
+		///
+		FrequencyBinArray FreqDomainSeries2FreqBin(
+			const ComplexArray& X /// Input frequency domain signal series
+			, double fs /// Sample rate in Hz
+		);
 
-		ComplexArray synth(const FrequencyBinArray & XBin);
+		///
+		/// Convert the frequency bin collection to a frequency domain signal series.
+		///
+		ComplexArray FreqBin2FreqDomainSeries(
+			const FrequencyBinArray& XBin /// Input frequency bin collection
+		);
+
+		///
+		/// Synthenize a time domain signal series by a given frequency bin collection.
+		///
+		ComplexArray synth(
+			const FrequencyBinArray & XBin /// Input frequency bin collection
+		);
 
 		const double PI = 3.1415926536;
+
+	private:
+		ComplexArray FFT_Impl(const ComplexArray& x);
+
+		ComplexArray IFFT_Impl(const ComplexArray& x);
 	};
 }

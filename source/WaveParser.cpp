@@ -120,6 +120,30 @@ namespace Waveless
 		printDataChunk(wavHeader->DataChunk);
 	}
 
+	StandardWavHeader WaveParser::genStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize)
+	{
+		StandardWavHeader l_wavHeader;
+		l_wavHeader.type = WavHeaderType::Standard;
+
+		std::memcpy(l_wavHeader.RIFFChunk.ckID, "RIFF", 4);
+		l_wavHeader.RIFFChunk.cksize = 44 + dataChuckSize;
+		std::memcpy(l_wavHeader.RIFFChunk.WAVEID, "WAVE", 4);
+
+		std::memcpy(l_wavHeader.fmtChunk.ckID, "fmt ", 4);
+		l_wavHeader.fmtChunk.cksize = 16;
+		l_wavHeader.fmtChunk.wFormatTag = 1;
+		l_wavHeader.fmtChunk.nChannels = nChannels;
+		l_wavHeader.fmtChunk.nSamplesPerSec = nSamplesPerSec;
+		l_wavHeader.fmtChunk.nAvgBytesPerSec = nSamplesPerSec * nChannels * wBitsPerSample / 8;
+		l_wavHeader.fmtChunk.nBlockAlign = nChannels * wBitsPerSample / 8;
+		l_wavHeader.fmtChunk.wBitsPerSample = wBitsPerSample;
+
+		std::memcpy(l_wavHeader.DataChunk.ckID, "data", 4);
+		l_wavHeader.DataChunk.cksize = dataChuckSize;
+
+		return l_wavHeader;
+	}
+
 	void WaveParser::printWavHeader(IWavHeader* wavHeader)
 	{
 		switch (wavHeader->type)
@@ -247,6 +271,26 @@ namespace Waveless
 		printWavHeader(l_result.wavHeader);
 
 		return l_result;
+	}
+
+	bool WaveParser::writeFile(const std::string & path, IWavHeader * wavHeader, const ComplexArray & x)
+	{
+		WaveData l_newWaveData;
+		l_newWaveData.wavHeader = wavHeader;
+
+		std::vector<short> l_newRawData;
+		l_newRawData.reserve(x.size());
+
+		for (size_t i = 0; i < x.size(); i++)
+		{
+			l_newRawData.emplace_back((short)x[i].real());
+		}
+
+		l_newWaveData.rawData = l_newRawData;
+
+		writeFile(path, l_newWaveData);
+
+		return false;
 	}
 
 	bool WaveParser::writeFile(const std::string & path, const WaveData& waveData)
