@@ -23,8 +23,8 @@ namespace Waveless
 	{
 		Math l_math;
 
-		auto l_X = l_math.FFT(x);
-		auto l_XBin = l_math.FreqDomainSeries2FreqBin(l_X, fs);
+		auto l_X = l_math.FFT_SingleFrame(x);
+		auto l_XBin = l_math.FreqDomainSeries2FreqBin_SingleFrame(l_X, fs);
 		auto l_xProcessed = LPF(l_XBin, cutOffFreq);
 
 		return l_xProcessed;
@@ -48,7 +48,7 @@ namespace Waveless
 			l_XBinProcessed.emplace_back(XBin[i].first, l_mag);
 		}
 
-		l_xProcessed = l_math.synth(l_XBinProcessed);
+		l_xProcessed = l_math.synth_SingleFrame(l_XBinProcessed);
 
 		return l_xProcessed;
 	}
@@ -57,8 +57,8 @@ namespace Waveless
 	{
 		Math l_math;
 
-		auto l_X = l_math.FFT(x);
-		auto l_XBin = l_math.FreqDomainSeries2FreqBin(l_X, fs);
+		auto l_X = l_math.FFT_SingleFrame(x);
+		auto l_XBin = l_math.FreqDomainSeries2FreqBin_SingleFrame(l_X, fs);
 		auto l_xProcessed = HPF(l_XBin, cutOffFreq);
 
 		return l_xProcessed;
@@ -82,7 +82,7 @@ namespace Waveless
 			l_XBinProcessed.emplace_back(XBin[i].first, l_mag);
 		}
 
-		l_xProcessed = l_math.synth(l_XBinProcessed);
+		l_xProcessed = l_math.synth_SingleFrame(l_XBinProcessed);
 
 		return l_xProcessed;
 	}

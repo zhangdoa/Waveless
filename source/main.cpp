@@ -11,11 +11,11 @@ int main()
 	DSP l_DSP;
 
 	// test case : DFT, IDFT, FFT and IFFT
-	ComplexArray x = { 1.0, 2.0, 3.0, 4.0, 5.0 };
-	ComplexArray X_DFT = l_math.DFT(x);
-	ComplexArray x_IDFT = l_math.IDFT(X_DFT);
-	ComplexArray X_FFT = l_math.FFT(x);
-	ComplexArray x_IFFT = l_math.IFFT(X_FFT);
+	ComplexArray signal_1 = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 };
+	auto signal_1_DFT = l_math.DFT(signal_1);
+	auto signal_1_IDFT = l_math.IDFT(signal_1_DFT);
+	auto signal_1_FFT = l_math.FFT(signal_1);
+	auto signal_1_IFFT = l_math.IFFT(signal_1_FFT);
 
 	// test case : wave file loading and parsing
 	WaveParser l_parser;
@@ -24,19 +24,19 @@ int main()
 	auto l_sampleRate = reinterpret_cast<StandardWavHeader*>(l_wavHeader)->fmtChunk.nSamplesPerSec;
 
 	// test case : sinusoid generation
-	ComplexArray x_Sinusoid = l_math.genSine(1.0, 4.0, 0.0, 20.0, 2.0);
-	ComplexArray X_Sinusoid = l_math.FFT(x_Sinusoid);
-	FrequencyBinArray SinusoidBin = l_math.FreqDomainSeries2FreqBin(X_Sinusoid, 20.0);
-	ComplexArray X_SinusoidSynth = l_math.FreqBin2FreqDomainSeries(SinusoidBin);
-	ComplexArray x_SinusoidSynth = l_math.synth(SinusoidBin);
+	auto signal_2 = l_math.genSine(1.0, 4.0, 0.0, 20.0, 2.0);
+	auto signal_2_FFT = l_math.FFT(signal_2);
+	auto signal_2_bin = l_math.FreqDomainSeries2FreqBin(signal_2_FFT, 20.0);
+	auto signal_2_freq = l_math.FreqBin2FreqDomainSeries(signal_2_bin);
+	auto signal_2_synth = l_math.synth(signal_2_bin);
 
 	// test case : get freq bin of wave data
-	ComplexArray x2(l_waveData.rawData.begin(), l_waveData.rawData.end());
-	ComplexArray X2 = l_math.FFT(x2);
-	FrequencyBinArray X2Bin = l_math.FreqDomainSeries2FreqBin(X2, l_sampleRate);
+	ComplexArray signal_3(l_waveData.rawData.begin(), l_waveData.rawData.end());
+	auto signal_3_FFT = l_math.FFT(signal_3);
+	auto signal_3_bin = l_math.FreqDomainSeries2FreqBin(signal_3_FFT, l_sampleRate);
 
 	// test case : DSP
-	auto l_rawDataProcessed = l_DSP.gain(x2, -4.5);
+	auto l_rawDataProcessed = l_DSP.gain(signal_3, -4.5);
 	l_rawDataProcessed = l_DSP.LPF(l_rawDataProcessed, l_sampleRate, 5000.0);
 	l_rawDataProcessed = l_DSP.HPF(l_rawDataProcessed, l_sampleRate, 300.0);
 
@@ -44,7 +44,7 @@ int main()
 	l_parser.writeFile("..//res//test_Processed.wav", l_wavHeader, l_rawDataProcessed);
 
 	// test case : write to new wave file
-	auto l_newWavHeader = l_parser.genStandardWavHeader(1, l_sampleRate, 16, (unsigned long)x_SinusoidSynth.size());
-	l_parser.writeFile("..//res//test_Sinusoid.wav", &l_newWavHeader, x_SinusoidSynth);
+	auto l_newWavHeader = l_parser.genStandardWavHeader(1, l_sampleRate, 16, (unsigned long)signal_2_synth.size());
+	l_parser.writeFile("..//res//test_Sinusoid.wav", &l_newWavHeader, signal_2_synth);
 	return 0;
 }

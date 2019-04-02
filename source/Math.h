@@ -36,14 +36,26 @@ namespace Waveless
 
 		ComplexArray IDFT(const ComplexArray& X);
 
-		ComplexArray FFT(const ComplexArray& x);
+		std::vector<ComplexArray> FFT(const ComplexArray& x);
 
-		ComplexArray IFFT(const ComplexArray& x);
+		ComplexArray IFFT(const std::vector<ComplexArray>& X);
+
+		ComplexArray FFT_SingleFrame(const ComplexArray& x);
+
+		ComplexArray IFFT_SingleFrame(const ComplexArray& x);
 
 		///
 		/// Convert the frequency domain signal series to a frequency bin collection.
 		///
-		FrequencyBinArray FreqDomainSeries2FreqBin(
+		std::vector<FrequencyBinArray> FreqDomainSeries2FreqBin(
+			const std::vector<ComplexArray>& X /// Input frequency domain signal series
+			, double fs /// Sample rate in Hz
+		);
+
+		///
+		/// Convert the frequency domain signal series to a frequency bin collection. Single frame impl.
+		///
+		FrequencyBinArray FreqDomainSeries2FreqBin_SingleFrame(
 			const ComplexArray& X /// Input frequency domain signal series
 			, double fs /// Sample rate in Hz
 		);
@@ -51,7 +63,14 @@ namespace Waveless
 		///
 		/// Convert the frequency bin collection to a frequency domain signal series.
 		///
-		ComplexArray FreqBin2FreqDomainSeries(
+		std::vector <ComplexArray> FreqBin2FreqDomainSeries(
+			const std::vector<FrequencyBinArray>& XBin /// Input frequency bin collection
+		);
+
+		///
+		/// Convert the frequency bin collection to a frequency domain signal series. Single frame impl.
+		///
+		ComplexArray FreqBin2FreqDomainSeries_SingleFrame(
 			const FrequencyBinArray& XBin /// Input frequency bin collection
 		);
 
@@ -59,14 +78,16 @@ namespace Waveless
 		/// Synthenize a time domain signal series by a given frequency bin collection.
 		///
 		ComplexArray synth(
-			const FrequencyBinArray & XBin /// Input frequency bin collection
+			const std::vector<FrequencyBinArray>& XBin /// Input frequency bin collection
+		);
+
+		///
+		/// Synthenize a time domain signal series by a given frequency bin collection. Single frame impl.
+		///
+		ComplexArray synth_SingleFrame(
+			const FrequencyBinArray& XBin /// Input frequency bin collection
 		);
 
 		const double PI = 3.1415926536;
-
-	private:
-		ComplexArray FFT_Impl(const ComplexArray& x);
-
-		ComplexArray IFFT_Impl(const ComplexArray& x);
 	};
 }
