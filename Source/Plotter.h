@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "Math.h"
 
 namespace Waveless
 {
@@ -9,6 +10,8 @@ namespace Waveless
 		Plotter() = default;
 		~Plotter() = default;
 
-		static void Plot();
+		static void Plot(const ComplexArray& rhs);
+		static void Plot(const FrequencyBinArray& rhs);
+		static void Show();
 	};
 }

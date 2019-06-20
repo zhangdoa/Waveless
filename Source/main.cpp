@@ -2,6 +2,7 @@
 #include "WaveParser.h"
 #include "Math.h"
 #include "DSP.h"
+#include "Plotter.h"
 
 using namespace Waveless;
 
@@ -13,6 +14,7 @@ int main()
 	auto signal_1_IDFT = Math::IDFT(signal_1_DFT);
 	auto signal_1_FFT = Math::FFT(signal_1);
 	auto signal_1_IFFT = Math::IFFT(signal_1_FFT);
+	Plotter::Plot(signal_1);
 
 	// test case : sinusoid generation
 	auto signal_2 = Math::GenerateSine(64.0, 440.0, 0.0, 44100.0, 2.0);
@@ -20,10 +22,12 @@ int main()
 	auto signal_2_bin = Math::FreqDomainSeries2FreqBin(signal_2_FFT, 44100.0);
 	auto signal_2_freq = Math::FreqBin2FreqDomainSeries(signal_2_bin);
 	auto signal_2_synth = Math::Synth(signal_2_bin);
+	//Plotter::Plot(signal_2_synth);
 
 	// test case : write to new wave file
-	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, 44100.0, 16, (unsigned long)signal_2.size());
+	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, 44100, 16, (unsigned long)signal_2.size());
 	WaveParser::WriteFile("..//Asset//test_Sinusoid.wav", &l_newWavHeader, signal_2);
+	Plotter::Show();
 
 	// test case : wave file loading and parsing
 	auto l_waveData = WaveParser::LoadFile("..//Asset//test.wav");

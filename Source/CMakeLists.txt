@@ -14,8 +14,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Bin)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-include_directories("GitSubmodule/")
+include_directories(${CMAKE_SOURCE_DIR}/../GitSubmodule/)
 
 file(GLOB HEADERS "*.h")
 file(GLOB SOURCES "*.cpp")
 add_executable(Waveless ${HEADERS} ${SOURCES})
+
+find_package(PythonLibs REQUIRED)
+include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(${PYTHON_INCLUDE_DIRS}/../Lib/site-packages/numpy/core/include/)
+target_link_libraries(Waveless ${PYTHON_LIBRARIES})
