@@ -14,17 +14,21 @@ int main()
 	auto signal_1_FFT = Math::FFT(signal_1);
 	auto signal_1_IFFT = Math::IFFT(signal_1_FFT);
 
-	// test case : wave file loading and parsing
-	auto l_waveData = WaveParser::LoadFile("..//Asset//test.wav");
-	auto l_wavHeader = l_waveData.wavHeader;
-	auto l_sampleRate = reinterpret_cast<StandardWavHeader*>(l_wavHeader)->fmtChunk.nSamplesPerSec;
-
 	// test case : sinusoid generation
-	auto signal_2 = Math::GenerateSine(1.0, 4.0, 0.0, 20.0, 2.0);
+	auto signal_2 = Math::GenerateSine(64.0, 440.0, 0.0, 44100.0, 2.0);
 	auto signal_2_FFT = Math::FFT(signal_2);
-	auto signal_2_bin = Math::FreqDomainSeries2FreqBin(signal_2_FFT, 20.0);
+	auto signal_2_bin = Math::FreqDomainSeries2FreqBin(signal_2_FFT, 44100.0);
 	auto signal_2_freq = Math::FreqBin2FreqDomainSeries(signal_2_bin);
 	auto signal_2_synth = Math::Synth(signal_2_bin);
+
+	// test case : write to new wave file
+	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, 44100.0, 16, (unsigned long)signal_2.size());
+	WaveParser::WriteFile("..//Asset//test_Sinusoid.wav", &l_newWavHeader, signal_2);
+
+	// test case : wave file loading and parsing
+	auto l_waveData = WaveParser::LoadFile("..//Asset//test.wav");
+	auto l_wavHeader = reinterpret_cast<StandardWavHeader*>(l_waveData.wavHeader);
+	auto l_sampleRate = l_wavHeader->fmtChunk.nSamplesPerSec;
 
 	// test case : get freq bin of wave data
 	ComplexArray signal_3(l_waveData.rawData.begin(), l_waveData.rawData.end());
@@ -39,8 +43,5 @@ int main()
 	// test case : write to new wave file
 	WaveParser::WriteFile("..//Asset//test_Processed.wav", l_wavHeader, l_rawDataProcessed);
 
-	// test case : write to new wave file
-	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, l_sampleRate, 16, (unsigned long)signal_2_synth.size());
-	WaveParser::WriteFile("..//Asset//test_Sinusoid.wav", &l_newWavHeader, signal_2_synth);
 	return 0;
 }
