@@ -2,7 +2,7 @@
 
 namespace Waveless
 {
-	ComplexArray DSP::gain(const ComplexArray & x, double gainLevel)
+	ComplexArray DSP::Gain(const ComplexArray & x, double gainLevel)
 	{
 		Math l_math;
 
@@ -13,7 +13,7 @@ namespace Waveless
 
 		for (size_t i = 0; i < N; i++)
 		{
-			l_xProcessed.emplace_back(x[i] * l_math.dB2LinearMag(gainLevel));
+			l_xProcessed.emplace_back(x[i] * l_math.DB2LinearMag(gainLevel));
 		}
 
 		return l_xProcessed;
@@ -48,7 +48,7 @@ namespace Waveless
 			l_XBinProcessed.emplace_back(XBin[i].first, l_mag);
 		}
 
-		l_xProcessed = l_math.synth_SingleFrame(l_XBinProcessed);
+		l_xProcessed = l_math.Synth_SingleFrame(l_XBinProcessed);
 
 		return l_xProcessed;
 	}
@@ -82,7 +82,7 @@ namespace Waveless
 			l_XBinProcessed.emplace_back(XBin[i].first, l_mag);
 		}
 
-		l_xProcessed = l_math.synth_SingleFrame(l_XBinProcessed);
+		l_xProcessed = l_math.Synth_SingleFrame(l_XBinProcessed);
 
 		return l_xProcessed;
 	}

@@ -14,6 +14,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Bin)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+include_directories("GitSubmodule/")
+
 file(GLOB HEADERS "*.h")
 file(GLOB SOURCES "*.cpp")
 add_executable(Waveless ${HEADERS} ${SOURCES})

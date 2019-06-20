@@ -4,33 +4,33 @@ namespace Waveless
 {
 	static std::vector<unsigned int> FFTSize = { 2, 4, 8, 16, 32,64,128,256,512,1024,2048 };
 
-	double Math::dB2LinearAmp(double dB)
+	double Math::DB2LinearAmp(double dB)
 	{
 		return std::pow(10, dB / 10.0);
 	}
 
-	double Math::linear2dBAmp(double linear)
+	double Math::Linear2dBAmp(double linear)
 	{
 		return 10.0 * std::log10(linear);
 	}
 
-	double Math::dB2LinearMag(double dB)
+	double Math::DB2LinearMag(double dB)
 	{
 		return std::pow(10, dB / 20.0);
 	}
 
-	double Math::linear2dBMag(double linear)
+	double Math::Linear2dBMag(double linear)
 	{
 		return 20.0 * std::log10(linear);
 	}
 
-	ComplexArray Math::genSine(double A, double f, double phi, double fs, double t)
+	ComplexArray Math::GenerateSine(double A, double f, double phi, double fs, double t)
 	{
 		ComplexArray x;
 		auto N = size_t(std::round(t * fs));
 		x.reserve(N);
 
-		auto l_MagLinear = dB2LinearMag(A);
+		auto l_MagLinear = DB2LinearMag(A);
 
 		for (size_t i = 0; i < N; i++)
 		{
@@ -321,20 +321,20 @@ namespace Waveless
 		return X;
 	}
 
-	ComplexArray Math::synth(const std::vector<FrequencyBinArray>& XBin)
+	ComplexArray Math::Synth(const std::vector<FrequencyBinArray>& XBin)
 	{
 		ComplexArray l_result;
 
 		for (auto XBini : XBin)
 		{
-			auto l_x = synth_SingleFrame(XBini);
+			auto l_x = Synth_SingleFrame(XBini);
 			l_result.insert(std::end(l_result), std::begin(l_x), std::end(l_x));
 		}
 
 		return l_result;
 	}
 
-	ComplexArray Math::synth_SingleFrame(const FrequencyBinArray & XBin)
+	ComplexArray Math::Synth_SingleFrame(const FrequencyBinArray & XBin)
 	{
 		auto l_X = FreqBin2FreqDomainSeries_SingleFrame(XBin);
 		return IFFT_SingleFrame(l_X);

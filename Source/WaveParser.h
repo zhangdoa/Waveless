@@ -126,11 +126,11 @@ namespace Waveless
 		WaveParser() = default;
 		~WaveParser() = default;
 
-		WaveData loadFile(const std::string& path);
-		bool writeFile(const std::string & path, IWavHeader* wavHeader, const ComplexArray& x);
-		bool writeFile(const std::string & path, const WaveData& waveData);
+		static WaveData LoadFile(const std::string& path);
+		static bool WriteFile(const std::string & path, IWavHeader* wavHeader, const ComplexArray& x);
+		static bool WriteFile(const std::string & path, const WaveData& waveData);
 
-		StandardWavHeader genStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize);
-		void printWavHeader(IWavHeader* wavHeader);
+		static StandardWavHeader GenerateStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize);
+		static void PrintWavHeader(IWavHeader* wavHeader);
 	};
 }

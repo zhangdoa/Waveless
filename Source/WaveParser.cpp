@@ -120,7 +120,7 @@ namespace Waveless
 		printDataChunk(wavHeader->DataChunk);
 	}
 
-	StandardWavHeader WaveParser::genStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize)
+	StandardWavHeader WaveParser::GenerateStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize)
 	{
 		StandardWavHeader l_wavHeader;
 		l_wavHeader.type = WavHeaderType::Standard;
@@ -144,7 +144,7 @@ namespace Waveless
 		return l_wavHeader;
 	}
 
-	void WaveParser::printWavHeader(IWavHeader* wavHeader)
+	void WaveParser::PrintWavHeader(IWavHeader* wavHeader)
 	{
 		switch (wavHeader->type)
 		{
@@ -157,7 +157,7 @@ namespace Waveless
 		}
 	}
 
-	WaveData WaveParser::loadFile(const std::string & path)
+	WaveData WaveParser::LoadFile(const std::string & path)
 	{
 		std::ifstream l_file(path, std::ios::binary);
 
@@ -268,12 +268,12 @@ namespace Waveless
 		pbuf->sgetn((char*)&l_rawData[0], l_rawDataSize);
 		l_result.rawData = std::move(l_rawData);
 
-		printWavHeader(l_result.wavHeader);
+		PrintWavHeader(l_result.wavHeader);
 
 		return l_result;
 	}
 
-	bool WaveParser::writeFile(const std::string & path, IWavHeader * wavHeader, const ComplexArray & x)
+	bool WaveParser::WriteFile(const std::string & path, IWavHeader * wavHeader, const ComplexArray & x)
 	{
 		WaveData l_newWaveData;
 		l_newWaveData.wavHeader = wavHeader;
@@ -288,12 +288,12 @@ namespace Waveless
 
 		l_newWaveData.rawData = l_newRawData;
 
-		writeFile(path, l_newWaveData);
+		WriteFile(path, l_newWaveData);
 
 		return false;
 	}
 
-	bool WaveParser::writeFile(const std::string & path, const WaveData& waveData)
+	bool WaveParser::WriteFile(const std::string & path, const WaveData& waveData)
 	{
 		size_t l_sizeOfWavHeader = 0;
 
