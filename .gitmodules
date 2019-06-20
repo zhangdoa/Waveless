@@ -1,0 +1,4 @@
+[submodule "GitSubmodule/matplotlib-cpp"]
+	path = GitSubmodule/matplotlib-cpp
+	url = https://github.com/lava/matplotlib-cpp
+	ignore = dirty
