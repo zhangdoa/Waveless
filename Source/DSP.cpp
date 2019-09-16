@@ -13,7 +13,7 @@ namespace Waveless
 
 		for (size_t i = 0; i < N; i++)
 		{
-			l_xProcessed.emplace_back(x[i] * l_math.DB2LinearMag(gainLevel));
+			l_xProcessed.emplace_back(x[i] * l_math.DB2LinearAmp(gainLevel));
 		}
 
 		return l_xProcessed;
@@ -30,22 +30,23 @@ namespace Waveless
 		return l_xProcessed;
 	}
 
-	ComplexArray DSP::LPF(const FrequencyBinArray & XBin, double cutOffFreq)
+	ComplexArray DSP::LPF(const FreqBinData & XBinData, double cutOffFreq)
 	{
 		Math l_math;
 
 		ComplexArray l_xProcessed;
-		FrequencyBinArray l_XBinProcessed;
+		FreqBinData l_XBinProcessed;
 
-		auto N = XBin.size();
+		auto N = XBinData.m_FreqBinArray.size();
+
 		l_xProcessed.reserve(N);
-		l_XBinProcessed.reserve(N);
+		l_XBinProcessed.m_FreqBinArray.reserve(N);
 
 		for (size_t i = 0; i < N; i++)
 		{
 			// @TODO: cut-off curve
-			auto l_mag = XBin[i].first <= cutOffFreq ? XBin[i].second : 0.0;
-			l_XBinProcessed.emplace_back(XBin[i].first, l_mag);
+			auto l_mag = XBinData.m_FreqBinArray[i].first <= cutOffFreq ? XBinData.m_FreqBinArray[i].second : 0.0;
+			l_XBinProcessed.m_FreqBinArray.emplace_back(XBinData.m_FreqBinArray[i].first, l_mag);
 		}
 
 		l_xProcessed = l_math.Synth_SingleFrame(l_XBinProcessed);
@@ -64,22 +65,23 @@ namespace Waveless
 		return l_xProcessed;
 	}
 
-	ComplexArray DSP::HPF(const FrequencyBinArray & XBin, double cutOffFreq)
+	ComplexArray DSP::HPF(const FreqBinData & XBinData, double cutOffFreq)
 	{
 		Math l_math;
 
 		ComplexArray l_xProcessed;
-		FrequencyBinArray l_XBinProcessed;
+		FreqBinData l_XBinProcessed;
 
-		auto N = XBin.size();
+		auto N = XBinData.m_FreqBinArray.size();
+
 		l_xProcessed.reserve(N);
-		l_XBinProcessed.reserve(N);
+		l_XBinProcessed.m_FreqBinArray.reserve(N);
 
 		for (size_t i = 0; i < N; i++)
 		{
 			// @TODO: cut-off curve
-			auto l_mag = XBin[i].first >= cutOffFreq ? XBin[i].second : 0.0;
-			l_XBinProcessed.emplace_back(XBin[i].first, l_mag);
+			auto l_mag = XBinData.m_FreqBinArray[i].first >= cutOffFreq ? XBinData.m_FreqBinArray[i].second : 0.0;
+			l_XBinProcessed.m_FreqBinArray.emplace_back(XBinData.m_FreqBinArray[i].first, l_mag);
 		}
 
 		l_xProcessed = l_math.Synth_SingleFrame(l_XBinProcessed);

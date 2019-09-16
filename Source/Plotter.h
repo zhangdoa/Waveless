@@ -11,7 +11,7 @@ namespace Waveless
 		~Plotter() = default;
 
 		static void Plot(const ComplexArray& rhs);
-		static void Plot(const FrequencyBinArray& rhs);
+		static void Plot(const FreqBinArray& rhs);
 		static void Show();
 	};
 }

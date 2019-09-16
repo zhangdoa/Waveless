@@ -1,7 +1,4 @@
 #include "Plotter.h"
-#include "matplotlib-cpp/matplotlibcpp.h"
-
-namespace plt = matplotlibcpp;
 
 namespace Waveless
 {
@@ -28,15 +25,9 @@ namespace Waveless
 		{
 			l_imagine[i] = Math::Linear2dBMag(rhs[i].imag());
 		}
-
-		plt::plot(l_real);
-		plt::named_plot("Real", l_real);
-		plt::plot(l_imagine);
-		plt::named_plot("Imagine", l_imagine);
-		plt::legend();
 	}
 
-	void Plotter::Plot(const FrequencyBinArray & rhs)
+	void Plotter::Plot(const FreqBinArray & rhs)
 	{
 		std::vector<double> l_bin;
 		l_bin.resize(rhs.size());
@@ -59,16 +50,9 @@ namespace Waveless
 		{
 			l_imagine[i] = rhs[i].second.imag();
 		}
-
-		plt::plot(l_bin, l_real);
-		plt::named_plot("Real", l_real);
-		//plt::plot(l_bin, l_imagine);
-		//plt::named_plot("Imagine", l_imagine);
-		plt::legend();
 	}
 
 	void Plotter::Show()
 	{
-		plt::show();
 	}
 }

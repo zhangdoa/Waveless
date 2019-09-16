@@ -15,10 +15,10 @@ namespace Waveless
 
 		// cutOffFreq in Hz
 		static ComplexArray LPF(const ComplexArray& x, double fs, double cutOffFreq);
-		static ComplexArray LPF(const FrequencyBinArray& x, double cutOffFreq);
+		static ComplexArray LPF(const FreqBinData& x, double cutOffFreq);
 
 		// cutOffFreq in Hz
 		static ComplexArray HPF(const ComplexArray& x, double fs, double cutOffFreq);
-		static ComplexArray HPF(const FrequencyBinArray& x, double cutOffFreq);
+		static ComplexArray HPF(const FreqBinData& x, double cutOffFreq);
 	};
 }

@@ -9,7 +9,7 @@ using namespace Waveless;
 int main()
 {
 	// test case : DFT, IDFT, FFT and IFFT
-	ComplexArray signal_1 = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 };
+	ComplexArray signal_1 = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };
 	auto signal_1_DFT = Math::DFT(signal_1);
 	auto signal_1_IDFT = Math::IDFT(signal_1_DFT);
 	auto signal_1_FFT = Math::FFT(signal_1);
@@ -21,8 +21,8 @@ int main()
 	auto signal_2_FFT = Math::FFT(signal_2);
 	auto signal_2_bin = Math::FreqDomainSeries2FreqBin(signal_2_FFT, 44100.0);
 	auto signal_2_freq = Math::FreqBin2FreqDomainSeries(signal_2_bin);
-	auto signal_2_synth = Math::Synth(signal_2_bin);
-	//Plotter::Plot(signal_2_synth);
+	auto signal_2_synth = Math::IFFT(signal_2_freq);
+	Plotter::Plot(signal_2_synth);
 
 	// test case : write to new wave file
 	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, 44100, 16, (unsigned long)signal_2.size());
