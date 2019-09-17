@@ -4,16 +4,12 @@ namespace Waveless
 {
 	ComplexArray DSP::Gain(const ComplexArray & x, double gainLevel)
 	{
-		Math l_math;
-
-		ComplexArray l_xProcessed;
-
 		auto N = x.size();
-		l_xProcessed.reserve(N);
+		ComplexArray l_xProcessed(N);
 
 		for (size_t i = 0; i < N; i++)
 		{
-			l_xProcessed.emplace_back(x[i] * l_math.DB2LinearAmp(gainLevel));
+			l_xProcessed[i] = x[i] * Math::DB2LinearAmp(gainLevel);
 		}
 
 		return l_xProcessed;
@@ -21,10 +17,9 @@ namespace Waveless
 
 	ComplexArray DSP::LPF(const ComplexArray & x, double fs, double cutOffFreq)
 	{
-		Math l_math;
-
-		auto l_X = l_math.FFT_SingleFrame(x);
-		auto l_XBin = l_math.FreqDomainSeries2FreqBin_SingleFrame(l_X, fs);
+		auto l_X = x;
+		Math::FFT_SingleFrame(l_X);
+		auto l_XBin = Math::FreqDomainSeries2FreqBin_SingleFrame(l_X, fs);
 		auto l_xProcessed = LPF(l_XBin, cutOffFreq);
 
 		return l_xProcessed;
@@ -32,14 +27,11 @@ namespace Waveless
 
 	ComplexArray DSP::LPF(const FreqBinData & XBinData, double cutOffFreq)
 	{
-		Math l_math;
-
-		ComplexArray l_xProcessed;
-		FreqBinData l_XBinProcessed;
-
 		auto N = XBinData.m_FreqBinArray.size();
 
-		l_xProcessed.reserve(N);
+		ComplexArray l_xProcessed(N);
+		FreqBinData l_XBinProcessed;
+
 		l_XBinProcessed.m_FreqBinArray.reserve(N);
 
 		for (size_t i = 0; i < N; i++)
@@ -49,17 +41,16 @@ namespace Waveless
 			l_XBinProcessed.m_FreqBinArray.emplace_back(XBinData.m_FreqBinArray[i].first, l_mag);
 		}
 
-		l_xProcessed = l_math.Synth_SingleFrame(l_XBinProcessed);
+		l_xProcessed = Math::Synth_SingleFrame(l_XBinProcessed);
 
 		return l_xProcessed;
 	}
 
 	ComplexArray DSP::HPF(const ComplexArray & x, double fs, double cutOffFreq)
 	{
-		Math l_math;
-
-		auto l_X = l_math.FFT_SingleFrame(x);
-		auto l_XBin = l_math.FreqDomainSeries2FreqBin_SingleFrame(l_X, fs);
+		auto l_X = x;
+		Math::FFT_SingleFrame(l_X);
+		auto l_XBin = Math::FreqDomainSeries2FreqBin_SingleFrame(l_X, fs);
 		auto l_xProcessed = HPF(l_XBin, cutOffFreq);
 
 		return l_xProcessed;
@@ -67,14 +58,11 @@ namespace Waveless
 
 	ComplexArray DSP::HPF(const FreqBinData & XBinData, double cutOffFreq)
 	{
-		Math l_math;
-
-		ComplexArray l_xProcessed;
-		FreqBinData l_XBinProcessed;
-
 		auto N = XBinData.m_FreqBinArray.size();
 
-		l_xProcessed.reserve(N);
+		ComplexArray l_xProcessed(N);
+		FreqBinData l_XBinProcessed;
+
 		l_XBinProcessed.m_FreqBinArray.reserve(N);
 
 		for (size_t i = 0; i < N; i++)
@@ -84,7 +72,7 @@ namespace Waveless
 			l_XBinProcessed.m_FreqBinArray.emplace_back(XBinData.m_FreqBinArray[i].first, l_mag);
 		}
 
-		l_xProcessed = l_math.Synth_SingleFrame(l_XBinProcessed);
+		l_xProcessed = Math::Synth_SingleFrame(l_XBinProcessed);
 
 		return l_xProcessed;
 	}

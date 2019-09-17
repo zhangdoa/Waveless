@@ -26,16 +26,14 @@ namespace Waveless
 
 	ComplexArray Math::GenerateSine(double A, double f, double phi, double fs, double t)
 	{
-		ComplexArray x;
 		auto N = size_t(std::round(t * fs));
-		x.reserve(N);
+		ComplexArray x(N);
 
 		auto l_Intensity = DB2LinearAmp(A);
 
 		for (size_t i = 0; i < N; i++)
 		{
-			auto sample = l_Intensity * std::cos(2 * PI * f * (double)i / fs + phi);
-			x.emplace_back(sample);
+			x[i] = l_Intensity * std::cos(2 * PI * f * (double)i / fs + phi);
 		}
 
 		return x;
@@ -43,20 +41,19 @@ namespace Waveless
 
 	ComplexArray Math::DFT(const ComplexArray& x)
 	{
-		ComplexArray X;
 		auto N = x.size();
-		X.reserve(N);
+		ComplexArray X(N);
 
 		for (size_t k = 0; k < N; k++)
 		{
-			auto s = std::complex<double>(0.0, 0.0);
+			auto s = Complex(0.0, 0.0);
 
 			for (size_t i = 0; i < N; i++)
 			{
-				s += x[i] * std::exp(std::complex<double>(0.0, -1.0) * 2.0 * PI * (double)k * ((double)i / (double)N));
+				s += x[i] * std::exp(Complex(0.0, -1.0) * 2.0 * PI * (double)k * ((double)i / (double)N));
 			}
 
-			X.emplace_back(s);
+			X[k] = s;
 		}
 
 		return X;
@@ -64,20 +61,19 @@ namespace Waveless
 
 	ComplexArray Math::IDFT(const ComplexArray & X)
 	{
-		ComplexArray x;
 		auto N = X.size();
-		x.reserve(N);
+		ComplexArray x(N);
 
 		for (size_t k = 0; k < N; k++)
 		{
-			auto s = std::complex<double>(0.0, 0.0);
+			auto s = Complex(0.0, 0.0);
 
 			for (size_t i = 0; i < N; i++)
 			{
-				s += (1.0 / (double)N) * X[i] * std::exp(std::complex<double>(0.0, 1.0) * 2.0 * PI * (double)k * ((double)i / (double)N));
+				s += (1.0 / (double)N) * X[i] * std::exp(Complex(0.0, 1.0) * 2.0 * PI * (double)k * ((double)i / (double)N));
 			}
 
-			x.emplace_back(s);
+			x[k] = s;
 		}
 
 		return x;
@@ -103,49 +99,57 @@ namespace Waveless
 
 		if (!l_isSizeSmallerThanFFTSize)
 		{
-			ComplexArray l_X;
-			l_X.reserve(N);
+			ComplexArray l_X(N);
 
-			auto l_largestFFTChunckSize = FFTSize[FFTSize.size() - 1];
-			auto l_lastChunkSize = N % l_largestFFTChunckSize;
-			auto l_fullChunkNumber = (N - l_lastChunkSize) / l_largestFFTChunckSize;
+			auto l_FFTChunkSize = FFTSize[FFTSize.size() - 1];
+			auto l_lastChunkSize = N % l_FFTChunkSize;
+			auto l_chunkCount = (N - l_lastChunkSize) / l_FFTChunkSize;
 
-			// full chunk
-			for (size_t i = 0; i < l_fullChunkNumber; i++)
+			// full size chunks
+			for (size_t i = 0; i < l_chunkCount; i++)
 			{
-				auto l_chunk = ComplexArray(&x[i * l_largestFFTChunckSize], &x[(i + 1) * l_largestFFTChunckSize]);
-				auto l_FFTResult = FFT_SingleFrame(l_chunk);
-				l_result.emplace_back(l_FFTResult);
+				auto l_chunk = ComplexArray(x[std::slice(i * l_FFTChunkSize, l_FFTChunkSize, 1)]);
+				FFT_SingleFrame(l_chunk);
+				l_result.emplace_back(l_chunk);
 			};
 
 			// last chunk with zero padding
-			auto l_zeroPaddingSize = l_largestFFTChunckSize - l_lastChunkSize;
-			auto l_lastChunk = ComplexArray(&x[l_fullChunkNumber * l_largestFFTChunckSize], &x[x.size() - 1]);
+			ComplexArray l_paddedLastChunk(l_FFTChunkSize);
+			auto l_lastChunk = ComplexArray(x[std::slice(l_chunkCount * l_FFTChunkSize, l_lastChunkSize, 1)]);
 
-			for (size_t i = 0; i < l_zeroPaddingSize + 1; i++)
+			for (size_t i = 0; i < l_lastChunk.size(); i++)
 			{
-				l_lastChunk.emplace_back(std::complex<double>(0.0, 0.0));
+				l_paddedLastChunk[i] = l_lastChunk[i];
 			}
 
-			auto l_FFTResult = FFT_SingleFrame(l_lastChunk);
-			l_result.emplace_back(l_FFTResult);
+			auto l_zeroPaddingSize = l_FFTChunkSize - l_lastChunkSize;
+			for (size_t i = 0; i < l_zeroPaddingSize; i++)
+			{
+				l_paddedLastChunk[i + l_lastChunkSize] = Complex(0.0, 0.0);
+			}
+
+			FFT_SingleFrame(l_paddedLastChunk);
+			l_result.emplace_back(l_paddedLastChunk);
 		}
 		else
 		{
-			ComplexArray l_X;
-			l_X.reserve(N);
-
 			// zero padding
-			auto l_zeroPaddingSize = N - x.size();
-			auto l_padx = x;
-			for (size_t i = 0; i < l_zeroPaddingSize; i++)
+			ComplexArray l_paddedChunk(N);
+
+			for (size_t i = 0; i < x.size(); i++)
 			{
-				l_padx.emplace_back(std::complex<double>(0.0, 0.0));
+				l_paddedChunk[i] = x[i];
 			}
 
-			auto l_FFTResult = FFT_SingleFrame(l_padx);
+			auto l_zeroPaddingSize = N - x.size();
+			for (size_t i = 0; i < l_zeroPaddingSize; i++)
+			{
+				l_paddedChunk[i + x.size()] = Complex(0.0, 0.0);
+			}
 
-			l_result.emplace_back(l_FFTResult);
+			FFT_SingleFrame(l_paddedChunk);
+
+			l_result.emplace_back(l_paddedChunk);
 		}
 
 		return l_result;
@@ -153,104 +157,58 @@ namespace Waveless
 
 	ComplexArray Math::IFFT(const std::vector<ComplexArray> & X)
 	{
-		ComplexArray l_result;
+		std::vector<Complex> l_vector;
+		l_vector.reserve(X.size() * X[0].size());
 
 		for (auto Xi : X)
 		{
-			auto N = Xi.size();
-			auto l_x = IFFT_SingleFrame(Xi);
-			for (auto& i : l_x)
-			{
-				i /= (double)N;
-			}
-			l_result.insert(std::end(l_result), std::begin(l_x), std::end(l_x));
+			IFFT_SingleFrame(Xi);
+			l_vector.insert(std::end(l_vector), std::begin(Xi), std::end(Xi));
 		}
+
+		ComplexArray l_result(l_vector.data(), l_vector.size());
 
 		return l_result;
 	}
 
-	ComplexArray Math::FFT_SingleFrame(const ComplexArray & x)
+	void Math::FFT_SingleFrame(ComplexArray & x)
 	{
-		auto N = x.size();
-
-		// base case
-		if (N == 1)
+		const size_t N = x.size();
+		if (N <= 1)
 		{
-			return ComplexArray(1, x[0]);
+			return;
 		}
 
-		ComplexArray w(N);
-		for (size_t i = 0; i < N; i++)
+		// Divide
+		ComplexArray even = x[std::slice(0, N / 2, 2)];
+		ComplexArray odd = x[std::slice(1, N / 2, 2)];
+
+		// Conquer
+		FFT_SingleFrame(even);
+		FFT_SingleFrame(odd);
+
+		// Combine
+		for (size_t k = 0; k < N / 2; ++k)
 		{
-			double alpha = 2 * PI * i / N;
-			w[i] = std::complex<double>(cos(alpha), sin(alpha));
+			Complex t = std::polar(1.0, -2 * PI * k / N) * odd[k];
+			x[k] = even[k] + t;
+			x[k + N / 2] = even[k] - t;
 		}
-
-		// divide
-		ComplexArray evenSamples(N / 2);
-		ComplexArray oddSamples(N / 2);
-
-		for (int i = 0; i < N / 2; i++)
-		{
-			evenSamples[i] = x[i * 2];
-			oddSamples[i] = x[i * 2 + 1];
-		}
-
-		// conquer
-		ComplexArray evenFreq = FFT_SingleFrame(evenSamples);
-		ComplexArray oddFreq = FFT_SingleFrame(oddSamples);
-
-		// combine result
-		ComplexArray result(N);
-
-		for (size_t i = 0; i < N; i++)
-		{
-			result[i] = evenFreq[i % (N / 2)] + w[i] * oddFreq[i % (N / 2)];
-		}
-
-		return result;
 	}
 
-	ComplexArray Math::IFFT_SingleFrame(const ComplexArray & X)
+	void Math::IFFT_SingleFrame(ComplexArray & X)
 	{
-		auto N = X.size();
+		// Conjugate the complex numbers
+		X = X.apply(std::conj);
 
-		// base case
-		if (N == 1)
-		{
-			return ComplexArray(1, X[0]);
-		}
+		// forward FFT
+		FFT_SingleFrame(X);
 
-		ComplexArray w(N);
-		for (size_t i = 0; i < N; i++)
-		{
-			double alpha = 2 * PI * i / N;
-			w[i] = std::complex<double>(cos(alpha), -sin(alpha));
-		}
+		// Conjugate the complex numbers again
+		X = X.apply(std::conj);
 
-		// divide
-		ComplexArray evenSamples(N / 2);
-		ComplexArray oddSamples(N / 2);
-
-		for (int i = 0; i < N / 2; i++)
-		{
-			evenSamples[i] = X[i * 2];
-			oddSamples[i] = X[i * 2 + 1];
-		}
-
-		// conquer
-		ComplexArray evenFreq = IFFT_SingleFrame(evenSamples);
-		ComplexArray oddFreq = IFFT_SingleFrame(oddSamples);
-
-		// combine result
-		ComplexArray result(N);
-
-		for (size_t i = 0; i < N; i++)
-		{
-			result[i] = evenFreq[i % (N / 2)] + w[i] * oddFreq[i % (N / 2)];
-		}
-
-		return result;
+		// Scale the numbers
+		X /= (double)X.size();
 	}
 
 	std::vector<FreqBinData> Math::FreqDomainSeries2FreqBin(const std::vector<ComplexArray>& X, double fs)
@@ -301,7 +259,7 @@ namespace Waveless
 			//auto amp_imag = linear2dBMag(std::abs(X[i].imag()));
 			//amp_imag = X[i].imag() > 0.0 ? amp_imag : -amp_imag;
 			auto amp_imag = X[i].imag();
-			FreqBin bin(freq, std::complex<double>(amp_real, amp_imag));
+			FreqBin bin(freq, Complex(amp_real, amp_imag));
 			XBinData.m_FreqBinArray.emplace_back(bin);
 		}
 
@@ -310,14 +268,12 @@ namespace Waveless
 
 	ComplexArray Math::FreqBin2FreqDomainSeries_SingleFrame(const FreqBinData & XBinData)
 	{
-		ComplexArray X;
 		auto N = XBinData.m_FreqBinArray.size();
-
 		auto l_dataSize = N * 2;
-		X.reserve(l_dataSize);
+		ComplexArray X(l_dataSize);
 
 		// X[0] is the DC Offset
-		X.emplace_back(XBinData.m_DCOffset);
+		X[0] = XBinData.m_DCOffset;
 
 		// First half of data
 		for (size_t i = 0; i < N; i++)
@@ -328,15 +284,15 @@ namespace Waveless
 			//auto amp_imag = dB2LinearMag(XBinData[i].second.imag());
 			//amp_imag = XBinData[i].second.imag() > 0.0 ? amp_imag : -amp_imag;
 			auto amp_imag = XBinData.m_FreqBinArray[i].second.imag();
-			X.emplace_back(std::complex<double>(amp_real, amp_imag));
+			X[i + 1] = Complex(amp_real, amp_imag);
 		}
 
 		// Second half of data, without XBinData[N - 1]
-		for (size_t i = N - 1; i > 0; i--)
+		for (size_t i = 0; i < N; i++)
 		{
-			auto amp_real = X[i].real();
-			auto amp_imag = X[i].imag();
-			X.emplace_back(std::complex<double>(amp_real, amp_imag));
+			auto amp_real = X[N - i].real();
+			auto amp_imag = X[N - i].imag();
+			X[i + N] = Complex(amp_real, amp_imag);
 		}
 
 		return X;
@@ -344,13 +300,16 @@ namespace Waveless
 
 	ComplexArray Math::Synth(const std::vector<FreqBinData>& XBinData)
 	{
-		ComplexArray l_result;
+		std::vector<Complex> l_vector;
+		l_vector.reserve(XBinData.size() * XBinData[0].m_FreqBinArray.size());
 
 		for (auto XBinDatai : XBinData)
 		{
 			auto l_x = Synth_SingleFrame(XBinDatai);
-			l_result.insert(std::end(l_result), std::begin(l_x), std::end(l_x));
+			l_vector.insert(std::end(l_vector), std::begin(l_x), std::end(l_x));
 		}
+
+		ComplexArray l_result(l_vector.data(), l_vector.size());
 
 		return l_result;
 	}
@@ -358,6 +317,7 @@ namespace Waveless
 	ComplexArray Math::Synth_SingleFrame(const FreqBinData & XBinData)
 	{
 		auto l_X = FreqBin2FreqDomainSeries_SingleFrame(XBinData);
-		return IFFT_SingleFrame(l_X);
+		IFFT_SingleFrame(l_X);
+		return l_X;
 	}
 }

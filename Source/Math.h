@@ -3,15 +3,16 @@
 
 namespace Waveless
 {
-	using ComplexArray = std::vector<std::complex<double>>;
+	using Complex = std::complex<double>;
+	using ComplexArray = std::valarray<Complex>;
 
 	using Freq = double;
-	using FreqBin = std::pair<Freq, std::complex<double>>;
+	using FreqBin = std::pair<Freq, Complex>;
 	using FreqBinArray = std::vector<FreqBin>;
 
 	struct FreqBinData
 	{
-		std::complex<double> m_DCOffset;
+		Complex m_DCOffset;
 		FreqBinArray m_FreqBinArray;
 	};
 
@@ -48,9 +49,9 @@ namespace Waveless
 
 		static ComplexArray IFFT(const std::vector<ComplexArray>& X);
 
-		static ComplexArray FFT_SingleFrame(const ComplexArray& x);
+		static void FFT_SingleFrame(ComplexArray& x);
 
-		static ComplexArray IFFT_SingleFrame(const ComplexArray& x);
+		static void IFFT_SingleFrame(ComplexArray& x);
 
 		///
 		/// Convert the frequency domain signal series to a frequency bin collection.
@@ -61,7 +62,7 @@ namespace Waveless
 		);
 
 		///
-		/// Convert the frequency domain signal series to a frequency bin collection. Single frame impl.
+		/// Convert the frequency domain signal series to a frequency bin collection. Single frame version.
 		///
 		static FreqBinData FreqDomainSeries2FreqBin_SingleFrame(
 			const ComplexArray& X /// Input frequency domain signal series
@@ -76,21 +77,21 @@ namespace Waveless
 		);
 
 		///
-		/// Convert the frequency bin collection to a frequency domain signal series. Single frame impl.
+		/// Convert the frequency bin collection to a frequency domain signal series. Single frame version.
 		///
 		static ComplexArray FreqBin2FreqDomainSeries_SingleFrame(
 			const FreqBinData& XBinData /// Input frequency bin collection
 		);
 
 		///
-		/// Synthenize a time domain signal series by a given frequency bin collection.
+		/// Synthesize a time domain signal series by a given frequency bin collection.
 		///
 		static ComplexArray Synth(
 			const std::vector<FreqBinData>& XBinData /// Input frequency bin collection
 		);
 
 		///
-		/// Synthenize a time domain signal series by a given frequency bin collection. Single frame impl.
+		/// Synthesize a time domain signal series by a given frequency bin collection. Single frame version.
 		///
 		static ComplexArray Synth_SingleFrame(
 			const FreqBinData& XBinData /// Input frequency bin collection
