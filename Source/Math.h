@@ -3,6 +3,8 @@
 
 namespace Waveless
 {
+	inline static const double PI = 3.1415926536;
+
 	using Complex = std::complex<double>;
 	using ComplexArray = std::valarray<Complex>;
 
@@ -14,6 +16,23 @@ namespace Waveless
 	{
 		Complex m_DCOffset;
 		FreqBinArray m_FreqBinArray;
+	};
+
+	enum class WindowType
+	{
+		Rectangular,
+		Hann,
+		Hamming,
+		Blackman,
+		Nuttall,
+		BlackmanNuttall,
+		BlackmanHarris
+	};
+
+	struct WindowDesc
+	{
+		WindowType m_WindowType;
+		size_t m_WindowSize;
 	};
 
 	class Math
@@ -45,9 +64,11 @@ namespace Waveless
 
 		static ComplexArray IDFT(const ComplexArray& X);
 
-		static std::vector<ComplexArray> FFT(const ComplexArray& x);
+		static ComplexArray GenerateWindowFunction(WindowDesc windowDesc);
 
-		static ComplexArray IFFT(const std::vector<ComplexArray>& X);
+		static std::vector<ComplexArray> FFT(const ComplexArray& x, WindowDesc windowDesc);
+
+		static ComplexArray IFFT(const std::vector<ComplexArray>& X, WindowDesc windowDesc);
 
 		static void FFT_SingleFrame(ComplexArray& x);
 
@@ -57,46 +78,45 @@ namespace Waveless
 		/// Convert the frequency domain signal series to a frequency bin collection.
 		///
 		static std::vector<FreqBinData> FreqDomainSeries2FreqBin(
-			const std::vector<ComplexArray>& X /// Input frequency domain signal series
-			, double fs /// Sample rate in Hz
+			const std::vector<ComplexArray>& X ///< Input frequency domain signal series
+			, double fs ///< Sample rate in Hz
 		);
 
 		///
 		/// Convert the frequency domain signal series to a frequency bin collection. Single frame version.
 		///
 		static FreqBinData FreqDomainSeries2FreqBin_SingleFrame(
-			const ComplexArray& X /// Input frequency domain signal series
-			, double fs /// Sample rate in Hz
+			const ComplexArray& X ///< Input frequency domain signal series
+			, double fs ///< Sample rate in Hz
 		);
 
 		///
 		/// Convert the frequency bin collection to a frequency domain signal series.
 		///
 		static std::vector <ComplexArray> FreqBin2FreqDomainSeries(
-			const std::vector<FreqBinData>& XBinData /// Input frequency bin collection
+			const std::vector<FreqBinData>& XBinData ///< Input frequency bin collection
 		);
 
 		///
 		/// Convert the frequency bin collection to a frequency domain signal series. Single frame version.
 		///
 		static ComplexArray FreqBin2FreqDomainSeries_SingleFrame(
-			const FreqBinData& XBinData /// Input frequency bin collection
+			const FreqBinData& XBinData ///< Input frequency bin collection
 		);
 
 		///
 		/// Synthesize a time domain signal series by a given frequency bin collection.
 		///
 		static ComplexArray Synth(
-			const std::vector<FreqBinData>& XBinData /// Input frequency bin collection
+			const std::vector<FreqBinData>& XBinData, ///< Input frequency bin collection
+			WindowDesc windowDesc ///< STFT window description
 		);
 
 		///
 		/// Synthesize a time domain signal series by a given frequency bin collection. Single frame version.
 		///
 		static ComplexArray Synth_SingleFrame(
-			const FreqBinData& XBinData /// Input frequency bin collection
+			const FreqBinData& XBinData ///< Input frequency bin collection
 		);
-
-		inline static const double PI = 3.1415926536;
 	};
 }

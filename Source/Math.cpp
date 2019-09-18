@@ -2,8 +2,6 @@
 
 namespace Waveless
 {
-	static std::vector<unsigned int> FFTSize = { 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048 };
-
 	double Math::DB2LinearMag(double dB)
 	{
 		return std::pow(10, dB / 10.0);
@@ -79,36 +77,104 @@ namespace Waveless
 		return x;
 	}
 
-	std::vector<ComplexArray> Math::FFT(const ComplexArray & x)
+	ComplexArray Math::GenerateWindowFunction(WindowDesc windowDesc)
 	{
-		// @TODO: window and zero padding
-		auto N = x.size();
-		bool l_isSizeSmallerThanFFTSize = false;
+		auto N = windowDesc.m_WindowSize;
 
-		for (auto i : FFTSize)
+		ComplexArray l_result(N);
+
+		switch (windowDesc.m_WindowType)
 		{
-			if (N <= i)
+		case Waveless::WindowType::Rectangular:
+			l_result = 1.0;
+			break;
+		case Waveless::WindowType::Hann:
+			for (size_t i = 0; i < N; i++)
 			{
-				N = i;
-				l_isSizeSmallerThanFFTSize = true;
-				break;
+				l_result[i] = pow(sin(PI * (double)i / (double)N), 2.0);
 			}
+			break;
+		case Waveless::WindowType::Hamming:
+			for (size_t i = 0; i < N; i++)
+			{
+				l_result[i] = 0.53836 + 0.46164 * cos(2.0 * PI * (double)i / (double)N);
+			}
+			break;
+		case Waveless::WindowType::Blackman:
+			for (size_t i = 0; i < N; i++)
+			{
+				l_result[i] = 0.42659 - 0.49656 * cos(2.0 * PI * (double)i / (double)N) + 0.076849 * cos(4.0 * PI * (double)i / (double)N);
+			}
+			break;
+		case Waveless::WindowType::Nuttall:
+			for (size_t i = 0; i < N; i++)
+			{
+				l_result[i] = 0.355768 - 0.487396 * cos(2.0 * PI * (double)i / (double)N) + 0.144232 * cos(4.0 * PI * (double)i / (double)N) - 0.012604 * cos(6.0 * PI * (double)i / (double)N);
+			}
+			break;
+		case Waveless::WindowType::BlackmanNuttall:
+			for (size_t i = 0; i < N; i++)
+			{
+				l_result[i] = 0.3635819 - 0.4891775 * cos(2.0 * PI * (double)i / (double)N) + 0.1365995 * cos(4.0 * PI * (double)i / (double)N) - 0.0106411 * cos(6.0 * PI * (double)i / (double)N);
+			}
+			break;
+		case Waveless::WindowType::BlackmanHarris:
+			for (size_t i = 0; i < N; i++)
+			{
+				l_result[i] = 0.35875 - 0.48829 * cos(2.0 * PI * (double)i / (double)N) + 0.14128 * cos(4.0 * PI * (double)i / (double)N) - 0.01168 * cos(6.0 * PI * (double)i / (double)N);
+			}
+			break;
+		default:
+			break;
 		}
 
+		return l_result;
+	}
+
+	std::vector<ComplexArray> Math::FFT(const ComplexArray & x, WindowDesc windowDesc)
+	{
+		auto N = x.size();
 		std::vector<ComplexArray> l_result;
 
-		if (!l_isSizeSmallerThanFFTSize)
+		if (N < windowDesc.m_WindowSize)
 		{
+			N = windowDesc.m_WindowSize;
+
+			// zero padding
+			ComplexArray l_paddedChunk(N);
+
+			for (size_t i = 0; i < x.size(); i++)
+			{
+				l_paddedChunk[i] = x[i];
+			}
+
+			auto l_zeroPaddingSize = N - x.size();
+			for (size_t i = 0; i < l_zeroPaddingSize; i++)
+			{
+				l_paddedChunk[i + x.size()] = Complex(0.0, 0.0);
+			}
+
+			FFT_SingleFrame(l_paddedChunk);
+
+			l_result.emplace_back(l_paddedChunk);
+		}
+		else
+		{
+			auto l_window = GenerateWindowFunction(windowDesc);
+
 			ComplexArray l_X(N);
 
-			auto l_FFTChunkSize = FFTSize[FFTSize.size() - 1];
+			auto l_FFTChunkSize = windowDesc.m_WindowSize;
 			auto l_lastChunkSize = N % l_FFTChunkSize;
 			auto l_chunkCount = (N - l_lastChunkSize) / l_FFTChunkSize;
 
 			// full size chunks
+			// @TODO: window overlapping
 			for (size_t i = 0; i < l_chunkCount; i++)
 			{
 				auto l_chunk = ComplexArray(x[std::slice(i * l_FFTChunkSize, l_FFTChunkSize, 1)]);
+				l_chunk *= l_window;
+
 				FFT_SingleFrame(l_chunk);
 				l_result.emplace_back(l_chunk);
 			};
@@ -131,39 +197,31 @@ namespace Waveless
 			FFT_SingleFrame(l_paddedLastChunk);
 			l_result.emplace_back(l_paddedLastChunk);
 		}
-		else
-		{
-			// zero padding
-			ComplexArray l_paddedChunk(N);
-
-			for (size_t i = 0; i < x.size(); i++)
-			{
-				l_paddedChunk[i] = x[i];
-			}
-
-			auto l_zeroPaddingSize = N - x.size();
-			for (size_t i = 0; i < l_zeroPaddingSize; i++)
-			{
-				l_paddedChunk[i + x.size()] = Complex(0.0, 0.0);
-			}
-
-			FFT_SingleFrame(l_paddedChunk);
-
-			l_result.emplace_back(l_paddedChunk);
-		}
 
 		return l_result;
 	}
 
-	ComplexArray Math::IFFT(const std::vector<ComplexArray> & X)
+	ComplexArray Math::IFFT(const std::vector<ComplexArray> & X, WindowDesc windowDesc)
 	{
 		std::vector<Complex> l_vector;
 		l_vector.reserve(X.size() * X[0].size());
 
-		for (auto Xi : X)
+		if (X.size() == 1)
 		{
-			IFFT_SingleFrame(Xi);
-			l_vector.insert(std::end(l_vector), std::begin(Xi), std::end(Xi));
+			auto X0 = X[0];
+			IFFT_SingleFrame(X0);
+			l_vector.insert(std::end(l_vector), std::begin(X0), std::end(X0));
+		}
+		else
+		{
+			auto l_window = GenerateWindowFunction(windowDesc);
+
+			for (auto Xi : X)
+			{
+				IFFT_SingleFrame(Xi);
+				Xi /= l_window;
+				l_vector.insert(std::end(l_vector), std::begin(Xi), std::end(Xi));
+			}
 		}
 
 		ComplexArray l_result(l_vector.data(), l_vector.size());
@@ -298,7 +356,7 @@ namespace Waveless
 		return X;
 	}
 
-	ComplexArray Math::Synth(const std::vector<FreqBinData>& XBinData)
+	ComplexArray Math::Synth(const std::vector<FreqBinData>& XBinData, WindowDesc windowDesc)
 	{
 		std::vector<Complex> l_vector;
 		l_vector.reserve(XBinData.size() * XBinData[0].m_FreqBinArray.size());
