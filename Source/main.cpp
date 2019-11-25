@@ -3,6 +3,7 @@
 #include "Math.h"
 #include "DSP.h"
 #include "Plotter.h"
+#include "AudioEngine.h"
 
 using namespace Waveless;
 
@@ -11,6 +12,8 @@ int main()
 	WindowDesc l_windowDesc;
 	l_windowDesc.m_WindowSize = 512;
 	l_windowDesc.m_WindowType = WindowType::BlackmanHarris;
+
+	AudioEngine::Initialize();
 
 	// test case : DFT, IDFT, FFT and IFFT
 	ComplexArray signal_1 = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0 };

@@ -1,0 +1,4 @@
+[submodule "GitSubmodules/miniaudio"]
+	path = GitSubmodules/miniaudio
+	url = https://github.com/dr-soft/miniaudio
+	ignore = dirty
