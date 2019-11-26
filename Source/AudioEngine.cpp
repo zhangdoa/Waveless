@@ -11,21 +11,20 @@
 
 namespace Waveless
 {
-	ma_result result;
 	ma_decoder decoder;
+	ma_decoder_config decoderConfig;
 	ma_device_config deviceConfig;
 	ma_device device;
+	ma_event stopEvent;
 
 	void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 	{
-		ma_decoder* pDecoder = (ma_decoder*)pDevice->pUserData;
+		auto l_frame = ma_decoder_read_pcm_frames(&decoder, pOutput, frameCount);
 
-		if (pDecoder == nullptr)
+		if (l_frame < frameCount)
 		{
-			return;
+			ma_event_signal(&stopEvent);
 		}
-
-		ma_decoder_read_pcm_frames(pDecoder, pOutput, frameCount);
 
 		(void)pInput;
 	}
@@ -44,6 +43,8 @@ namespace Waveless
 			printf("Failed to open playback device.\n");
 			Terminate();
 		}
+
+		ma_event_init(device.pContext, &stopEvent);
 	}
 
 	void AudioEngine::Run()
@@ -55,8 +56,18 @@ namespace Waveless
 		}
 	}
 
+	void AudioEngine::Play(const WaveData & waveData)
+	{
+		//auto l_wavHeader = reinterpret_cast<StandardWavHeader*>(waveData.wavHeader);
+		//decoderConfig = ma_decoder_config_init(ma_format_s16, l_wavHeader->fmtChunk.nChannels, l_wavHeader->fmtChunk.nSamplesPerSec);
+		decoderConfig = ma_decoder_config_init(ma_format_s16, 2, MA_SAMPLE_RATE_44100);
+
+		auto l_result = ma_decoder_init_memory_raw(waveData.rawData.data(), waveData.rawData.size(), &decoderConfig, &decoderConfig, &decoder);
+	}
+
 	void AudioEngine::Terminate()
 	{
+		ma_event_wait(&stopEvent);
 		ma_device_uninit(&device);
 	}
 }

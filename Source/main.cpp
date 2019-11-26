@@ -35,11 +35,12 @@ int main()
 	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, 44100, 16, (unsigned long)signal_2_synth.size());
 	WaveParser::WriteFile("..//Asset//test_Sinusoid.wav", &l_newWavHeader, signal_2_synth);
 	Plotter::Show();
-
 	// test case : wave file loading and parsing
 	auto l_waveData = WaveParser::LoadFile("..//Asset//test.wav");
 	auto l_wavHeader = reinterpret_cast<StandardWavHeader*>(l_waveData.wavHeader);
 	auto l_sampleRate = l_wavHeader->fmtChunk.nSamplesPerSec;
+	AudioEngine::Play(l_waveData);
+	AudioEngine::Run();
 
 	// test case : get freq bin of wave data
 	std::vector<Complex> l_singal3Temp(l_waveData.rawData.begin(), l_waveData.rawData.end());
@@ -54,6 +55,8 @@ int main()
 
 	// test case : write to new wave file
 	WaveParser::WriteFile("..//Asset//test_Processed.wav", l_wavHeader, l_rawDataProcessed);
+
+	AudioEngine::Terminate();
 
 	return 0;
 }
