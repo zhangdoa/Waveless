@@ -88,76 +88,76 @@ namespace Waveless
 		printLog("DataSize: " + std::to_string(rhs.cksize));
 	}
 
-	void printStandardWavHeader(StandardWavHeader* wavHeader)
+	void printStandardWavHeader(StandardWavHeader* header)
 	{
-		printRIFFChunk(wavHeader->RIFFChunk);
-		printStandardFmtChunk(wavHeader->fmtChunk);
-		printDataChunk(wavHeader->DataChunk);
+		printRIFFChunk(header->RIFFChunk);
+		printStandardFmtChunk(header->fmtChunk);
+		printDataChunk(header->DataChunk);
 	}
 
-	void printNonPCMWavHeader(NonPCMWavHeader* wavHeader)
+	void printNonPCMWavHeader(NonPCMWavHeader* header)
 	{
-		printRIFFChunk(wavHeader->RIFFChunk);
-		printNonPCMFmtChunk(wavHeader->fmtChunk);
-		printfactChunk(wavHeader->factChunk);
-		printDataChunk(wavHeader->DataChunk);
+		printRIFFChunk(header->RIFFChunk);
+		printNonPCMFmtChunk(header->fmtChunk);
+		printfactChunk(header->factChunk);
+		printDataChunk(header->DataChunk);
 	}
 
-	void printExtensibleWavHeader(ExtensibleWavHeader* wavHeader)
+	void printExtensibleWavHeader(ExtensibleWavHeader* header)
 	{
-		printRIFFChunk(wavHeader->RIFFChunk);
-		printExtensibleFmtChunk(wavHeader->fmtChunk);
-		printfactChunk(wavHeader->factChunk);
-		printDataChunk(wavHeader->DataChunk);
+		printRIFFChunk(header->RIFFChunk);
+		printExtensibleFmtChunk(header->fmtChunk);
+		printfactChunk(header->factChunk);
+		printDataChunk(header->DataChunk);
 	}
 
-	void printBWFWavHeader(BWFWavHeader* wavHeader)
+	void printBWFWavHeader(BWFWavHeader* header)
 	{
-		printRIFFChunk(wavHeader->RIFFChunk);
-		printExtensibleFmtChunk(wavHeader->fmtChunk);
-		printbextChunk(wavHeader->bextChunk);
-		printfactChunk(wavHeader->factChunk);
-		printDataChunk(wavHeader->DataChunk);
+		printRIFFChunk(header->RIFFChunk);
+		printExtensibleFmtChunk(header->fmtChunk);
+		printbextChunk(header->bextChunk);
+		printfactChunk(header->factChunk);
+		printDataChunk(header->DataChunk);
 	}
 
 	StandardWavHeader WaveParser::GenerateStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize)
 	{
-		StandardWavHeader l_wavHeader;
-		l_wavHeader.type = WavHeaderType::Standard;
+		StandardWavHeader l_header;
+		l_header.type = WavHeaderType::Standard;
 
-		std::memcpy(l_wavHeader.RIFFChunk.ckID, "RIFF", 4);
-		l_wavHeader.RIFFChunk.cksize = 44 + dataChuckSize;
-		std::memcpy(l_wavHeader.RIFFChunk.WAVEID, "WAVE", 4);
+		std::memcpy(l_header.RIFFChunk.ckID, "RIFF", 4);
+		l_header.RIFFChunk.cksize = 44 + dataChuckSize;
+		std::memcpy(l_header.RIFFChunk.WAVEID, "WAVE", 4);
 
-		std::memcpy(l_wavHeader.fmtChunk.ckID, "fmt ", 4);
-		l_wavHeader.fmtChunk.cksize = 16;
-		l_wavHeader.fmtChunk.wFormatTag = 1;
-		l_wavHeader.fmtChunk.nChannels = nChannels;
-		l_wavHeader.fmtChunk.nSamplesPerSec = nSamplesPerSec;
-		l_wavHeader.fmtChunk.nAvgBytesPerSec = nSamplesPerSec * nChannels * wBitsPerSample / 8;
-		l_wavHeader.fmtChunk.nBlockAlign = nChannels * wBitsPerSample / 8;
-		l_wavHeader.fmtChunk.wBitsPerSample = wBitsPerSample;
+		std::memcpy(l_header.fmtChunk.ckID, "fmt ", 4);
+		l_header.fmtChunk.cksize = 16;
+		l_header.fmtChunk.wFormatTag = 1;
+		l_header.fmtChunk.nChannels = nChannels;
+		l_header.fmtChunk.nSamplesPerSec = nSamplesPerSec;
+		l_header.fmtChunk.nAvgBytesPerSec = nSamplesPerSec * nChannels * wBitsPerSample / 8;
+		l_header.fmtChunk.nBlockAlign = nChannels * wBitsPerSample / 8;
+		l_header.fmtChunk.wBitsPerSample = wBitsPerSample;
 
-		std::memcpy(l_wavHeader.DataChunk.ckID, "data", 4);
-		l_wavHeader.DataChunk.cksize = dataChuckSize;
+		std::memcpy(l_header.DataChunk.ckID, "data", 4);
+		l_header.DataChunk.cksize = dataChuckSize;
 
-		return l_wavHeader;
+		return l_header;
 	}
 
-	void WaveParser::PrintWavHeader(IWavHeader* wavHeader)
+	void WaveParser::PrintWavHeader(IWavHeader* header)
 	{
-		switch (wavHeader->type)
+		switch (header->type)
 		{
-		case WavHeaderType::Standard: printStandardWavHeader(reinterpret_cast<StandardWavHeader*>(wavHeader)); break;
-		case WavHeaderType::NonPCM: printNonPCMWavHeader(reinterpret_cast<NonPCMWavHeader*>(wavHeader)); break;
-		case WavHeaderType::Extensible: printExtensibleWavHeader(reinterpret_cast<ExtensibleWavHeader*>(wavHeader)); break;
-		case WavHeaderType::BWF: printBWFWavHeader(reinterpret_cast<BWFWavHeader*>(wavHeader)); break;
+		case WavHeaderType::Standard: printStandardWavHeader(reinterpret_cast<StandardWavHeader*>(header)); break;
+		case WavHeaderType::NonPCM: printNonPCMWavHeader(reinterpret_cast<NonPCMWavHeader*>(header)); break;
+		case WavHeaderType::Extensible: printExtensibleWavHeader(reinterpret_cast<ExtensibleWavHeader*>(header)); break;
+		case WavHeaderType::BWF: printBWFWavHeader(reinterpret_cast<BWFWavHeader*>(header)); break;
 		default:
 			break;
 		}
 	}
 
-	WaveData WaveParser::LoadFile(const std::string & path)
+	WavObject WaveParser::LoadFile(const std::string & path)
 	{
 		std::ifstream l_file(path, std::ios::binary);
 
@@ -177,33 +177,33 @@ namespace Waveless
 		unsigned long l_chuckSize;
 		pbuf->sgetn((char*)&l_chuckSize, sizeof(l_chuckSize));
 
-		WaveData l_result;
-		size_t l_WavHeaderSize = 0;
-		size_t l_rawDataSize = 0;
+		WavObject l_result;
+		size_t l_wavHeaderSize = 0;
+		size_t l_sampleCount = 0;
 
 		if (l_chuckSize == 16)
 		{
 			printLog(path + " is Standard Wave format");
 
 			// vptr
-			l_WavHeaderSize = sizeof(StandardWavHeader) - 4;
-			l_rawDataSize = l_size - l_WavHeaderSize;
-			l_result.wavHeader = new StandardWavHeader();
-			l_result.wavHeader->type = WavHeaderType::Standard;
+			l_wavHeaderSize = sizeof(StandardWavHeader) - 4;
+			l_sampleCount = l_size - l_wavHeaderSize;
+			l_result.header = new StandardWavHeader();
+			l_result.header->type = WavHeaderType::Standard;
 			pbuf->pubseekpos(0, l_file.in);
-			pbuf->sgetn((char*)l_result.wavHeader + 4, l_WavHeaderSize);
+			pbuf->sgetn((char*)l_result.header + 4, l_wavHeaderSize);
 		}
 		else if (l_chuckSize == 18)
 		{
 			printLog(path + " is Non-PCM Wave format");
 
 			// vptr
-			l_WavHeaderSize = sizeof(NonPCMWavHeader) - 4;
-			l_rawDataSize = l_size - l_WavHeaderSize;
-			l_result.wavHeader = new NonPCMWavHeader();
-			l_result.wavHeader->type = WavHeaderType::NonPCM;
+			l_wavHeaderSize = sizeof(NonPCMWavHeader) - 4;
+			l_sampleCount = l_size - l_wavHeaderSize;
+			l_result.header = new NonPCMWavHeader();
+			l_result.header->type = WavHeaderType::NonPCM;
 			pbuf->pubseekpos(0, l_file.in);
-			pbuf->sgetn((char*)l_result.wavHeader + 4, l_WavHeaderSize);
+			pbuf->sgetn((char*)l_result.header + 4, l_wavHeaderSize);
 		}
 		else if (l_chuckSize == 40)
 		{
@@ -217,15 +217,15 @@ namespace Waveless
 				printLog(path + " is Broadcast Wave format");
 
 				//get RIFFChunk + ExtensibleFmtChunk + bextChunk size
-				l_WavHeaderSize = 0;
-				l_WavHeaderSize += sizeof(RIFFChunk);
-				l_WavHeaderSize += sizeof(ExtensibleFmtChunk);
-				l_WavHeaderSize += sizeof(bextChunk);
+				l_wavHeaderSize = 0;
+				l_wavHeaderSize += sizeof(RIFFChunk);
+				l_wavHeaderSize += sizeof(ExtensibleFmtChunk);
+				l_wavHeaderSize += sizeof(bextChunk);
 
 				// load temp header
 				auto l_BWFHeader = new BWFWavHeader();
 				pbuf->pubseekpos(0, l_file.in);
-				pbuf->sgetn((char*)l_BWFHeader + 4, l_WavHeaderSize);
+				pbuf->sgetn((char*)l_BWFHeader + 4, l_wavHeaderSize);
 
 				// load code history
 				auto l_bextSize = l_BWFHeader->bextChunk.cksize;
@@ -244,60 +244,60 @@ namespace Waveless
 				pbuf->sgetn((char*)&l_BWFHeader->factChunk, sizeof(factChunk));
 				pbuf->sgetn((char*)&l_BWFHeader->DataChunk, sizeof(DataChunk));
 
-				l_result.wavHeader = l_BWFHeader;
-				auto l_rawDataPos = l_factChunkPos + sizeof(factChunk) + sizeof(DataChunk) + 1;
-				pbuf->pubseekpos(l_rawDataPos, l_file.in);
-				l_result.wavHeader->type = WavHeaderType::BWF;
+				l_result.header = l_BWFHeader;
+				auto l_samplePos = l_factChunkPos + sizeof(factChunk) + sizeof(DataChunk) + 1;
+				pbuf->pubseekpos(l_samplePos, l_file.in);
+				l_result.header->type = WavHeaderType::BWF;
 			}
 			else
 			{
 				printLog(path + " is Extensible Wave format");
 
 				// vptr
-				l_WavHeaderSize = sizeof(ExtensibleWavHeader) - 4;
-				l_rawDataSize = l_size - l_WavHeaderSize;
-				l_result.wavHeader = new ExtensibleWavHeader();
-				l_result.wavHeader->type = WavHeaderType::Extensible;
+				l_wavHeaderSize = sizeof(ExtensibleWavHeader) - 4;
+				l_sampleCount = l_size - l_wavHeaderSize;
+				l_result.header = new ExtensibleWavHeader();
+				l_result.header->type = WavHeaderType::Extensible;
 				pbuf->pubseekpos(0, l_file.in);
-				pbuf->sgetn((char*)l_result.wavHeader + 4, l_WavHeaderSize);
+				pbuf->sgetn((char*)l_result.header + 4, l_wavHeaderSize);
 			}
 		}
 
-		// load raw data
-		auto l_rawData = std::vector<short>(l_rawDataSize);
-		pbuf->sgetn((char*)&l_rawData[0], l_rawDataSize);
-		l_result.rawData = std::move(l_rawData);
+		// load sample
+		auto l_sample = std::vector<short>(l_sampleCount);
+		pbuf->sgetn((char*)&l_sample[0], l_sampleCount);
+		l_result.sample = std::move(l_sample);
 
-		PrintWavHeader(l_result.wavHeader);
+		PrintWavHeader(l_result.header);
 
 		return l_result;
 	}
 
-	bool WaveParser::WriteFile(const std::string & path, IWavHeader * wavHeader, const ComplexArray & x)
+	bool WaveParser::WriteFile(const std::string & path, IWavHeader * header, const ComplexArray & x)
 	{
-		WaveData l_newWaveData;
-		l_newWaveData.wavHeader = wavHeader;
+		WavObject l_wavObject;
+		l_wavObject.header = header;
 
-		std::vector<short> l_newRawData;
-		l_newRawData.reserve(x.size());
+		std::vector<short> l_sample;
+		l_sample.reserve(x.size());
 
 		for (size_t i = 0; i < x.size(); i++)
 		{
-			l_newRawData.emplace_back((short)x[i].real());
+			l_sample.emplace_back((short)x[i].real());
 		}
 
-		l_newWaveData.rawData = l_newRawData;
+		l_wavObject.sample = std::move(l_sample);
 
-		WriteFile(path, l_newWaveData);
+		WriteFile(path, l_wavObject);
 
 		return false;
 	}
 
-	bool WaveParser::WriteFile(const std::string & path, const WaveData& waveData)
+	bool WaveParser::WriteFile(const std::string & path, const WavObject& wavObject)
 	{
 		size_t l_sizeOfWavHeader = 0;
 
-		switch (waveData.wavHeader->type)
+		switch (wavObject.header->type)
 		{
 		case WavHeaderType::Standard: l_sizeOfWavHeader = sizeof(StandardWavHeader); break;
 		case WavHeaderType::NonPCM:  l_sizeOfWavHeader = sizeof(NonPCMWavHeader); break;
@@ -309,8 +309,8 @@ namespace Waveless
 
 		std::ofstream l_file(path, std::ios::binary);
 
-		l_file.write((char*)waveData.wavHeader + 4, l_sizeOfWavHeader - 4);
-		l_file.write((char*)&waveData.rawData[0], waveData.rawData.size());
+		l_file.write((char*)wavObject.header + 4, l_sizeOfWavHeader - 4);
+		l_file.write((char*)&wavObject.sample[0], wavObject.sample.size());
 
 		l_file.close();
 		return true;
@@ -318,7 +318,6 @@ namespace Waveless
 
 	inline void endian_swap(unsigned short& x)
 	{
-		x = (x >> 8) |
-			(x << 8);
+		x = (x >> 8) | (x << 8);
 	}
 }

@@ -28,7 +28,7 @@ namespace Waveless
 		char                ckID[4];         // FMT header
 		unsigned long       cksize;  // Size of the fmt chunk
 		unsigned short      wFormatTag;    // Audio format 1=PCM,6=mulaw,7=alaw, 257=IBM Mu-Law, 258=IBM A-Law, 259=ADPCM
-		unsigned short      nChannels;      // Number of channels 1=Mono 2=Sterio
+		unsigned short      nChannels;      // Number of channels 1=Mono 2=Stereo
 		unsigned long       nSamplesPerSec;  // Sampling Frequency in Hz
 		unsigned long       nAvgBytesPerSec;    // bytes per second
 		unsigned short      nBlockAlign;     // 2=16-bit mono, 4=16-bit stereo
@@ -65,16 +65,16 @@ namespace Waveless
 		char                UMID[64]; // Binary byte of SMPTE UMID
 		unsigned short      LoudnessValue; //unsigned short : Integrated Loudness Value of the file in LUFS (multiplied by 100)
 		unsigned short      LoudnessRange; //unsigned short : Loudness Range of the file in LU(multiplied by 100)
-		unsigned short      MaxTruePeakLevel; //unsigned short : Maximum True Peak Level of the fileexpressed as dBTP(multiplied by 100)
-		unsigned short      MaxMomentaryLoudness; //unsigned short : Highest value of the MomentaryLoudness Level of the file in LUFS(multipliedby 100)
-		unsigned short      MaxShortTermLoudness; //unsigned short : Highest value of the Short-TermLoudness Level of the file in LUFS(multipliedby 100)
+		unsigned short      MaxTruePeakLevel; //unsigned short : Maximum True Peak Level of the file expressed as dBTP(multiplied by 100)
+		unsigned short      MaxMomentaryLoudness; //unsigned short : Highest value of the MomentaryLoudness Level of the file in LUFS(multiplied by 100)
+		unsigned short      MaxShortTermLoudness; //unsigned short : Highest value of the Short-TermLoudness Level of the file in LUFS(multiplied by 100)
 		char                Reserved[180]; //180 bytes, reserved for future use, set to ¡°NULL¡±
-		//char              CodingHistory[]; //ASCII :  History coding
+		//char              CodingHistory[]; //ASCII : History coding
 	};
 
 	struct DataChunk
 	{
-		char                ckID[4]; // "data"  string
+		char                ckID[4]; // "data" string
 		unsigned long       cksize;  // Sampled data length
 	};
 
@@ -115,10 +115,10 @@ namespace Waveless
 		DataChunk           DataChunk;
 	};
 
-	struct WaveData
+	struct WavObject
 	{
-		IWavHeader* wavHeader;
-		std::vector<short> rawData;
+		IWavHeader* header;
+		std::vector<short> sample;
 	};
 
 	class WaveParser
@@ -127,11 +127,11 @@ namespace Waveless
 		WaveParser() = default;
 		~WaveParser() = default;
 
-		static WaveData LoadFile(const std::string& path);
-		static bool WriteFile(const std::string & path, IWavHeader* wavHeader, const ComplexArray& x);
-		static bool WriteFile(const std::string & path, const WaveData& waveData);
+		static WavObject LoadFile(const std::string& path);
+		static bool WriteFile(const std::string & path, IWavHeader* header, const ComplexArray& x);
+		static bool WriteFile(const std::string & path, const WavObject& wavObject);
 
 		static StandardWavHeader GenerateStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize);
-		static void PrintWavHeader(IWavHeader* wavHeader);
+		static void PrintWavHeader(IWavHeader* header);
 	};
 }
