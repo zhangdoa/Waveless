@@ -64,17 +64,11 @@ void testRealTimeFeatures()
 	auto l_eventIDA = AudioEngine::AddEventPrototype(l_wavObjectA);
 	auto l_eventIDB = AudioEngine::AddEventPrototype(l_wavObjectB);
 
-	for (size_t i = 0; i < 256; i++)
-	{
-		AudioEngine::Trigger(l_eventIDA);
-	}
+	AudioEngine::Trigger(l_eventIDA);
 
 	AudioEngine::Trigger(l_eventIDB);
 
-	while (1)
-	{
-		AudioEngine::Flush();
-	}
+	AudioEngine::Flush();
 
 	AudioEngine::Terminate();
 }
