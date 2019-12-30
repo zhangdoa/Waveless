@@ -2,3 +2,8 @@
 	path = GitSubmodules/miniaudio
 	url = https://github.com/dr-soft/miniaudio
 	ignore = dirty
+
+[submodule "GitSubmodules/imgui-node-editor"]
+	path = GitSubmodules/imgui-node-editor
+	url = https://github.com/thedmd/imgui-node-editor
+	ignore = dirty
