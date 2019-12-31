@@ -1,6 +1,6 @@
 #pragma once
-#include "stdafx.h"
-#include "Math.h"
+#include "../Core/stdafx.h"
+#include "../Core/Math.h"
 
 namespace Waveless
 {

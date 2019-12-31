@@ -1,18 +1,13 @@
 #include "AudioEngine.h"
 
 #define DR_FLAC_IMPLEMENTATION
-#include "../GitSubmodules/miniaudio/extras/dr_flac.h"  /* Enables FLAC decoding. */
+#include "../../GitSubmodules/miniaudio/extras/dr_flac.h"  /* Enables FLAC decoding. */
 #define DR_MP3_IMPLEMENTATION
-#include "../GitSubmodules/miniaudio/extras/dr_mp3.h"   /* Enables MP3 decoding. */
+#include "../../GitSubmodules/miniaudio/extras/dr_mp3.h"   /* Enables MP3 decoding. */
 #define DR_WAV_IMPLEMENTATION
-#include "../GitSubmodules/miniaudio/extras/dr_wav.h"   /* Enables WAV decoding. */
+#include "../../GitSubmodules/miniaudio/extras/dr_wav.h"   /* Enables WAV decoding. */
 #define MINIAUDIO_IMPLEMENTATION
-#include "../GitSubmodules/miniaudio/miniaudio.h"
-
-#include <random>
-#include <cmath>
-#include <unordered_map>
-#include <queue>
+#include "../../GitSubmodules/miniaudio/miniaudio.h"
 
 namespace Waveless
 {

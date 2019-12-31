@@ -170,9 +170,9 @@ namespace Waveless
 
 			// full size chunks
 			// @TODO: window overlapping
-			for (size_t i = 0; i < l_chunkCount; i++)
+			for (size_t i = 0; i < l_chunkCount * 2; i++)
 			{
-				auto l_chunk = ComplexArray(x[std::slice(i * l_FFTChunkSize, l_FFTChunkSize, 1)]);
+				auto l_chunk = ComplexArray(x[std::slice(i * l_FFTChunkSize / 2, l_FFTChunkSize, 1)]);
 				l_chunk *= l_window;
 
 				FFT_SingleFrame(l_chunk);

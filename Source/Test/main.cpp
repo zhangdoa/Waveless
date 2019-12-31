@@ -1,9 +1,9 @@
 #pragma once
-#include "WaveParser.h"
-#include "Math.h"
-#include "DSP.h"
-#include "Plotter.h"
-#include "AudioEngine.h"
+#include "../IO/WaveParser.h"
+#include "../Core/Math.h"
+#include "../Core/DSP.h"
+#include "../Runtime/Plotter.h"
+#include "../Runtime/AudioEngine.h"
 
 using namespace Waveless;
 
@@ -31,11 +31,11 @@ void testOfflineFeatures()
 
 	// test case : write to new wave file
 	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, 44100, 16, (unsigned long)signal_2_synth.size());
-	WaveParser::WriteFile("..//Asset//test_Sinusoid.wav", &l_newWavHeader, signal_2_synth);
+	WaveParser::WriteFile("..//..//Asset//test_Sinusoid.wav", &l_newWavHeader, signal_2_synth);
 	Plotter::Show();
 
 	// test case: wave file loading and parsing
-	auto l_wavObject = WaveParser::LoadFile("..//Asset//testA.wav");
+	auto l_wavObject = WaveParser::LoadFile("..//..//Asset//testA.wav");
 	auto l_header = reinterpret_cast<StandardWavHeader*>(l_wavObject.header);
 	auto l_sampleRate = l_header->fmtChunk.nSamplesPerSec;
 
@@ -51,15 +51,15 @@ void testOfflineFeatures()
 	l_sampleProcessed = DSP::HPF(l_sampleProcessed, l_sampleRate, 300.0);
 
 	// test case : write to new wave file
-	WaveParser::WriteFile("..//Asset//test_Processed.wav", l_header, l_sampleProcessed);
+	WaveParser::WriteFile("..//..//Asset//test_Processed.wav", l_header, l_sampleProcessed);
 }
 
 void testRealTimeFeatures()
 {
 	AudioEngine::Initialize();
 
-	auto l_wavObjectA = WaveParser::LoadFile("..//Asset//testA.wav");
-	auto l_wavObjectB = WaveParser::LoadFile("..//Asset//testB.wav");
+	auto l_wavObjectA = WaveParser::LoadFile("..//..//Asset//testA.wav");
+	auto l_wavObjectB = WaveParser::LoadFile("..//..//Asset//testB.wav");
 
 	auto l_eventIDA = AudioEngine::AddEventPrototype(l_wavObjectA);
 	auto l_eventIDB = AudioEngine::AddEventPrototype(l_wavObjectB);

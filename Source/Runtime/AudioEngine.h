@@ -1,7 +1,7 @@
 #pragma once
-#include "Object.h"
-#include "Math.h"
-#include "WaveParser.h"
+#include "../Core/Object.h"
+#include "../Core/Math.h"
+#include "../IO/WaveParser.h"
 
 namespace Waveless
 {

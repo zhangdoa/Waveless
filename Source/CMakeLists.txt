@@ -14,6 +14,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Bin)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-file(GLOB HEADERS "*.h")
-file(GLOB SOURCES "*.cpp")
-add_executable(Waveless ${HEADERS} ${SOURCES})
+include_directories("GitSubmodules/imgui-node-editor/NodeEditor/Include" "GitSubmodules/miniaudio")
+
+add_subdirectory("Core")
+add_subdirectory("IO")
+add_subdirectory("Runtime")
+#add_subdirectory("Editor")
+add_subdirectory("Test")
