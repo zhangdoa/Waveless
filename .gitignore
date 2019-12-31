@@ -32,3 +32,4 @@ Build/
 
 # Local assets
 *.wav
+Source/Core/Config.h

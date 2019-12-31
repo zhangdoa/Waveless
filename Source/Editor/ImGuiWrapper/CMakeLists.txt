@@ -1,0 +1,38 @@
+add_library(ImGuiWrapper ImGuiWrapper.h ImGuiWrapper.cpp)
+set_property(TARGET ImGuiWrapper PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+if (WS_OS_WIN)
+add_library(ImGuiWindowWin ImGuiWindowWin.h ImGuiWindowWin.cpp)
+set_property(TARGET ImGuiWindowWin PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(ImGuiWindowWin ImGui)
+target_link_libraries(ImGuiWrapper ImGuiWindowWin)
+
+add_library(ImGuiRendererDX11 ImGuiRendererDX11.h ImGuiRendererDX11.cpp)
+set_property(TARGET ImGuiRendererDX11 PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(ImGuiRendererDX11 ImGui)
+target_link_libraries(ImGuiWrapper ImGuiRendererDX11)
+endif (WS_OS_WIN)
+
+if (WS_RENDERER_OPENGL)
+add_library(ImGuiRendererGL ImGuiRendererGL.h ImGuiRendererGL.cpp)
+set_property(TARGET ImGuiRendererGL PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(ImGuiRendererGL ImGui)
+target_link_libraries(ImGuiWrapper ImGuiRendererGL)
+endif (WS_RENDERER_OPENGL)
+
+if (WS_RENDERER_VULKAN)
+add_library(ImGuiRendererVK ImGuiRendererVK.h ImGuiRendererVK.cpp)
+set_property(TARGET ImGuiRendererVK PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(ImGuiRendererVK ImGui)
+target_link_libraries(ImGuiWrapper ImGuiRendererVK)
+endif (WS_RENDERER_VULKAN)
+
+if (WS_OS_MAC)
+add_library(ImGuiRendererMT ImGuiRendererMT.h ImGuiRendererMT.cpp)
+set_property(TARGET ImGuiRendererMT PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(ImGuiRendererMT ImGui)
+target_link_libraries(ImGuiWrapper ImGuiRendererMT)
+endif (WS_OS_MAC)
+
+if (WS_OS_LINUX)
+endif (WS_OS_LINUX)

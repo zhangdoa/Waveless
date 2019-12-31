@@ -1,0 +1,8 @@
+#cmakedefine WS_OS_WIN
+#cmakedefine WS_OS_LINUX
+#cmakedefine WS_OS_MAC
+
+#cmakedefine WS_RENDERER_DIRECTX
+#cmakedefine WS_RENDERER_OPENGL
+#cmakedefine WS_RENDERER_VULKAN
+#cmakedefine WS_RENDERER_METAL
