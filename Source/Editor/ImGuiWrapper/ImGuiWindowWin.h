@@ -1,5 +1,8 @@
 #pragma once
 #include "IImGuiWindow.h"
+#include <SDKDDKVer.h>
+#include <windows.h>
+#include <windowsx.h>
 
 class ImGuiWindowWin : public IImGuiWindow
 {
@@ -11,4 +14,6 @@ public:
 	bool initialize() override;
 	bool newFrame() override;
 	bool terminate() override;
+
+	static HWND getHWND();
 };

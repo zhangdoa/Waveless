@@ -1,18 +1,22 @@
 #include "ImGuiWrapper.h"
-#include "../../../GitSubmodules/imgui-node-editor/ThirdParty/imgui/imgui.h"
+#include "../../Core/Config.h"
+
+#include "../../../GitSubmodules/imgui/imgui.h"
 
 #if defined WS_OS_WIN
 #include "ImGuiWindowWin.h"
-#include "ImGuiRendererDX11.h"
 #endif
 
 #if defined WS_OS_MAC
 #include "ImGuiWindowMac.h"
-#include "ImGuiRendererMT.h"
 #endif
 
 #if defined WS_OS_LINUX
 #include "ImGuiWindowLinux.h"
+#endif
+
+#if defined WS_RENDERER_DIRECTX
+#include "ImGuiRendererDX11.h"
 #endif
 
 #if defined WS_RENDERER_OPENGL
@@ -21,6 +25,10 @@
 
 #if defined WS_RENDERER_VULKAN
 #include "ImGuiRendererVK.h"
+#endif
+
+#if defined WS_RENDERER_METAL
+#include "ImGuiRendererMT.h"
 #endif
 
 namespace ImGuiWrapperNS
@@ -36,47 +44,27 @@ using namespace ImGuiWrapperNS;
 bool ImGuiWrapper::Setup()
 {
 #if defined WS_OS_WIN
-	m_windowImpl = new ImGuiWrapperWindowWin();
+	m_windowImpl = new ImGuiWindowWin();
+#if defined WS_RENDERER_DIRECTX
+	m_rendererImpl = new ImGuiRendererDX11();
+#elif WS_RENDERER_VULKAN
+	m_rendererImpl = new ImGuiRendererVK();
+#elif defined WS_RENDERER_OPENGL
+	m_rendererImpl = new ImGuiRendererGL();
 #endif
-
-	switch (m_renderer)
-	{
-	case Renderer::GL:
-#if !defined WS_OS_MAC && defined INNO_RENDERER_OPENGL
-		m_rendererImpl = new ImGuiWrapperGL();
 #endif
-		break;
-	case Renderer::DX11:
-#if defined WS_OS_WIN
-		m_rendererImpl = new ImGuiWrapperDX11();
-#endif
-		break;
-	case Renderer::DX12:
-#if defined WS_OS_WIN
-		ImGuiWrapperNS::m_isParity = false;
-#endif
-		break;
-	case Renderer::VK:
-#if defined INNO_RENDERER_VULKAN
-		m_rendererImpl = new ImGuiWrapperVK();
-#endif
-		break;
-	case Renderer::MT:
 #if defined WS_OS_MAC
-		ImGuiWrapperNS::m_isParity = false;
+	ImGuiWrapperNS::m_isParity = false;
+#if defined WS_RENDERER_METAL
+	ImGuiWrapperNS::m_isParity = false;
 #endif
-		break;
-	default:
-		break;
-	}
-
+#endif
 #if defined WS_OS_LINUX
 	ImGuiWrapperNS::m_isParity = false;
 #endif
 
 	if (ImGuiWrapperNS::m_isParity)
 	{
-		// Setup Dear ImGui binding
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 
@@ -93,6 +81,11 @@ bool ImGuiWrapper::Initialize()
 	{
 		ImGuiWrapperNS::m_windowImpl->initialize();
 		ImGuiWrapperNS::m_rendererImpl->initialize();
+		ImGui::StyleColorsDark();
+		ImVec4 backgroundColor = ImColor(32, 32, 32, 255);
+		ImGuiIO& io = ImGui::GetIO();
+		ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGui::SetNextWindowSize(io.DisplaySize);
 	}
 
 	return true;
@@ -106,8 +99,14 @@ bool ImGuiWrapper::Render()
 		ImGuiWrapperNS::m_windowImpl->newFrame();
 
 		ImGui::NewFrame();
-		{
-		}
+
+		ImGui::Begin("Content", nullptr,
+			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
+			ImGuiWindowFlags_NoBringToFrontOnFocus);
+
+		ImGui::End();
+
 		ImGui::Render();
 
 		ImGuiWrapperNS::m_rendererImpl->render();

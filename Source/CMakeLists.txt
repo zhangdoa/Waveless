@@ -49,8 +49,9 @@ endif (OPENGL_FOUND AND NOT WS_OS_MAC)
 
 configure_file ("${CMAKE_SOURCE_DIR}/Core/Config.h.in" "${CMAKE_SOURCE_DIR}/Core/Config.h" @ONLY)
 
-include_directories("GitSubmodules/imgui-node-editor/NodeEditor/Include" "GitSubmodules/miniaudio")
+include_directories("GitSubmodules/imgui" "GitSubmodules/imgui-node-editor/NodeEditor/Include" "GitSubmodules/miniaudio")
 
+add_subdirectory("ThirdParty")
 add_subdirectory("Core")
 add_subdirectory("IO")
 add_subdirectory("Runtime")

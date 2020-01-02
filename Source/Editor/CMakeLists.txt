@@ -1,5 +1,5 @@
-#add_subdirectory("ImGuiWrapper")
+add_subdirectory("ImGuiWrapper")
 file(GLOB HEADERS "*.h")
 file(GLOB SOURCES "*.cpp")
-add_library(WsEditor ${HEADERS} ${SOURCES})
-set_property(TARGET WsEditor PROPERTY POSITION_INDEPENDENT_CODE ON)
+add_executable(WsEditor ${HEADERS} ${SOURCES})
+target_link_libraries(WsEditor ImGuiWrapper)

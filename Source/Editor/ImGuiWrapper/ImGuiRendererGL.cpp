@@ -1,4 +1,5 @@
 #include "ImGuiRendererGL.h"
+#include "../../../GitSubmodules/imgui/examples/imgui_impl_opengl3.cpp"
 
 namespace ImGuiRendererGLNS
 {

@@ -3,8 +3,8 @@
 class IImGuiWindow
 {
 public:
-	ImGuiWindowWin() = default;
-	virtual ~ImGuiWindowWin() = default;
+	IImGuiWindow() = default;
+	virtual ~IImGuiWindow() = default;
 
 	virtual bool setup() = 0;
 	virtual bool initialize() = 0;
