@@ -108,10 +108,29 @@ bool ImGuiRendererDX11::newFrame()
 
 bool ImGuiRendererDX11::render()
 {
-	g_pd3dDeviceContext->ClearRenderTargetView(m_mainRenderTargetView, nullptr);
+	ImVec4 backgroundColor = ImColor(32, 32, 32, 255);
+
+	m_d3dDeviceContext->OMSetRenderTargets(1, &m_mainRenderTargetView, NULL);
+	m_d3dDeviceContext->ClearRenderTargetView(m_mainRenderTargetView, &backgroundColor.x);
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	m_SwapChain->Present(1, 0);
 
 	return true;
+}
+
+bool ImGuiRendererDX11::resize(unsigned int x, unsigned int y)
+{
+	if (m_d3dDevice != nullptr)
+	{
+		ImGui_ImplDX11_InvalidateDeviceObjects();
+		CleanupRenderTarget();
+		m_SwapChain->ResizeBuffers(0, x, y, DXGI_FORMAT_UNKNOWN, 0);
+		CreateRenderTarget();
+		ImGui_ImplDX11_CreateDeviceObjects();
+
+		return true;
+	}
+	return false;
 }
 
 bool ImGuiRendererDX11::terminate()

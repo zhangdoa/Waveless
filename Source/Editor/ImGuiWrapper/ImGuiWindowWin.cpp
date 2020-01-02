@@ -1,4 +1,6 @@
 #include "ImGuiWindowWin.h"
+#include "ImGuiRendererDX11.h"
+
 #include "../../Core/stdafx.h"
 
 #include "../../ThirdParty/ImGui/imgui_impl_win32.cpp"
@@ -9,6 +11,7 @@ namespace ImGuiWindowWinNS
 	LPCSTR m_applicationName;
 	HWND m_hwnd;
 	HDC m_HDC;
+	IImGuiRenderer* renderer;
 }
 
 using namespace ImGuiWindowWinNS;
@@ -23,6 +26,10 @@ LRESULT WINAPI ImGui_WinProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	switch (msg)
 	{
 	case WM_SIZE:
+		if (wParam != SIZE_MINIMIZED)
+		{
+			ImGuiRendererDX11::resize((UINT)LOWORD(lParam), (UINT)HIWORD(lParam));
+		}
 		return 0;
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
@@ -49,13 +56,12 @@ bool ImGuiWindowWin::setup()
 		0L,
 		0L,
 		GetModuleHandle(nullptr),
-		LoadIcon(GetModuleHandle(nullptr), IDI_APPLICATION),
-		LoadCursor(nullptr, IDC_ARROW),
-		nullptr,
-		nullptr,
+		NULL,
+		NULL,
+		NULL,
+		NULL,
 		c_ClassName,
-		LoadIcon(GetModuleHandle(nullptr),
-		IDI_APPLICATION)
+		NULL
 	};
 
 	RegisterClassEx(&wc);
@@ -67,7 +73,24 @@ bool ImGuiWindowWin::setup()
 
 bool ImGuiWindowWin::initialize()
 {
+	ShowWindow(m_hwnd, SW_SHOWMAXIMIZED);
+	UpdateWindow(m_hwnd);
+
 	ImGui_ImplWin32_Init(m_hwnd);
+
+	return true;
+}
+
+bool ImGuiWindowWin::update()
+{
+	MSG msg;
+	ZeroMemory(&msg, sizeof(MSG));
+
+	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
 
 	return true;
 }
@@ -75,28 +98,6 @@ bool ImGuiWindowWin::initialize()
 bool ImGuiWindowWin::newFrame()
 {
 	ImGui_ImplWin32_NewFrame();
-	ShowWindow(m_hwnd, SW_SHOWMAXIMIZED);
-	UpdateWindow(m_hwnd);
-
-	// Main loop
-	MSG msg = {};
-	while (msg.message != WM_QUIT)
-	{
-		if (PeekMessage(&msg, nullptr, 0U, 0U, PM_REMOVE))
-		{
-			if (msg.message == WM_KEYDOWN && (msg.wParam == VK_ESCAPE))
-				PostQuitMessage(0);
-
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			continue;
-		}
-
-		if (!IsIconic(m_hwnd))
-		{
-			// allow update
-		}
-	}
 
 	return true;
 }

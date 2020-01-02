@@ -1,7 +1,10 @@
 #include "ImGuiWrapper.h"
 #include "../../Core/Config.h"
 
-#include "../../../GitSubmodules/imgui/imgui.h"
+#include  <imgui.h>
+//#include  "../../../GitSubmodules/imgui-node-editor/NodeEditor/Include/imgui_node_editor.h"
+//#define IMGUI_DEFINE_MATH_OPERATORS
+//#include <imgui_internal.h>
 
 #if defined WS_OS_WIN
 #include "ImGuiWindowWin.h"
@@ -82,30 +85,45 @@ bool ImGuiWrapper::Initialize()
 		ImGuiWrapperNS::m_windowImpl->initialize();
 		ImGuiWrapperNS::m_rendererImpl->initialize();
 		ImGui::StyleColorsDark();
-		ImVec4 backgroundColor = ImColor(32, 32, 32, 255);
-		ImGuiIO& io = ImGui::GetIO();
-		ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGui::SetNextWindowSize(io.DisplaySize);
 	}
 
 	return true;
+}
+
+void ImGuiEx_BeginColumn()
+{
+	ImGui::BeginGroup();
+}
+
+void ImGuiEx_NextColumn()
+{
+	ImGui::EndGroup();
+	ImGui::SameLine();
+	ImGui::BeginGroup();
+}
+
+void ImGuiEx_EndColumn()
+{
+	ImGui::EndGroup();
 }
 
 bool ImGuiWrapper::Render()
 {
 	if (ImGuiWrapperNS::m_isParity)
 	{
+		ImGuiWrapperNS::m_windowImpl->update();
+
 		ImGuiWrapperNS::m_rendererImpl->newFrame();
 		ImGuiWrapperNS::m_windowImpl->newFrame();
 
 		ImGui::NewFrame();
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			ImGui::SetNextWindowPos(ImVec2(0, 0));
+			ImGui::SetNextWindowSize(io.DisplaySize);
 
-		ImGui::Begin("Content", nullptr,
-			ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-			ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings |
-			ImGuiWindowFlags_NoBringToFrontOnFocus);
-
-		ImGui::End();
+			ImGui::ShowDemoWindow();
+		}
 
 		ImGui::Render();
 

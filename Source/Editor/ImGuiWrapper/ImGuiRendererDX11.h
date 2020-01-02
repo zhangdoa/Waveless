@@ -12,4 +12,6 @@ public:
 	bool newFrame() override;
 	bool render() override;
 	bool terminate() override;
+
+	static bool resize(unsigned int x, unsigned int y);
 };

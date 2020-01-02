@@ -12,6 +12,7 @@ public:
 
 	bool setup() override;
 	bool initialize() override;
+	bool update() override;
 	bool newFrame() override;
 	bool terminate() override;
 
