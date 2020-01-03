@@ -3,7 +3,7 @@
 
 #include "../../Core/stdafx.h"
 
-#include "../../ThirdParty/ImGui/imgui_impl_win32.cpp"
+#include "../../GitSubmodules/imgui-node-editor/Examples/Common/Application/Source/DX11/imgui_impl_win32.cpp"
 
 namespace ImGuiWindowWinNS
 {
@@ -88,8 +88,19 @@ bool ImGuiWindowWin::update()
 
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
+		if (msg.message == WM_KEYDOWN && (msg.wParam == VK_ESCAPE))
+		{
+			PostQuitMessage(0);
+			return false;
+		}
+
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
+	}
+
+	if (IsIconic(m_hwnd))
+	{
+		return false;
 	}
 
 	return true;

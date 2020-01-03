@@ -1,7 +1,7 @@
 #include "ImGuiRendererDX11.h"
 #include "ImGuiWindowWin.h"
 
-#include "../../ThirdParty/ImGui/imgui_impl_dx11.cpp"
+#include "../../GitSubmodules/imgui-node-editor/Examples/Common/Application/Source/DX11/imgui_impl_dx11.cpp"
 
 #include <d3d11.h>
 #define DIRECTINPUT_VERSION 0x0800

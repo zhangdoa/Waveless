@@ -13,9 +13,8 @@ void WsEditor::Initialize()
 
 void WsEditor::Render()
 {
-	while (1)
+	while (ImGuiWrapper::get().Render())
 	{
-		ImGuiWrapper::get().Render();
 	}
 }
 
