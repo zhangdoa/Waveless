@@ -1,91 +1,87 @@
 #include "WaveParser.h"
+#include "../Core/Logger.h"
 
 namespace Waveless
 {
-	void printLog(const std::string& rhs)
-	{
-		std::cout << rhs << std::endl;
-	}
-
 	void printRIFFChunk(RIFFChunk rhs)
 	{
-		printLog("RIFF: " + std::string(rhs.ckID));
-		printLog("ChunkSize: " + std::to_string(rhs.cksize));
-		printLog("WAVE: " + std::string(rhs.WAVEID));
+		Logger::Log(LogLevel::Verbose, "RIFF: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "WAVE: ", rhs.WAVEID);
 	}
 
 	void printStandardFmtChunk(StandardFmtChunk rhs)
 	{
-		printLog("Fmt: " + std::string(rhs.ckID));
-		printLog("FmtSize: " + std::to_string(rhs.cksize));
-		printLog("AudioFormat: " + std::to_string(rhs.wFormatTag));
-		printLog("NumOfChan: " + std::to_string(rhs.nChannels));
-		printLog("SamplesPerSec: " + std::to_string(rhs.nSamplesPerSec));
-		printLog("bytesPerSec: " + std::to_string(rhs.nAvgBytesPerSec));
-		printLog("blockAlign: " + std::to_string(rhs.nBlockAlign));
-		printLog("bitsPerSample: " + std::to_string(rhs.wBitsPerSample));
+		Logger::Log(LogLevel::Verbose, "Fmt: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "FmtSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "AudioFormat: ", (uint16_t)rhs.wFormatTag);
+		Logger::Log(LogLevel::Verbose, "NumOfChan: ", (uint16_t)rhs.nChannels);
+		Logger::Log(LogLevel::Verbose, "SamplesPerSec: ", (uint32_t)rhs.nSamplesPerSec);
+		Logger::Log(LogLevel::Verbose, "bytesPerSec: ", (uint32_t)rhs.nAvgBytesPerSec);
+		Logger::Log(LogLevel::Verbose, "blockAlign: ", (uint16_t)rhs.nBlockAlign);
+		Logger::Log(LogLevel::Verbose, "bitsPerSample: ", (uint16_t)rhs.wBitsPerSample);
 	}
 
 	void printNonPCMFmtChunk(NonPCMFmtChunk rhs)
 	{
-		printLog("Fmt: " + std::string(rhs.standardFmtChunk.ckID));
-		printLog("FmtSize: " + std::to_string(rhs.standardFmtChunk.cksize));
-		printLog("AudioFormat: " + std::to_string(rhs.standardFmtChunk.wFormatTag));
-		printLog("NumOfChan: " + std::to_string(rhs.standardFmtChunk.nChannels));
-		printLog("SamplesPerSec: " + std::to_string(rhs.standardFmtChunk.nSamplesPerSec));
-		printLog("bytesPerSec: " + std::to_string(rhs.standardFmtChunk.nAvgBytesPerSec));
-		printLog("blockAlign: " + std::to_string(rhs.standardFmtChunk.nBlockAlign));
-		printLog("bitsPerSample: " + std::to_string(rhs.standardFmtChunk.wBitsPerSample));
-		printLog("ExtensionSize: " + std::to_string(rhs.cbsize));
+		Logger::Log(LogLevel::Verbose, "Fmt: ", rhs.standardFmtChunk.ckID);
+		Logger::Log(LogLevel::Verbose, "FmtSize: ", (uint32_t)rhs.standardFmtChunk.cksize);
+		Logger::Log(LogLevel::Verbose, "AudioFormat: ", (uint16_t)rhs.standardFmtChunk.wFormatTag);
+		Logger::Log(LogLevel::Verbose, "NumOfChan: ", (uint16_t)rhs.standardFmtChunk.nChannels);
+		Logger::Log(LogLevel::Verbose, "SamplesPerSec: ", (uint32_t)rhs.standardFmtChunk.nSamplesPerSec);
+		Logger::Log(LogLevel::Verbose, "bytesPerSec: ", (uint32_t)rhs.standardFmtChunk.nAvgBytesPerSec);
+		Logger::Log(LogLevel::Verbose, "blockAlign: ", (uint16_t)rhs.standardFmtChunk.nBlockAlign);
+		Logger::Log(LogLevel::Verbose, "bitsPerSample: ", (uint16_t)rhs.standardFmtChunk.wBitsPerSample);
+		Logger::Log(LogLevel::Verbose, "ExtensionSize: ", (uint16_t)rhs.cbsize);
 	}
 
 	void printExtensibleFmtChunk(ExtensibleFmtChunk rhs)
 	{
-		printLog("Fmt: " + std::string(rhs.standardFmtChunk.ckID));
-		printLog("FmtSize: " + std::to_string(rhs.standardFmtChunk.cksize));
-		printLog("AudioFormat: " + std::to_string(rhs.standardFmtChunk.wFormatTag));
-		printLog("NumOfChan: " + std::to_string(rhs.standardFmtChunk.nChannels));
-		printLog("SamplesPerSec: " + std::to_string(rhs.standardFmtChunk.nSamplesPerSec));
-		printLog("bytesPerSec: " + std::to_string(rhs.standardFmtChunk.nAvgBytesPerSec));
-		printLog("blockAlign: " + std::to_string(rhs.standardFmtChunk.nBlockAlign));
-		printLog("bitsPerSample: " + std::to_string(rhs.standardFmtChunk.wBitsPerSample));
-		printLog("ExtensionSize: " + std::to_string(rhs.cbsize));
-		printLog("ValidBitsPerSample: " + std::to_string(rhs.wValidBitsPerSample));
-		printLog("ChannelMask: " + std::to_string(rhs.dwChannelMask));
-		printLog("SubFormat: " + std::string(rhs.SubFormat));
+		Logger::Log(LogLevel::Verbose, "Fmt: ", rhs.standardFmtChunk.ckID);
+		Logger::Log(LogLevel::Verbose, "FmtSize: ", (uint32_t)rhs.standardFmtChunk.cksize);
+		Logger::Log(LogLevel::Verbose, "AudioFormat: ", (uint16_t)rhs.standardFmtChunk.wFormatTag);
+		Logger::Log(LogLevel::Verbose, "NumOfChan: ", (uint16_t)rhs.standardFmtChunk.nChannels);
+		Logger::Log(LogLevel::Verbose, "SamplesPerSec: ", (uint32_t)rhs.standardFmtChunk.nSamplesPerSec);
+		Logger::Log(LogLevel::Verbose, "bytesPerSec: ", (uint32_t)rhs.standardFmtChunk.nAvgBytesPerSec);
+		Logger::Log(LogLevel::Verbose, "blockAlign: ", (uint16_t)rhs.standardFmtChunk.nBlockAlign);
+		Logger::Log(LogLevel::Verbose, "bitsPerSample: ", (uint16_t)rhs.standardFmtChunk.wBitsPerSample);
+		Logger::Log(LogLevel::Verbose, "ExtensionSize: ", (uint16_t)rhs.cbsize);
+		Logger::Log(LogLevel::Verbose, "ValidBitsPerSample: ", (uint16_t)rhs.wValidBitsPerSample);
+		Logger::Log(LogLevel::Verbose, "ChannelMask: ", (uint32_t)rhs.dwChannelMask);
+		Logger::Log(LogLevel::Verbose, "SubFormat: ", rhs.SubFormat);
 	}
 
 	void printbextChunk(bextChunk rhs)
 	{
-		printLog("Bext: " + std::string(rhs.ckID));
-		printLog("BextSize: " + std::to_string(rhs.cksize));
-		printLog("Description: " + std::string(rhs.Description));
-		printLog("Originator: " + std::string(rhs.Originator));
-		printLog("OriginatorReference: " + std::string(rhs.OriginatorReference));
-		printLog("OriginationDate: " + std::string(rhs.OriginationDate));
-		printLog("OriginationTime: " + std::string(rhs.OriginationTime));
-		printLog("TimeReferenceLow: " + std::to_string(rhs.TimeReferenceLow));
-		printLog("TimeReferenceHigh: " + std::to_string(rhs.TimeReferenceHigh));
-		printLog("Version: " + std::to_string(rhs.Version));
-		printLog("UMID: " + std::string(rhs.UMID));
-		printLog("LoudnessValue: " + std::to_string(rhs.LoudnessValue));
-		printLog("LoudnessRange: " + std::to_string(rhs.LoudnessRange));
-		printLog("MaxTruePeakLevel: " + std::to_string(rhs.MaxTruePeakLevel));
-		printLog("MaxMomentaryLoudness: " + std::to_string(rhs.MaxMomentaryLoudness));
-		printLog("MaxShortTermLoudness: " + std::to_string(rhs.MaxShortTermLoudness));
+		Logger::Log(LogLevel::Verbose, "Bext: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "BextSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "Description: ", rhs.Description);
+		Logger::Log(LogLevel::Verbose, "Originator: ", rhs.Originator);
+		Logger::Log(LogLevel::Verbose, "OriginatorReference: ", rhs.OriginatorReference);
+		Logger::Log(LogLevel::Verbose, "OriginationDate: ", rhs.OriginationDate);
+		Logger::Log(LogLevel::Verbose, "OriginationTime: ", rhs.OriginationTime);
+		Logger::Log(LogLevel::Verbose, "TimeReferenceLow: ", (uint32_t)rhs.TimeReferenceLow);
+		Logger::Log(LogLevel::Verbose, "TimeReferenceHigh: ", (uint32_t)rhs.TimeReferenceHigh);
+		Logger::Log(LogLevel::Verbose, "Version: ", (uint16_t)rhs.Version);
+		Logger::Log(LogLevel::Verbose, "UMID: ", rhs.UMID);
+		Logger::Log(LogLevel::Verbose, "LoudnessValue: ", (uint16_t)rhs.LoudnessValue);
+		Logger::Log(LogLevel::Verbose, "LoudnessRange: ", (uint16_t)rhs.LoudnessRange);
+		Logger::Log(LogLevel::Verbose, "MaxTruePeakLevel: ", (uint16_t)rhs.MaxTruePeakLevel);
+		Logger::Log(LogLevel::Verbose, "MaxMomentaryLoudness: ", (uint16_t)rhs.MaxMomentaryLoudness);
+		Logger::Log(LogLevel::Verbose, "MaxShortTermLoudness: ", (uint16_t)rhs.MaxShortTermLoudness);
 	}
 
 	void printfactChunk(factChunk rhs)
 	{
-		printLog("Data: " + std::string(rhs.ckID));
-		printLog("DataSize: " + std::to_string(rhs.cksize));
-		printLog("SampleLength: " + std::to_string(rhs.dwSampleLength));
+		Logger::Log(LogLevel::Verbose, "Data: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "DataSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "SampleLength: ", (uint32_t)rhs.dwSampleLength);
 	}
 
 	void printDataChunk(DataChunk rhs)
 	{
-		printLog("Data: " + std::string(rhs.ckID));
-		printLog("DataSize: " + std::to_string(rhs.cksize));
+		Logger::Log(LogLevel::Verbose, "Data: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "DataSize: ", (uint32_t)rhs.cksize);
 	}
 
 	void printStandardWavHeader(StandardWavHeader* header)
@@ -157,13 +153,13 @@ namespace Waveless
 		}
 	}
 
-	WavObject WaveParser::LoadFile(const std::string & path)
+	WavObject WaveParser::LoadFile(const char* path)
 	{
 		std::ifstream l_file(path, std::ios::binary);
 
 		if (!l_file.is_open())
 		{
-			throw std::runtime_error("std::ifstream: can't open file " + path + "!");
+			Logger::Log(LogLevel::Error, "std::ifstream: can't open file ", path, "!");
 		}
 
 		// get pointer to associated buffer object
@@ -183,7 +179,7 @@ namespace Waveless
 
 		if (l_chuckSize == 16)
 		{
-			printLog(path + " is Standard Wave format");
+			Logger::Log(LogLevel::Verbose, path, " is Standard Wave format");
 
 			// vptr
 			l_wavHeaderSize = sizeof(StandardWavHeader) - 4;
@@ -195,7 +191,7 @@ namespace Waveless
 		}
 		else if (l_chuckSize == 18)
 		{
-			printLog(path + " is Non-PCM Wave format");
+			Logger::Log(LogLevel::Verbose, path, " is Non-PCM Wave format");
 
 			// vptr
 			l_wavHeaderSize = sizeof(NonPCMWavHeader) - 4;
@@ -214,7 +210,7 @@ namespace Waveless
 
 			if (isBWF[0] == *"b" || *"m")
 			{
-				printLog(path + " is Broadcast Wave format");
+				Logger::Log(LogLevel::Verbose, path, " is Broadcast Wave format");
 
 				//get RIFFChunk + ExtensibleFmtChunk + bextChunk size
 				l_wavHeaderSize = 0;
@@ -251,7 +247,7 @@ namespace Waveless
 			}
 			else
 			{
-				printLog(path + " is Extensible Wave format");
+				Logger::Log(LogLevel::Verbose, path, " is Extensible Wave format");
 
 				// vptr
 				l_wavHeaderSize = sizeof(ExtensibleWavHeader) - 4;
@@ -273,7 +269,7 @@ namespace Waveless
 		return l_result;
 	}
 
-	bool WaveParser::WriteFile(const std::string & path, IWavHeader * header, const ComplexArray & x)
+	bool WaveParser::WriteFile(const char* path, IWavHeader * header, const ComplexArray & x)
 	{
 		WavObject l_wavObject;
 		l_wavObject.header = header;
@@ -293,7 +289,7 @@ namespace Waveless
 		return false;
 	}
 
-	bool WaveParser::WriteFile(const std::string & path, const WavObject& wavObject)
+	bool WaveParser::WriteFile(const char* path, const WavObject& wavObject)
 	{
 		size_t l_sizeOfWavHeader = 0;
 
