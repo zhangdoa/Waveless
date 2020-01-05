@@ -63,12 +63,17 @@ void testRealTimeFeatures()
 	auto l_wavObjectA = WaveParser::LoadFile("..//..//Asset//testA.wav");
 	auto l_wavObjectB = WaveParser::LoadFile("..//..//Asset//testB.wav");
 
+	auto l_signal = Math::GenerateSine(64.0, 440.0, 0.0, 44100.0, 4.0);
+	auto l_wavHeader = WaveParser::GenerateWavHeader(1, 44100, 16, (unsigned long)l_signal.size());
+	auto l_wavObjectC = WaveParser::GenerateWavObject(l_wavHeader, l_signal);
+
 	auto l_eventIDA = AudioEngine::AddEventPrototype(l_wavObjectA);
 	auto l_eventIDB = AudioEngine::AddEventPrototype(l_wavObjectB);
+	auto l_eventIDC = AudioEngine::AddEventPrototype(l_wavObjectC);
 
 	AudioEngine::Trigger(l_eventIDA);
-
 	AudioEngine::Trigger(l_eventIDB);
+	AudioEngine::Trigger(l_eventIDC);
 
 	AudioEngine::Flush();
 

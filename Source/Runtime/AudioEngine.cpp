@@ -1,4 +1,5 @@
 #include "AudioEngine.h"
+#include "../Core/Math.h"
 
 #define DR_FLAC_IMPLEMENTATION
 #include "../../GitSubmodules/miniaudio/extras/dr_flac.h"  /* Enables FLAC decoding. */
@@ -52,10 +53,78 @@ namespace Waveless
 	ma_device_config deviceConfig;
 	ma_device device;
 	ma_event terminateEvent;
+	const int sizeOfTempBuffer = 4096;
 
-	ma_uint32 read_and_mix_pcm_frames(WsEventInstance* eventInstance, ma_uint32* pOutput, ma_uint32 frameCount)
+	ma_uint32 low_pass_filter(ma_uint32 channels, float cutoffFreq, float sampleRate, float* pSampleState, float* pOutput, ma_uint32 frameCount)
 	{
-		ma_uint32 temp[4096];
+		auto th = 2.0f * PI * cutoffFreq / sampleRate;
+		auto g = cosf(th) / (1.0f + sinf(th));
+		auto a0 = (1.0f - g) / 2.0f;
+		auto a1 = (1.0f - g) / 2.0f;
+		auto b1 = -g;
+
+		float temp[sizeOfTempBuffer];
+
+		for (ma_uint32 i = 0; i < channels; ++i)
+		{
+			temp[i] = a0 * pSampleState[i];
+		}
+
+		for (ma_uint32 i = channels; i < frameCount * channels; ++i)
+		{
+			temp[i] = a0 * pOutput[i] + a1 * pOutput[i - channels] - b1 * temp[i - channels];
+		}
+
+		for (ma_uint32 i = 0; i < frameCount * channels; ++i)
+		{
+			pOutput[i] = temp[i];
+		}
+
+		for (ma_uint32 i = 0; i < channels; ++i)
+		{
+			pSampleState[i] = temp[sizeOfTempBuffer - channels + i];
+		}
+
+		return frameCount;
+	}
+
+	ma_uint32 high_pass_filter(ma_uint32 channels, float cutoffFreq, float sampleRate, float* pSampleState, float* pOutput, ma_uint32 frameCount)
+	{
+		auto th = 2.0f * PI * cutoffFreq / sampleRate;
+		auto g = cosf(th) / (1.0f + sinf(th));
+		auto a0 = (1.0f + g) / 2.0f;
+		auto a1 = -((1.0f + g) / 2.0f);
+		auto b1 = -g;
+
+		float temp[sizeOfTempBuffer];
+
+		for (ma_uint32 i = 0; i < channels; ++i)
+		{
+			temp[i] = a0 * pSampleState[i];
+		}
+
+		for (ma_uint32 i = channels; i < frameCount * channels; ++i)
+		{
+			temp[i] = a0 * pOutput[i] + a1 * pOutput[i - channels] - b1 * temp[i - channels];
+		}
+
+		for (ma_uint32 i = 0; i < frameCount * channels; ++i)
+		{
+			pOutput[i] = temp[i];
+		}
+
+		for (ma_uint32 i = 0; i < channels; ++i)
+		{
+			pSampleState[i] = temp[sizeOfTempBuffer - channels + i];
+		}
+
+		return frameCount;
+	}
+
+	ma_uint32 read_and_mix_pcm_frames(WsEventInstance* eventInstance, float* pOutput, ma_uint32 frameCount)
+	{
+		float temp[sizeOfTempBuffer];
+
 		ma_uint32 tempCapInFrames = ma_countof(temp) / eventInstance->playbackDesc.channels;
 		ma_uint32 totalFramesRead = 0;
 
@@ -101,7 +170,7 @@ namespace Waveless
 		{
 			if (i->objectState == ObjectState::Active)
 			{
-				auto l_frame = read_and_mix_pcm_frames(i, reinterpret_cast<ma_uint32*>(pOutput), frameCount);
+				auto l_frame = read_and_mix_pcm_frames(i, reinterpret_cast<float*>(pOutput), frameCount);
 
 				if (l_frame < frameCount)
 				{
@@ -119,7 +188,7 @@ namespace Waveless
 		g_eventPrototypes.reserve(4096);
 		g_eventInstances.reserve(512);
 
-		devicePlaybackDesc.format = ma_format_s16;
+		devicePlaybackDesc.format = ma_format_f32;
 		devicePlaybackDesc.channels = 2;
 		devicePlaybackDesc.sampleRate = MA_SAMPLE_RATE_44100;
 
@@ -210,17 +279,15 @@ namespace Waveless
 
 	uint64_t AudioEngine::AddEventPrototype(const WavObject & wavObject)
 	{
-		auto l_header = reinterpret_cast<StandardWavHeader*>(wavObject.header);
-
 		auto l_UUID = GenerateUUID();
 
 		WsEventPrototype l_eventPrototype;
 
 		l_eventPrototype.UUID = l_UUID;
 		l_eventPrototype.wavObject = &const_cast<WavObject&>(wavObject);
-		l_eventPrototype.playbackDesc.format = ma_format(l_header->fmtChunk.wBitsPerSample / 8);
-		l_eventPrototype.playbackDesc.channels = l_header->fmtChunk.nChannels;
-		l_eventPrototype.playbackDesc.sampleRate = l_header->fmtChunk.nSamplesPerSec;
+		l_eventPrototype.playbackDesc.format = ma_format(wavObject.header.fmtChunk.wBitsPerSample / 8);
+		l_eventPrototype.playbackDesc.channels = wavObject.header.fmtChunk.nChannels;
+		l_eventPrototype.playbackDesc.sampleRate = wavObject.header.fmtChunk.nSamplesPerSec;
 
 		g_eventPrototypes.emplace(l_UUID, l_eventPrototype);
 
