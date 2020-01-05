@@ -31,7 +31,7 @@ namespace Waveless
 
 		for (size_t i = 0; i < N; i++)
 		{
-			x[i] = l_Intensity * std::cos(2 * PI * f * (double)i / fs + phi);
+			x[i] = l_Intensity * std::sin(2 * PI * f * (double)i / fs + phi);
 		}
 
 		return x;
@@ -164,38 +164,41 @@ namespace Waveless
 
 			ComplexArray l_X(N);
 
-			auto l_FFTChunkSize = windowDesc.m_WindowSize;
-			auto l_lastChunkSize = N % l_FFTChunkSize;
-			auto l_chunkCount = (N - l_lastChunkSize) / l_FFTChunkSize;
+			auto l_FFTFrameSize = windowDesc.m_WindowSize;
+			auto l_lastFrameSize = N % l_FFTFrameSize;
+			auto l_frameCount = (N - l_lastFrameSize) / l_FFTFrameSize;
 
-			// full size chunks
-			// @TODO: window overlapping
-			for (size_t i = 0; i < l_chunkCount * 2; i++)
+			for (size_t i = 0; i < l_frameCount * 2 - 1; i++)
 			{
-				auto l_chunk = ComplexArray(x[std::slice(i * l_FFTChunkSize / 2, l_FFTChunkSize, 1)]);
+				auto l_chunk = ComplexArray(x[std::slice(i * l_FFTFrameSize / 2, l_FFTFrameSize, 1)]);
 				l_chunk *= l_window;
 
 				FFT_SingleFrame(l_chunk);
 				l_result.emplace_back(l_chunk);
 			};
 
-			// last chunk with zero padding
-			ComplexArray l_paddedLastChunk(l_FFTChunkSize);
-			auto l_lastChunk = ComplexArray(x[std::slice(l_chunkCount * l_FFTChunkSize, l_lastChunkSize, 1)]);
-
-			for (size_t i = 0; i < l_lastChunk.size(); i++)
+			// full size chunks
+			// @TODO: window overlapping
+			if (l_lastFrameSize)
 			{
-				l_paddedLastChunk[i] = l_lastChunk[i];
-			}
+				// last chunk with zero padding
+				ComplexArray l_paddedLastChunk(l_FFTFrameSize);
+				auto l_lastChunk = ComplexArray(x[std::slice(l_frameCount * l_FFTFrameSize, l_lastFrameSize, 1)]);
 
-			auto l_zeroPaddingSize = l_FFTChunkSize - l_lastChunkSize;
-			for (size_t i = 0; i < l_zeroPaddingSize; i++)
-			{
-				l_paddedLastChunk[i + l_lastChunkSize] = Complex(0.0, 0.0);
-			}
+				for (size_t i = 0; i < l_lastChunk.size(); i++)
+				{
+					l_paddedLastChunk[i] = l_lastChunk[i];
+				}
 
-			FFT_SingleFrame(l_paddedLastChunk);
-			l_result.emplace_back(l_paddedLastChunk);
+				auto l_zeroPaddingSize = l_FFTFrameSize - l_lastFrameSize;
+				for (size_t i = 0; i < l_zeroPaddingSize; i++)
+				{
+					l_paddedLastChunk[i + l_lastFrameSize] = Complex(0.0, 0.0);
+				}
+
+				FFT_SingleFrame(l_paddedLastChunk);
+				l_result.emplace_back(l_paddedLastChunk);
+			}
 		}
 
 		return l_result;
@@ -361,6 +364,7 @@ namespace Waveless
 		std::vector<Complex> l_vector;
 		l_vector.reserve(XBinData.size() * XBinData[0].m_FreqBinArray.size());
 
+		// @TODO: Merge window overlap
 		for (auto XBinDatai : XBinData)
 		{
 			auto l_x = Synth_SingleFrame(XBinDatai);
