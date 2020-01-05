@@ -240,6 +240,28 @@ namespace Waveless
 		return l_header;
 	}
 
+	WavObject WaveParser::GenerateWavObject(const WavHeader& header, const ComplexArray& x)
+	{
+		std::vector<char> l_samples;
+		auto l_bytesPerSample = header.fmtChunk.wBitsPerSample / 8;
+
+		l_samples.resize(x.size() * l_bytesPerSample);
+
+		for (size_t i = 0; i < x.size(); i++)
+		{
+			auto l_sampleOrig = x[i].real();
+
+			int32_t l_sample = (int32_t)l_sampleOrig;
+			std::memcpy(&l_samples[i * l_bytesPerSample], &l_sample, l_bytesPerSample);
+		}
+
+		WavObject l_result;
+		l_result.header = header;
+		l_result.sample = std::move(l_samples);
+
+		return l_result;
+	}
+
 	bool WaveParser::WriteFile(const char* path, const WavObject& wavObject)
 	{
 		std::ofstream l_file(path, std::ios::binary);
@@ -292,24 +314,7 @@ namespace Waveless
 
 	bool WaveParser::WriteFile(const char* path, const WavHeader & header, const ComplexArray & x)
 	{
-		std::vector<char> l_samples;
-		auto l_bytesPerSample = header.fmtChunk.wBitsPerSample / 8;
-
-		l_samples.resize(x.size() * l_bytesPerSample);
-
-		for (size_t i = 0; i < x.size(); i++)
-		{
-			auto l_sampleOrig = x[i].real();
-
-			int32_t l_sample = (int32_t)l_sampleOrig;
-			std::memcpy(&l_samples[i * l_bytesPerSample], &l_sample, l_bytesPerSample);
-		}
-
-		WavObject l_result;
-		l_result.header = header;
-		l_result.sample = std::move(l_samples);
-
-		return WriteFile(path, l_result);
+		return WriteFile(path, GenerateWavObject(header, x));
 	}
 
 	inline void endian_swap(unsigned short& x)
