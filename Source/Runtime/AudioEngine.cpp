@@ -70,9 +70,12 @@ namespace Waveless
 			temp[i] = a0 * pSampleState[i];
 		}
 
-		for (ma_uint32 i = channels; i < frameCount * channels; ++i)
+		for (ma_uint32 i = channels; i < frameCount * channels; i += channels)
 		{
-			temp[i] = a0 * pOutput[i] + a1 * pOutput[i - channels] - b1 * temp[i - channels];
+			for (ma_uint32 j = 0; j < channels; j++)
+			{
+				temp[i + j] = a0 * pOutput[i + j] + a1 * pOutput[i + j - channels] - b1 * temp[i + j - channels];
+			}
 		}
 
 		for (ma_uint32 i = 0; i < frameCount * channels; ++i)
@@ -82,7 +85,7 @@ namespace Waveless
 
 		for (ma_uint32 i = 0; i < channels; ++i)
 		{
-			pSampleState[i] = temp[sizeOfTempBuffer - channels + i];
+			pSampleState[i] = temp[frameCount * channels - channels + i];
 		}
 
 		return frameCount;
@@ -103,9 +106,12 @@ namespace Waveless
 			temp[i] = a0 * pSampleState[i];
 		}
 
-		for (ma_uint32 i = channels; i < frameCount * channels; ++i)
+		for (ma_uint32 i = channels; i < frameCount * channels; i += channels)
 		{
-			temp[i] = a0 * pOutput[i] + a1 * pOutput[i - channels] - b1 * temp[i - channels];
+			for (ma_uint32 j = 0; j < channels; j++)
+			{
+				temp[i + j] = a0 * pOutput[i + j] + a1 * pOutput[i + j - channels] - b1 * temp[i + j - channels];
+			}
 		}
 
 		for (ma_uint32 i = 0; i < frameCount * channels; ++i)
@@ -115,7 +121,7 @@ namespace Waveless
 
 		for (ma_uint32 i = 0; i < channels; ++i)
 		{
-			pSampleState[i] = temp[sizeOfTempBuffer - channels + i];
+			pSampleState[i] = temp[frameCount * channels - channels + i];
 		}
 
 		return frameCount;
