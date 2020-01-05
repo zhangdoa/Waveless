@@ -9,51 +9,57 @@ namespace Waveless
 		Standard, NonPCM, Extensible, BWF
 	};
 
+#pragma pack (push, 1)
 	struct RIFFChunk
 	{
-		char                ckID[4];        // RIFF Header      Magic header
-		unsigned long       cksize;      // RIFF Chunk Size
-		char                WAVEID[4];        // WAVE Header
+		char                ckID[4]; // "RIFF" string
+		unsigned long       ckSize = 0; // RIFF Chunk Size
+		char                RIFFType[4]; // "WAVE" string
 	};
 
-	struct factChunk
+#pragma pack (push, 1)
+	struct JunkChunk
 	{
-		char                ckID[4]; // "fact"  string
-		unsigned long       cksize;  //
-		unsigned long       dwSampleLength;
+		char chunkId[4]; // "JUNK" string
+		unsigned long chunkSize = 0; // This must be at least 28 if the chunk is intended as a place-holder for a "ds64" chunk.
+		//char chunkData[] // dummy bytes
 	};
 
-	struct StandardFmtChunk
+#pragma pack (push, 1)
+	struct fmtChunk
 	{
-		char                ckID[4];         // FMT header
-		unsigned long       cksize;  // Size of the fmt chunk
+		// Standard
+		char                ckID[4];         // "fmt" string
+		unsigned long       ckSize = 0;  // Size of the fmt chunk
 		unsigned short      wFormatTag;    // Audio format 1=PCM,6=mulaw,7=alaw, 257=IBM Mu-Law, 258=IBM A-Law, 259=ADPCM
 		unsigned short      nChannels;      // Number of channels 1=Mono 2=Stereo
 		unsigned long       nSamplesPerSec;  // Sampling Frequency in Hz
 		unsigned long       nAvgBytesPerSec;    // bytes per second
 		unsigned short      nBlockAlign;     // 2=16-bit mono, 4=16-bit stereo
 		unsigned short      wBitsPerSample;  // Number of bits per sample
-	};
 
-	struct NonPCMFmtChunk
-	{
-		StandardFmtChunk    standardFmtChunk;
-		unsigned short      cbsize; // Size of the extension
-	};
+		// Non-PCM
+		unsigned short      cbSize = 0; // Size of the extension
 
-	struct ExtensibleFmtChunk
-	{
-		StandardFmtChunk    standardFmtChunk;
-		unsigned short      cbsize; // Size of the extension
+		// Extensible
 		unsigned short      wValidBitsPerSample;
 		unsigned long       dwChannelMask; // Speaker position mask
 		char                SubFormat[16]; // GUID (first two bytes are the data format code)
 	};
 
+#pragma pack (push, 1)
+	struct factChunk
+	{
+		char                ckID[4]; // "fact" string
+		unsigned long       ckSize;  //
+		unsigned long       dwSampleLength;
+	};
+
+#pragma pack (push, 1)
 	struct bextChunk
 	{
-		char                ckID[4]; // bext header
-		unsigned long       cksize; // Size of the bext chunk
+		char                ckID[4]; // "bext" string
+		unsigned long       ckSize = 0; // Size of the bext chunk
 		char                Description[256]; //ASCII : Description of the sound sequence
 		char                Originator[32]; //ASCII : Name of the originator
 		char                OriginatorReference[32]; //ASCII : Reference of the originator
@@ -72,53 +78,28 @@ namespace Waveless
 		//char              CodingHistory[]; //ASCII : History coding
 	};
 
-	struct DataChunk
+#pragma pack (push, 1)
+	struct dataChunk
 	{
 		char                ckID[4]; // "data" string
-		unsigned long       cksize;  // Sampled data length
+		unsigned long       ckSize = 0;  // Sampled data length
 	};
 
-	struct IWavHeader
+	struct WavHeader
 	{
 		WavHeaderType type;
-	};
-
-	struct  StandardWavHeader : public IWavHeader
-	{
-		RIFFChunk           RIFFChunk;
-		StandardFmtChunk    fmtChunk;
-		DataChunk           DataChunk;
-	};
-
-	struct  NonPCMWavHeader : public IWavHeader
-	{
-		RIFFChunk           RIFFChunk;
-		NonPCMFmtChunk      fmtChunk;
-		factChunk           factChunk;
-		DataChunk           DataChunk;
-	};
-
-	struct  ExtensibleWavHeader : public IWavHeader
-	{
-		RIFFChunk           RIFFChunk;
-		ExtensibleFmtChunk  fmtChunk;
-		factChunk           factChunk;
-		DataChunk           DataChunk;
-	};
-
-	struct  BWFWavHeader : public IWavHeader
-	{
-		RIFFChunk           RIFFChunk;
-		ExtensibleFmtChunk  fmtChunk;
-		bextChunk           bextChunk;
-		factChunk           factChunk;
-		DataChunk           DataChunk;
+		RIFFChunk RIFFChunk;
+		JunkChunk JunkChunk;
+		fmtChunk fmtChunk;
+		factChunk factChunk;
+		bextChunk bextChunk;
+		dataChunk dataChunk;
 	};
 
 	struct WavObject
 	{
-		IWavHeader* header;
-		std::vector<short> sample;
+		WavHeader header;
+		std::vector<char> sample;
 	};
 
 	class WaveParser
@@ -128,10 +109,13 @@ namespace Waveless
 		~WaveParser() = default;
 
 		static WavObject LoadFile(const char* path);
-		static bool WriteFile(const char* path, IWavHeader* header, const ComplexArray& x);
-		static bool WriteFile(const char* path, const WavObject& wavObject);
 
-		static StandardWavHeader GenerateStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize);
-		static void PrintWavHeader(IWavHeader* header);
+		static WavHeader GenerateWavHeader(unsigned short channels, unsigned long sampleRate, unsigned short bitDepth, unsigned long sampleCount);
+		static WavObject GenerateWavObject(const WavHeader& header, const ComplexArray& x);
+
+		static bool WriteFile(const char* path, const WavObject& wavObject);
+		static bool WriteFile(const char* path, const WavHeader& header, const ComplexArray& x);
+
+		static void PrintWavHeader(WavHeader* header);
 	};
 }

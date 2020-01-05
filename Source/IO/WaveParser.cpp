@@ -5,56 +5,39 @@ namespace Waveless
 {
 	void printRIFFChunk(RIFFChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "RIFF: ", rhs.ckID);
-		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.cksize);
-		Logger::Log(LogLevel::Verbose, "WAVE: ", rhs.WAVEID);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
+		Logger::Log(LogLevel::Verbose, "RIFFType: ", rhs.RIFFType);
 	}
 
-	void printStandardFmtChunk(StandardFmtChunk rhs)
+	void printFmtChunk(fmtChunk rhs, WavHeaderType type)
 	{
-		Logger::Log(LogLevel::Verbose, "Fmt: ", rhs.ckID);
-		Logger::Log(LogLevel::Verbose, "FmtSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 		Logger::Log(LogLevel::Verbose, "AudioFormat: ", (uint16_t)rhs.wFormatTag);
 		Logger::Log(LogLevel::Verbose, "NumOfChan: ", (uint16_t)rhs.nChannels);
 		Logger::Log(LogLevel::Verbose, "SamplesPerSec: ", (uint32_t)rhs.nSamplesPerSec);
 		Logger::Log(LogLevel::Verbose, "bytesPerSec: ", (uint32_t)rhs.nAvgBytesPerSec);
 		Logger::Log(LogLevel::Verbose, "blockAlign: ", (uint16_t)rhs.nBlockAlign);
 		Logger::Log(LogLevel::Verbose, "bitsPerSample: ", (uint16_t)rhs.wBitsPerSample);
+
+		if (type == WavHeaderType::NonPCM || type == WavHeaderType::Extensible)
+		{
+			Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint16_t)rhs.cbSize);
+
+			if (type == WavHeaderType::Extensible)
+			{
+				Logger::Log(LogLevel::Verbose, "ValidBitsPerSample: ", (uint16_t)rhs.wValidBitsPerSample);
+				Logger::Log(LogLevel::Verbose, "ChannelMask: ", (uint32_t)rhs.dwChannelMask);
+				Logger::Log(LogLevel::Verbose, "SubFormat: ", rhs.SubFormat);
+			}
+		}
 	}
 
-	void printNonPCMFmtChunk(NonPCMFmtChunk rhs)
+	void printBextChunk(bextChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "Fmt: ", rhs.standardFmtChunk.ckID);
-		Logger::Log(LogLevel::Verbose, "FmtSize: ", (uint32_t)rhs.standardFmtChunk.cksize);
-		Logger::Log(LogLevel::Verbose, "AudioFormat: ", (uint16_t)rhs.standardFmtChunk.wFormatTag);
-		Logger::Log(LogLevel::Verbose, "NumOfChan: ", (uint16_t)rhs.standardFmtChunk.nChannels);
-		Logger::Log(LogLevel::Verbose, "SamplesPerSec: ", (uint32_t)rhs.standardFmtChunk.nSamplesPerSec);
-		Logger::Log(LogLevel::Verbose, "bytesPerSec: ", (uint32_t)rhs.standardFmtChunk.nAvgBytesPerSec);
-		Logger::Log(LogLevel::Verbose, "blockAlign: ", (uint16_t)rhs.standardFmtChunk.nBlockAlign);
-		Logger::Log(LogLevel::Verbose, "bitsPerSample: ", (uint16_t)rhs.standardFmtChunk.wBitsPerSample);
-		Logger::Log(LogLevel::Verbose, "ExtensionSize: ", (uint16_t)rhs.cbsize);
-	}
-
-	void printExtensibleFmtChunk(ExtensibleFmtChunk rhs)
-	{
-		Logger::Log(LogLevel::Verbose, "Fmt: ", rhs.standardFmtChunk.ckID);
-		Logger::Log(LogLevel::Verbose, "FmtSize: ", (uint32_t)rhs.standardFmtChunk.cksize);
-		Logger::Log(LogLevel::Verbose, "AudioFormat: ", (uint16_t)rhs.standardFmtChunk.wFormatTag);
-		Logger::Log(LogLevel::Verbose, "NumOfChan: ", (uint16_t)rhs.standardFmtChunk.nChannels);
-		Logger::Log(LogLevel::Verbose, "SamplesPerSec: ", (uint32_t)rhs.standardFmtChunk.nSamplesPerSec);
-		Logger::Log(LogLevel::Verbose, "bytesPerSec: ", (uint32_t)rhs.standardFmtChunk.nAvgBytesPerSec);
-		Logger::Log(LogLevel::Verbose, "blockAlign: ", (uint16_t)rhs.standardFmtChunk.nBlockAlign);
-		Logger::Log(LogLevel::Verbose, "bitsPerSample: ", (uint16_t)rhs.standardFmtChunk.wBitsPerSample);
-		Logger::Log(LogLevel::Verbose, "ExtensionSize: ", (uint16_t)rhs.cbsize);
-		Logger::Log(LogLevel::Verbose, "ValidBitsPerSample: ", (uint16_t)rhs.wValidBitsPerSample);
-		Logger::Log(LogLevel::Verbose, "ChannelMask: ", (uint32_t)rhs.dwChannelMask);
-		Logger::Log(LogLevel::Verbose, "SubFormat: ", rhs.SubFormat);
-	}
-
-	void printbextChunk(bextChunk rhs)
-	{
-		Logger::Log(LogLevel::Verbose, "Bext: ", rhs.ckID);
-		Logger::Log(LogLevel::Verbose, "BextSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 		Logger::Log(LogLevel::Verbose, "Description: ", rhs.Description);
 		Logger::Log(LogLevel::Verbose, "Originator: ", rhs.Originator);
 		Logger::Log(LogLevel::Verbose, "OriginatorReference: ", rhs.OriginatorReference);
@@ -71,86 +54,53 @@ namespace Waveless
 		Logger::Log(LogLevel::Verbose, "MaxShortTermLoudness: ", (uint16_t)rhs.MaxShortTermLoudness);
 	}
 
-	void printfactChunk(factChunk rhs)
+	void printFactChunk(factChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "Data: ", rhs.ckID);
-		Logger::Log(LogLevel::Verbose, "DataSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 		Logger::Log(LogLevel::Verbose, "SampleLength: ", (uint32_t)rhs.dwSampleLength);
 	}
 
-	void printDataChunk(DataChunk rhs)
+	void printDataChunk(dataChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "Data: ", rhs.ckID);
-		Logger::Log(LogLevel::Verbose, "DataSize: ", (uint32_t)rhs.cksize);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 	}
 
-	void printStandardWavHeader(StandardWavHeader* header)
+	void WaveParser::PrintWavHeader(WavHeader* header)
 	{
 		printRIFFChunk(header->RIFFChunk);
-		printStandardFmtChunk(header->fmtChunk);
-		printDataChunk(header->DataChunk);
-	}
-
-	void printNonPCMWavHeader(NonPCMWavHeader* header)
-	{
-		printRIFFChunk(header->RIFFChunk);
-		printNonPCMFmtChunk(header->fmtChunk);
-		printfactChunk(header->factChunk);
-		printDataChunk(header->DataChunk);
-	}
-
-	void printExtensibleWavHeader(ExtensibleWavHeader* header)
-	{
-		printRIFFChunk(header->RIFFChunk);
-		printExtensibleFmtChunk(header->fmtChunk);
-		printfactChunk(header->factChunk);
-		printDataChunk(header->DataChunk);
-	}
-
-	void printBWFWavHeader(BWFWavHeader* header)
-	{
-		printRIFFChunk(header->RIFFChunk);
-		printExtensibleFmtChunk(header->fmtChunk);
-		printbextChunk(header->bextChunk);
-		printfactChunk(header->factChunk);
-		printDataChunk(header->DataChunk);
-	}
-
-	StandardWavHeader WaveParser::GenerateStandardWavHeader(unsigned short nChannels, unsigned long nSamplesPerSec, unsigned short wBitsPerSample, unsigned long dataChuckSize)
-	{
-		StandardWavHeader l_header;
-		l_header.type = WavHeaderType::Standard;
-
-		std::memcpy(l_header.RIFFChunk.ckID, "RIFF", 4);
-		l_header.RIFFChunk.cksize = 44 + dataChuckSize;
-		std::memcpy(l_header.RIFFChunk.WAVEID, "WAVE", 4);
-
-		std::memcpy(l_header.fmtChunk.ckID, "fmt ", 4);
-		l_header.fmtChunk.cksize = 16;
-		l_header.fmtChunk.wFormatTag = 1;
-		l_header.fmtChunk.nChannels = nChannels;
-		l_header.fmtChunk.nSamplesPerSec = nSamplesPerSec;
-		l_header.fmtChunk.nAvgBytesPerSec = nSamplesPerSec * nChannels * wBitsPerSample / 8;
-		l_header.fmtChunk.nBlockAlign = nChannels * wBitsPerSample / 8;
-		l_header.fmtChunk.wBitsPerSample = wBitsPerSample;
-
-		std::memcpy(l_header.DataChunk.ckID, "data", 4);
-		l_header.DataChunk.cksize = dataChuckSize;
-
-		return l_header;
-	}
-
-	void WaveParser::PrintWavHeader(IWavHeader* header)
-	{
-		switch (header->type)
+		printFmtChunk(header->fmtChunk, header->type);
+		if (header->type == WavHeaderType::BWF)
 		{
-		case WavHeaderType::Standard: printStandardWavHeader(reinterpret_cast<StandardWavHeader*>(header)); break;
-		case WavHeaderType::NonPCM: printNonPCMWavHeader(reinterpret_cast<NonPCMWavHeader*>(header)); break;
-		case WavHeaderType::Extensible: printExtensibleWavHeader(reinterpret_cast<ExtensibleWavHeader*>(header)); break;
-		case WavHeaderType::BWF: printBWFWavHeader(reinterpret_cast<BWFWavHeader*>(header)); break;
-		default:
-			break;
+			printBextChunk(header->bextChunk);
 		}
+		if (header->type != WavHeaderType::Standard)
+		{
+			printFactChunk(header->factChunk);
+		}
+		printDataChunk(header->dataChunk);
+	}
+
+	void GetData(std::filebuf* pbuf, void* rhs, size_t size)
+	{
+		pbuf->sgetn(reinterpret_cast<char*>(rhs), size);
+		pbuf->pubseekoff(-size, std::ios_base::cur, std::ios_base::in | std::ios::binary);
+	}
+
+	bool CheckChunkID(std::filebuf* pbuf, const char* ID)
+	{
+		char l_ChunkID[4];
+
+		GetData(pbuf, &l_ChunkID[0], sizeof(l_ChunkID));
+
+		if (strncmp(l_ChunkID, ID, strlen(ID)))
+		{
+			Logger::Log(LogLevel::Error, "Not ", ID, "!");
+			return true;
+		}
+
+		return false;
 	}
 
 	WavObject WaveParser::LoadFile(const char* path)
@@ -162,154 +112,204 @@ namespace Waveless
 			Logger::Log(LogLevel::Error, "std::ifstream: can't open file ", path, "!");
 		}
 
-		// get pointer to associated buffer object
 		auto pbuf = l_file.rdbuf();
 
-		// get file size using buffer's members
 		std::size_t l_size = pbuf->pubseekoff(0, l_file.end, l_file.in);
 
-		// choose header format
-		pbuf->pubseekpos(16, l_file.in);
-		unsigned long l_chuckSize;
-		pbuf->sgetn((char*)&l_chuckSize, sizeof(l_chuckSize));
+		// Check file format
+		pbuf->pubseekpos(0, l_file.in);
+		CheckChunkID(pbuf, "RIFF");
 
-		WavObject l_result;
-		size_t l_wavHeaderSize = 0;
-		size_t l_sampleCount = 0;
+		pbuf->pubseekpos(8, l_file.in);
+		CheckChunkID(pbuf, "WAVE");
 
-		if (l_chuckSize == 16)
+		WavHeader l_WavHeader;
+
+		// RIFF
+		pbuf->pubseekpos(0, l_file.in);
+		GetData(pbuf, &l_WavHeader.RIFFChunk, sizeof(l_WavHeader.RIFFChunk));
+
+		// JUNK without real junk data
+		pbuf->pubseekoff(sizeof(l_WavHeader.RIFFChunk), std::ios_base::cur, l_file.in);
+		if (!CheckChunkID(pbuf, "JUNK"))
 		{
-			Logger::Log(LogLevel::Verbose, path, " is Standard Wave format");
-
-			// vptr
-			l_wavHeaderSize = sizeof(StandardWavHeader) - 4;
-			l_sampleCount = l_size - l_wavHeaderSize;
-			l_result.header = new StandardWavHeader();
-			l_result.header->type = WavHeaderType::Standard;
-			pbuf->pubseekpos(0, l_file.in);
-			pbuf->sgetn((char*)l_result.header + 4, l_wavHeaderSize);
+			GetData(pbuf, &l_WavHeader.JunkChunk, sizeof(l_WavHeader.JunkChunk));
+			pbuf->pubseekoff(l_WavHeader.JunkChunk.chunkSize + 8, std::ios_base::cur, l_file.in);
 		}
-		else if (l_chuckSize == 18)
+
+		// fmt with only effective chunk length
+		if (!CheckChunkID(pbuf, "fmt"))
 		{
-			Logger::Log(LogLevel::Verbose, path, " is Non-PCM Wave format");
+			pbuf->pubseekoff(4, std::ios_base::cur, l_file.in);
+			unsigned long l_fmtChuckSize;
+			GetData(pbuf, &l_fmtChuckSize, sizeof(l_fmtChuckSize));
 
-			// vptr
-			l_wavHeaderSize = sizeof(NonPCMWavHeader) - 4;
-			l_sampleCount = l_size - l_wavHeaderSize;
-			l_result.header = new NonPCMWavHeader();
-			l_result.header->type = WavHeaderType::NonPCM;
-			pbuf->pubseekpos(0, l_file.in);
-			pbuf->sgetn((char*)l_result.header + 4, l_wavHeaderSize);
-		}
-		else if (l_chuckSize == 40)
-		{
-			char isBWF[4];
-
-			pbuf->pubseekpos(60, l_file.in);
-			pbuf->sgetn((char*)&isBWF, sizeof(isBWF));
-
-			if (isBWF[0] == *"b" || *"m")
+			if (l_fmtChuckSize == 16)
 			{
-				Logger::Log(LogLevel::Verbose, path, " is Broadcast Wave format");
-
-				//get RIFFChunk + ExtensibleFmtChunk + bextChunk size
-				l_wavHeaderSize = 0;
-				l_wavHeaderSize += sizeof(RIFFChunk);
-				l_wavHeaderSize += sizeof(ExtensibleFmtChunk);
-				l_wavHeaderSize += sizeof(bextChunk);
-
-				// load temp header
-				auto l_BWFHeader = new BWFWavHeader();
-				pbuf->pubseekpos(0, l_file.in);
-				pbuf->sgetn((char*)l_BWFHeader + 4, l_wavHeaderSize);
-
-				// load code history
-				auto l_bextSize = l_BWFHeader->bextChunk.cksize;
-
-				auto l_codeHistorySectorPos = 60 + sizeof(bextChunk);
-				auto l_codeHistorySectorLength = l_bextSize - sizeof(bextChunk);
-
-				std::vector<char> l_codeHistory(l_codeHistorySectorLength);
-
-				pbuf->pubseekpos(l_codeHistorySectorPos, l_file.in);
-				pbuf->sgetn((char*)&l_codeHistory[0], l_codeHistorySectorLength);
-
-				// load fact chunk and data chunk @TODO: WIP
-				auto l_factChunkPos = l_codeHistorySectorPos + l_codeHistorySectorLength;
-				pbuf->pubseekpos(l_factChunkPos, l_file.in);
-				pbuf->sgetn((char*)&l_BWFHeader->factChunk, sizeof(factChunk));
-				pbuf->sgetn((char*)&l_BWFHeader->DataChunk, sizeof(DataChunk));
-
-				l_result.header = l_BWFHeader;
-				auto l_samplePos = l_factChunkPos + sizeof(factChunk) + sizeof(DataChunk) + 1;
-				pbuf->pubseekpos(l_samplePos, l_file.in);
-				l_result.header->type = WavHeaderType::BWF;
+				Logger::Log(LogLevel::Verbose, path, " is Standard Wave format");
+				l_WavHeader.type = WavHeaderType::Standard;
 			}
-			else
+			else if (l_fmtChuckSize == 18)
+			{
+				Logger::Log(LogLevel::Verbose, path, " is Non-PCM Wave format");
+				l_WavHeader.type = WavHeaderType::NonPCM;
+			}
+			else if (l_fmtChuckSize == 40)
 			{
 				Logger::Log(LogLevel::Verbose, path, " is Extensible Wave format");
+				l_WavHeader.type = WavHeaderType::Extensible;
+			}
 
-				// vptr
-				l_wavHeaderSize = sizeof(ExtensibleWavHeader) - 4;
-				l_sampleCount = l_size - l_wavHeaderSize;
-				l_result.header = new ExtensibleWavHeader();
-				l_result.header->type = WavHeaderType::Extensible;
-				pbuf->pubseekpos(0, l_file.in);
-				pbuf->sgetn((char*)l_result.header + 4, l_wavHeaderSize);
+			pbuf->pubseekoff(-4, std::ios_base::cur, l_file.in);
+			GetData(pbuf, &l_WavHeader.fmtChunk, l_fmtChuckSize + 8);
+
+			pbuf->pubseekoff(l_fmtChuckSize + 8, std::ios_base::cur, l_file.in);
+		}
+
+		// fact
+		if (!CheckChunkID(pbuf, "fact"))
+		{
+			GetData(pbuf, &l_WavHeader.factChunk, sizeof(l_WavHeader.factChunk));
+			pbuf->pubseekoff(sizeof(l_WavHeader.factChunk), std::ios_base::cur, l_file.in);
+		}
+
+		// bext
+		if (!CheckChunkID(pbuf, "bext"))
+		{
+			Logger::Log(LogLevel::Verbose, path, " isBroadcast Wave Format");
+			l_WavHeader.type = WavHeaderType::BWF;
+
+			GetData(pbuf, &l_WavHeader.bextChunk, sizeof(l_WavHeader.bextChunk));
+			pbuf->pubseekoff(sizeof(l_WavHeader.bextChunk), std::ios_base::cur, l_file.in);
+
+			// load code history
+			auto l_bextSize = l_WavHeader.bextChunk.ckSize;
+			auto l_codeHistorySectorLength = l_bextSize + 8 - sizeof(bextChunk);
+
+			if (l_codeHistorySectorLength)
+			{
+				std::vector<char> l_codeHistory(l_codeHistorySectorLength);
+				pbuf->sgetn((char*)&l_codeHistory[0], l_codeHistorySectorLength);
+				Logger::Log(LogLevel::Verbose, "Code History: ", &l_codeHistory[0]);
 			}
 		}
 
+		if (!CheckChunkID(pbuf, "data"))
+		{
+			GetData(pbuf, &l_WavHeader.dataChunk, sizeof(l_WavHeader.dataChunk));
+			pbuf->pubseekoff(sizeof(l_WavHeader.dataChunk), std::ios_base::cur, l_file.in);
+		}
+
+		WavObject l_result;
+		l_result.header = l_WavHeader;
+
 		// load sample
-		auto l_sample = std::vector<short>(l_sampleCount);
-		pbuf->sgetn((char*)&l_sample[0], l_sampleCount);
+		auto l_sample = std::vector<char>(l_WavHeader.dataChunk.ckSize);
+		GetData(pbuf, &l_sample[0], l_sample.size());
+
 		l_result.sample = std::move(l_sample);
 
-		PrintWavHeader(l_result.header);
+		PrintWavHeader(&l_result.header);
 
 		return l_result;
 	}
 
-	bool WaveParser::WriteFile(const char* path, IWavHeader * header, const ComplexArray & x)
+	WavHeader WaveParser::GenerateWavHeader(unsigned short channels, unsigned long sampleRate, unsigned short bitDepth, unsigned long sampleCount)
 	{
-		WavObject l_wavObject;
-		l_wavObject.header = header;
+		auto l_bytesPerSample = bitDepth / 8;
 
-		std::vector<short> l_sample;
-		l_sample.reserve(x.size());
+		WavHeader l_header;
+		l_header.type = WavHeaderType::Standard;
 
-		for (size_t i = 0; i < x.size(); i++)
-		{
-			l_sample.emplace_back((short)x[i].real());
-		}
+		std::memcpy(l_header.RIFFChunk.ckID, "RIFF", 4);
+		l_header.RIFFChunk.ckSize = 44 + sampleCount * l_bytesPerSample;
+		std::memcpy(l_header.RIFFChunk.RIFFType, "WAVE", 4);
 
-		l_wavObject.sample = std::move(l_sample);
+		std::memcpy(l_header.fmtChunk.ckID, "fmt ", 4);
+		l_header.fmtChunk.ckSize = 16;
+		l_header.fmtChunk.wFormatTag = 1;
+		l_header.fmtChunk.nChannels = channels;
+		l_header.fmtChunk.nSamplesPerSec = sampleRate * channels;
+		l_header.fmtChunk.nAvgBytesPerSec = sampleRate * channels * l_bytesPerSample;
+		l_header.fmtChunk.nBlockAlign = channels * l_bytesPerSample;
+		l_header.fmtChunk.wBitsPerSample = bitDepth;
 
-		WriteFile(path, l_wavObject);
+		std::memcpy(l_header.dataChunk.ckID, "data", 4);
+		l_header.dataChunk.ckSize = sampleCount * l_bytesPerSample;
 
-		return false;
+		return l_header;
 	}
 
 	bool WaveParser::WriteFile(const char* path, const WavObject& wavObject)
 	{
-		size_t l_sizeOfWavHeader = 0;
+		std::ofstream l_file(path, std::ios::binary);
 
-		switch (wavObject.header->type)
+		if (!l_file.is_open())
 		{
-		case WavHeaderType::Standard: l_sizeOfWavHeader = sizeof(StandardWavHeader); break;
-		case WavHeaderType::NonPCM:  l_sizeOfWavHeader = sizeof(NonPCMWavHeader); break;
-		case WavHeaderType::Extensible: l_sizeOfWavHeader = sizeof(ExtensibleWavHeader); break;
-		case WavHeaderType::BWF: l_sizeOfWavHeader = sizeof(BWFWavHeader); break;
+			Logger::Log(LogLevel::Error, "std::ifstream: can't open file ", path, "!");
+			return false;
+		}
+
+		// RIFF
+		l_file.write((char*)&wavObject.header.RIFFChunk, sizeof(wavObject.header.RIFFChunk));
+
+		// fmt
+		size_t l_fmtChunkSize = 0;
+
+		switch (wavObject.header.type)
+		{
+		case WavHeaderType::Standard: l_fmtChunkSize = 16; break;
+		case WavHeaderType::NonPCM:  l_fmtChunkSize = 18; break;
+		case WavHeaderType::Extensible: l_fmtChunkSize = 40; break;
+		case WavHeaderType::BWF: l_fmtChunkSize = 40; break;
 		default:
 			break;
 		}
 
-		std::ofstream l_file(path, std::ios::binary);
+		l_file.write((char*)&wavObject.header.fmtChunk, l_fmtChunkSize + 8);
 
-		l_file.write((char*)wavObject.header + 4, l_sizeOfWavHeader - 4);
+		// fact
+		if (wavObject.header.type == WavHeaderType::NonPCM || wavObject.header.type == WavHeaderType::Extensible)
+		{
+			l_file.write((char*)&wavObject.header.factChunk, sizeof(wavObject.header.factChunk));
+		}
+
+		// bext
+		if (wavObject.header.type == WavHeaderType::BWF)
+		{
+			l_file.write((char*)&wavObject.header.bextChunk, sizeof(wavObject.header.bextChunk));
+		}
+
+		// data
+		l_file.write((char*)&wavObject.header.dataChunk, sizeof(wavObject.header.dataChunk));
+
 		l_file.write((char*)&wavObject.sample[0], wavObject.sample.size());
 
 		l_file.close();
+
 		return true;
+	}
+
+	bool WaveParser::WriteFile(const char* path, const WavHeader & header, const ComplexArray & x)
+	{
+		std::vector<char> l_samples;
+		auto l_bytesPerSample = header.fmtChunk.wBitsPerSample / 8;
+
+		l_samples.resize(x.size() * l_bytesPerSample);
+
+		for (size_t i = 0; i < x.size(); i++)
+		{
+			auto l_sampleOrig = x[i].real();
+
+			int32_t l_sample = (int32_t)l_sampleOrig;
+			std::memcpy(&l_samples[i * l_bytesPerSample], &l_sample, l_bytesPerSample);
+		}
+
+		WavObject l_result;
+		l_result.header = header;
+		l_result.sample = std::move(l_samples);
+
+		return WriteFile(path, l_result);
 	}
 
 	inline void endian_swap(unsigned short& x)
