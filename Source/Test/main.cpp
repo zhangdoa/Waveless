@@ -30,16 +30,18 @@ void testOfflineFeatures()
 	Plotter::Plot(signal_2_synth);
 
 	// test case : write to new wave file
-	auto l_newWavHeader = WaveParser::GenerateStandardWavHeader(1, 44100, 16, (unsigned long)signal_2_synth.size());
-	WaveParser::WriteFile("..//..//Asset//test_Sinusoid.wav", &l_newWavHeader, signal_2_synth);
+	auto l_newWavHeader = WaveParser::GenerateWavHeader(1, 44100, 16, (unsigned long)signal_2.size());
+	WaveParser::WriteFile("..//..//Asset//test_Sinusoid_Original.wav", l_newWavHeader, signal_2);
+	WaveParser::WriteFile("..//..//Asset//test_Sinusoid_Resampled.wav", l_newWavHeader, signal_2_synth);
+
 	Plotter::Show();
 
 	// test case: wave file loading and parsing
-	auto l_wavObject = WaveParser::LoadFile("..//..//Asset//testA.wav");
-	auto l_header = reinterpret_cast<StandardWavHeader*>(l_wavObject.header);
-	auto l_sampleRate = l_header->fmtChunk.nSamplesPerSec;
+	auto l_wavObject = WaveParser::LoadFile("..//..//Asset//test_Sinusoid_Original.wav");
+	auto l_sampleRate = l_wavObject.header.fmtChunk.nSamplesPerSec;
 
 	// test case : get freq bin of wave data
+	// @TODO: Raw sample to ComplexArray
 	std::vector<Complex> l_singal3Temp(l_wavObject.sample.begin(), l_wavObject.sample.end());
 	ComplexArray signal_3(l_singal3Temp.data(), l_singal3Temp.size());
 	auto signal_3_FFT = Math::FFT(signal_3, l_windowDesc);
@@ -47,11 +49,11 @@ void testOfflineFeatures()
 
 	// test case : DSP
 	auto l_sampleProcessed = DSP::Gain(signal_3, -4.5);
-	//l_sampleProcessed = DSP::LPF(l_sampleProcessed, l_sampleRate, 5000.0);
+	l_sampleProcessed = DSP::LPF(l_sampleProcessed, l_sampleRate, 5000.0);
 	l_sampleProcessed = DSP::HPF(l_sampleProcessed, l_sampleRate, 300.0);
 
 	// test case : write to new wave file
-	WaveParser::WriteFile("..//..//Asset//test_Processed.wav", l_header, l_sampleProcessed);
+	WaveParser::WriteFile("..//..//Asset//test_Sinusoid_Processed.wav", l_wavObject.header, l_sampleProcessed);
 }
 
 void testRealTimeFeatures()
