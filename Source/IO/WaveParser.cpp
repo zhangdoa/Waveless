@@ -85,7 +85,7 @@ namespace Waveless
 	void GetData(std::filebuf* pbuf, void* rhs, size_t size)
 	{
 		pbuf->sgetn(reinterpret_cast<char*>(rhs), size);
-		pbuf->pubseekoff(-size, std::ios_base::cur, std::ios_base::in | std::ios::binary);
+		pbuf->pubseekoff(-(int32_t)size, std::ios_base::cur, std::ios_base::in | std::ios::binary);
 	}
 
 	bool CheckChunkID(std::filebuf* pbuf, const char* ID)
@@ -96,7 +96,7 @@ namespace Waveless
 
 		if (strncmp(l_ChunkID, ID, strlen(ID)))
 		{
-			Logger::Log(LogLevel::Error, "Not ", ID, "!");
+			Logger::Log(LogLevel::Warning, "Not contain ", ID, " chunk.");
 			return true;
 		}
 

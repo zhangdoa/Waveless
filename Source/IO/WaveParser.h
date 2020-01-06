@@ -16,6 +16,7 @@ namespace Waveless
 		unsigned long       ckSize = 0; // RIFF Chunk Size
 		char                RIFFType[4]; // "WAVE" string
 	};
+#pragma pack(pop)
 
 #pragma pack (push, 1)
 	struct JunkChunk
@@ -24,6 +25,7 @@ namespace Waveless
 		unsigned long chunkSize = 0; // This must be at least 28 if the chunk is intended as a place-holder for a "ds64" chunk.
 		//char chunkData[] // dummy bytes
 	};
+#pragma pack(pop)
 
 #pragma pack (push, 1)
 	struct fmtChunk
@@ -46,6 +48,7 @@ namespace Waveless
 		unsigned long       dwChannelMask; // Speaker position mask
 		char                SubFormat[16]; // GUID (first two bytes are the data format code)
 	};
+#pragma pack(pop)
 
 #pragma pack (push, 1)
 	struct factChunk
@@ -54,6 +57,7 @@ namespace Waveless
 		unsigned long       ckSize;  //
 		unsigned long       dwSampleLength;
 	};
+#pragma pack(pop)
 
 #pragma pack (push, 1)
 	struct bextChunk
@@ -77,6 +81,7 @@ namespace Waveless
 		char                Reserved[180]; //180 bytes, reserved for future use, set to ¡°NULL¡±
 		//char              CodingHistory[]; //ASCII : History coding
 	};
+#pragma pack(pop)
 
 #pragma pack (push, 1)
 	struct dataChunk
@@ -84,6 +89,7 @@ namespace Waveless
 		char                ckID[4]; // "data" string
 		unsigned long       ckSize = 0;  // Sampled data length
 	};
+#pragma pack(pop)
 
 	struct WavHeader
 	{
