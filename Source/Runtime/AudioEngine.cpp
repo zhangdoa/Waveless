@@ -21,18 +21,11 @@ namespace Waveless
 		return dist(e2);
 	}
 
-	struct PlaybackDesc
-	{
-		ma_format format;
-		ma_uint32 channels;
-		ma_uint32 sampleRate;
-	};
-
-	PlaybackDesc devicePlaybackDesc;
+	ma_decoder_config deviceDecoderConfig;
 
 	struct WsPlayableObject : public WsObject
 	{
-		PlaybackDesc playbackDesc;
+		ma_decoder_config decoderConfig;
 	};
 
 	struct WsEventPrototype : public WsPlayableObject
@@ -131,7 +124,7 @@ namespace Waveless
 	{
 		float temp[sizeOfTempBuffer];
 
-		ma_uint32 tempCapInFrames = ma_countof(temp) / eventInstance->playbackDesc.channels;
+		ma_uint32 tempCapInFrames = ma_countof(temp) / eventInstance->decoderConfig.channels;
 		ma_uint32 totalFramesRead = 0;
 
 		while (totalFramesRead < frameCount)
@@ -154,9 +147,9 @@ namespace Waveless
 			}
 
 			/* Mix the frames together. */
-			for (iSample = 0; iSample < framesReadThisIteration * eventInstance->playbackDesc.channels; ++iSample)
+			for (iSample = 0; iSample < framesReadThisIteration * deviceDecoderConfig.channels; ++iSample)
 			{
-				pOutput[totalFramesRead * eventInstance->playbackDesc.channels + iSample] += temp[iSample];
+				pOutput[totalFramesRead * deviceDecoderConfig.channels + iSample] += temp[iSample];
 			}
 
 			totalFramesRead += framesReadThisIteration;
@@ -194,14 +187,12 @@ namespace Waveless
 		g_eventPrototypes.reserve(4096);
 		g_eventInstances.reserve(512);
 
-		devicePlaybackDesc.format = ma_format_f32;
-		devicePlaybackDesc.channels = 2;
-		devicePlaybackDesc.sampleRate = MA_SAMPLE_RATE_44100;
+		deviceDecoderConfig = ma_decoder_config_init(ma_format_f32, 2, MA_SAMPLE_RATE_44100);
 
 		deviceConfig = ma_device_config_init(ma_device_type_playback);
-		deviceConfig.playback.format = devicePlaybackDesc.format;
-		deviceConfig.playback.channels = devicePlaybackDesc.channels;
-		deviceConfig.sampleRate = devicePlaybackDesc.sampleRate;
+		deviceConfig.playback.format = deviceDecoderConfig.format;
+		deviceConfig.playback.channels = deviceDecoderConfig.channels;
+		deviceConfig.sampleRate = deviceDecoderConfig.sampleRate;
 		deviceConfig.dataCallback = data_callback;
 		deviceConfig.pUserData = nullptr;
 
@@ -238,12 +229,9 @@ namespace Waveless
 		auto l_UUID = GenerateUUID();
 
 		l_eventInstance->UUID = l_UUID;
-		l_eventInstance->playbackDesc = l_eventPrototype->playbackDesc;
+		l_eventInstance->decoderConfig = l_eventPrototype->decoderConfig;
 
-		auto decoderInputConfig = ma_decoder_config_init(l_eventPrototype->playbackDesc.format, l_eventPrototype->playbackDesc.channels, l_eventPrototype->playbackDesc.sampleRate);
-		auto decoderOutputConfig = ma_decoder_config_init(devicePlaybackDesc.format, devicePlaybackDesc.channels, devicePlaybackDesc.sampleRate);
-
-		if (ma_decoder_init_memory_raw(l_eventPrototype->wavObject->sample.data(), l_eventPrototype->wavObject->sample.size(), &decoderInputConfig, &decoderOutputConfig, &l_eventInstance->decoder) != MA_SUCCESS)
+		if (ma_decoder_init_memory_raw(l_eventPrototype->wavObject->sample.data(), l_eventPrototype->wavObject->sample.size(), &l_eventInstance->decoderConfig, &deviceDecoderConfig, &l_eventInstance->decoder) != MA_SUCCESS)
 		{
 			printf("Failed to init decoder.\n");
 		}
@@ -291,9 +279,12 @@ namespace Waveless
 
 		l_eventPrototype.UUID = l_UUID;
 		l_eventPrototype.wavObject = &const_cast<WavObject&>(wavObject);
-		l_eventPrototype.playbackDesc.format = ma_format(wavObject.header.fmtChunk.wBitsPerSample / 8);
-		l_eventPrototype.playbackDesc.channels = wavObject.header.fmtChunk.nChannels;
-		l_eventPrototype.playbackDesc.sampleRate = wavObject.header.fmtChunk.nSamplesPerSec;
+		l_eventPrototype.decoderConfig = ma_decoder_config_init
+		(
+			ma_format(wavObject.header.fmtChunk.wBitsPerSample / 8),
+			wavObject.header.fmtChunk.nChannels,
+			wavObject.header.fmtChunk.nSamplesPerSec
+		);
 
 		g_eventPrototypes.emplace(l_UUID, l_eventPrototype);
 
