@@ -21,8 +21,8 @@ namespace Waveless
 #pragma pack (push, 1)
 	struct JunkChunk
 	{
-		char chunkId[4]; // "JUNK" string
-		unsigned long chunkSize = 0; // This must be at least 28 if the chunk is intended as a place-holder for a "ds64" chunk.
+		char ckID[4]; // "JUNK" or "junk" string
+		unsigned long ckSize = 0; // This must be at least 28 if the chunk is intended as a place-holder for a "ds64" chunk.
 		//char chunkData[] // dummy bytes
 	};
 #pragma pack(pop)
@@ -93,13 +93,13 @@ namespace Waveless
 
 	struct WavHeader
 	{
-		WavHeaderType type;
 		RIFFChunk RIFFChunk;
 		JunkChunk JunkChunk;
 		fmtChunk fmtChunk;
 		factChunk factChunk;
 		bextChunk bextChunk;
 		dataChunk dataChunk;
+		int ChunkValidities[6] = { 0 };
 	};
 
 	struct WavObject
