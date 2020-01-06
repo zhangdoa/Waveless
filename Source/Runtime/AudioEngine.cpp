@@ -55,9 +55,9 @@ namespace Waveless
 	ma_event terminateEvent;
 	const int sizeOfTempBuffer = 4096;
 
-	ma_uint32 low_pass_filter(ma_uint32 channels, float cutoffFreq, float sampleRate, float* pSampleState, float* pOutput, ma_uint32 frameCount)
+	ma_uint32 low_pass_filter(ma_uint32 channels, float cutoffFreq, ma_uint32 sampleRate, float* pSampleState, float* pOutput, ma_uint32 frameCount)
 	{
-		auto th = 2.0f * PI * cutoffFreq / sampleRate;
+		auto th = 2.0f * PI<float> * cutoffFreq / (float)sampleRate;
 		auto g = cosf(th) / (1.0f + sinf(th));
 		auto a0 = (1.0f - g) / 2.0f;
 		auto a1 = (1.0f - g) / 2.0f;
@@ -91,9 +91,9 @@ namespace Waveless
 		return frameCount;
 	}
 
-	ma_uint32 high_pass_filter(ma_uint32 channels, float cutoffFreq, float sampleRate, float* pSampleState, float* pOutput, ma_uint32 frameCount)
+	ma_uint32 high_pass_filter(ma_uint32 channels, float cutoffFreq, ma_uint32 sampleRate, float* pSampleState, float* pOutput, ma_uint32 frameCount)
 	{
-		auto th = 2.0f * PI * cutoffFreq / sampleRate;
+		auto th = 2.0f * PI<float> * cutoffFreq / (float)sampleRate;
 		auto g = cosf(th) / (1.0f + sinf(th));
 		auto a0 = (1.0f + g) / 2.0f;
 		auto a1 = -((1.0f + g) / 2.0f);

@@ -31,7 +31,7 @@ namespace Waveless
 
 		for (size_t i = 0; i < N; i++)
 		{
-			x[i] = l_Intensity * std::sin(2 * PI * f * (double)i / fs + phi);
+			x[i] = l_Intensity * std::sin(2 * PI<double> * f * (double)i / fs + phi);
 		}
 
 		return x;
@@ -48,7 +48,7 @@ namespace Waveless
 
 			for (size_t i = 0; i < N; i++)
 			{
-				s += x[i] * std::exp(Complex(0.0, -1.0) * 2.0 * PI * (double)k * ((double)i / (double)N));
+				s += x[i] * std::exp(Complex(0.0, -1.0) * 2.0 * PI<double> * (double)k * ((double)i / (double)N));
 			}
 
 			X[k] = s;
@@ -68,7 +68,7 @@ namespace Waveless
 
 			for (size_t i = 0; i < N; i++)
 			{
-				s += (1.0 / (double)N) * X[i] * std::exp(Complex(0.0, 1.0) * 2.0 * PI * (double)k * ((double)i / (double)N));
+				s += (1.0 / (double)N) * X[i] * std::exp(Complex(0.0, 1.0) * 2.0 * PI<double> * (double)k * ((double)i / (double)N));
 			}
 
 			x[k] = s;
@@ -91,37 +91,37 @@ namespace Waveless
 		case Waveless::WindowType::Hann:
 			for (size_t i = 0; i < N; i++)
 			{
-				l_result[i] = pow(sin(PI * (double)i / (double)N), 2.0);
+				l_result[i] = pow(sin(PI<double> * (double)i / (double)N), 2.0);
 			}
 			break;
 		case Waveless::WindowType::Hamming:
 			for (size_t i = 0; i < N; i++)
 			{
-				l_result[i] = 0.53836 + 0.46164 * cos(2.0 * PI * (double)i / (double)N);
+				l_result[i] = 0.53836 + 0.46164 * cos(2.0 * PI<double> * (double)i / (double)N);
 			}
 			break;
 		case Waveless::WindowType::Blackman:
 			for (size_t i = 0; i < N; i++)
 			{
-				l_result[i] = 0.42659 - 0.49656 * cos(2.0 * PI * (double)i / (double)N) + 0.076849 * cos(4.0 * PI * (double)i / (double)N);
+				l_result[i] = 0.42659 - 0.49656 * cos(2.0 * PI<double> * (double)i / (double)N) + 0.076849 * cos(4.0 * PI<double> * (double)i / (double)N);
 			}
 			break;
 		case Waveless::WindowType::Nuttall:
 			for (size_t i = 0; i < N; i++)
 			{
-				l_result[i] = 0.355768 - 0.487396 * cos(2.0 * PI * (double)i / (double)N) + 0.144232 * cos(4.0 * PI * (double)i / (double)N) - 0.012604 * cos(6.0 * PI * (double)i / (double)N);
+				l_result[i] = 0.355768 - 0.487396 * cos(2.0 * PI<double> * (double)i / (double)N) + 0.144232 * cos(4.0 * PI<double> * (double)i / (double)N) - 0.012604 * cos(6.0 * PI<double> * (double)i / (double)N);
 			}
 			break;
 		case Waveless::WindowType::BlackmanNuttall:
 			for (size_t i = 0; i < N; i++)
 			{
-				l_result[i] = 0.3635819 - 0.4891775 * cos(2.0 * PI * (double)i / (double)N) + 0.1365995 * cos(4.0 * PI * (double)i / (double)N) - 0.0106411 * cos(6.0 * PI * (double)i / (double)N);
+				l_result[i] = 0.3635819 - 0.4891775 * cos(2.0 * PI<double> * (double)i / (double)N) + 0.1365995 * cos(4.0 * PI<double> * (double)i / (double)N) - 0.0106411 * cos(6.0 * PI<double> * (double)i / (double)N);
 			}
 			break;
 		case Waveless::WindowType::BlackmanHarris:
 			for (size_t i = 0; i < N; i++)
 			{
-				l_result[i] = 0.35875 - 0.48829 * cos(2.0 * PI * (double)i / (double)N) + 0.14128 * cos(4.0 * PI * (double)i / (double)N) - 0.01168 * cos(6.0 * PI * (double)i / (double)N);
+				l_result[i] = 0.35875 - 0.48829 * cos(2.0 * PI<double> * (double)i / (double)N) + 0.14128 * cos(4.0 * PI<double> * (double)i / (double)N) - 0.01168 * cos(6.0 * PI<double> * (double)i / (double)N);
 			}
 			break;
 		default:
@@ -251,7 +251,7 @@ namespace Waveless
 		// Combine
 		for (size_t k = 0; k < N / 2; ++k)
 		{
-			Complex t = std::polar(1.0, -2 * PI * k / N) * odd[k];
+			Complex t = std::polar(1.0, -2 * PI<double> * k / N) * odd[k];
 			x[k] = even[k] + t;
 			x[k + N / 2] = even[k] - t;
 		}

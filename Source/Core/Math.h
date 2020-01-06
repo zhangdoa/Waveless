@@ -3,7 +3,8 @@
 
 namespace Waveless
 {
-	inline static const double PI = 3.1415926536;
+	template<class T>
+	inline static const T PI = T(3.14159265358979323846264338327950288L);
 
 	using Complex = std::complex<double>;
 	using ComplexArray = std::valarray<Complex>;
