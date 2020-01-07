@@ -139,3 +139,28 @@ bool ImGuiRendererDX11::terminate()
 	CleanupDeviceD3D();
 	return true;
 }
+
+void * ImGuiRendererDX11::LoadTexture(const char * path)
+{
+	return ImGui_LoadTexture(path);
+}
+
+void * ImGuiRendererDX11::CreateTexture(const void * data, int width, int height)
+{
+	return ImGui_CreateTexture(data, width, height);
+}
+
+void ImGuiRendererDX11::DestroyTexture(void * texture)
+{
+	ImGui_DestroyTexture(texture);
+}
+
+int ImGuiRendererDX11::GetTextureWidth(void * texture)
+{
+	return ImGui_GetTextureWidth(texture);
+}
+
+int ImGuiRendererDX11::GetTextureHeight(void * texture)
+{
+	return ImGui_GetTextureHeight(texture);
+}

@@ -1,8 +1,10 @@
+add_subdirectory("ImGuiNodeUtil")
 add_library(ImGuiWrapper ImGuiWrapper.h ImGuiWrapper.cpp)
 target_link_libraries(ImGuiWrapper ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/imgui_node_editor.lib)
 target_link_libraries(ImGuiWrapper ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/imgui_canvas.lib)
 target_link_libraries(ImGuiWrapper ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE}/imgui.lib)
 target_link_libraries(ImGuiWrapper WsIO)
+target_link_libraries(ImGuiWrapper ImGuiNodeUtil)
 
 if (WS_OS_WIN)
 add_library(ImGuiWindowWin ImGuiWindowWin.h ImGuiWindowWin.cpp)

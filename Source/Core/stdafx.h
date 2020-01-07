@@ -8,5 +8,6 @@
 #include <iterator>
 #include <vector>
 #include <valarray>
+#include <map>
 #include <unordered_map>
 #include <queue>
