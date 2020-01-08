@@ -24,6 +24,8 @@ void testOfflineFeatures()
 	// test case : sinusoid generation
 	auto signal_2 = Math::GenerateSine(64.0, 440.0, 0.0, 44100.0, 4.0);
 	auto signal_2_FFT = Math::FFT(signal_2, l_windowDesc);
+	auto signal_2_IFFT = Math::IFFT(signal_2_FFT, l_windowDesc);
+
 	auto signal_2_bin = Math::FreqDomainSeries2FreqBin(signal_2_FFT, 44100.0);
 	auto signal_2_freq = Math::FreqBin2FreqDomainSeries(signal_2_bin);
 	auto signal_2_synth = Math::Synth(signal_2_bin, l_windowDesc);
@@ -60,22 +62,32 @@ void testRealTimeFeatures()
 {
 	AudioEngine::Initialize();
 
-	auto l_wavObjectA = WaveParser::LoadFile("..//..//Asset//testA.wav");
-	auto l_wavObjectB = WaveParser::LoadFile("..//..//Asset//testB.wav");
+	auto l_wavObject_A = WaveParser::LoadFile("..//..//Asset//testA.wav");
+	auto l_wavObject_B = WaveParser::LoadFile("..//..//Asset//testB.wav");
 
 	auto l_signal = Math::GenerateSine(64.0, 440.0, 0.0, 44100.0, 4.0);
 	auto l_wavHeader = WaveParser::GenerateWavHeader(1, 44100, 16, (unsigned long)l_signal.size());
-	auto l_wavObjectC = WaveParser::GenerateWavObject(l_wavHeader, l_signal);
+	auto l_wavObject_C = WaveParser::GenerateWavObject(l_wavHeader, l_signal);
+	auto l_wavObject_D = WaveParser::LoadFile("..//..//Asset//testC.wav");
 
-	auto l_eventIDA = AudioEngine::AddEventPrototype(l_wavObjectA);
-	auto l_eventIDB = AudioEngine::AddEventPrototype(l_wavObjectB);
-	auto l_eventIDC = AudioEngine::AddEventPrototype(l_wavObjectC);
+	auto l_eventID_A = AudioEngine::AddEventPrototype(l_wavObject_A);
+	auto l_eventID_B = AudioEngine::AddEventPrototype(l_wavObject_B);
+	auto l_eventID_C = AudioEngine::AddEventPrototype(l_wavObject_C);
+	auto l_eventID_D = AudioEngine::AddEventPrototype(l_wavObject_D);
 
-	AudioEngine::Trigger(l_eventIDA);
-	AudioEngine::Trigger(l_eventIDB);
-	AudioEngine::Trigger(l_eventIDC);
+	auto l_eventInstanceID_A = AudioEngine::Trigger(l_eventID_A);
+	auto l_eventInstanceID_B = AudioEngine::Trigger(l_eventID_B);
+	auto l_eventInstanceID_C = AudioEngine::Trigger(l_eventID_C);
+	auto l_eventInstanceID_D = AudioEngine::Trigger(l_eventID_D);
 
 	AudioEngine::Flush();
+
+	float t = 10.0f;
+	while (t < 20000.0f)
+	{
+		t += 0.001f;
+		AudioEngine::ApplyLPF(l_eventInstanceID_B, t);
+	}
 
 	AudioEngine::Terminate();
 }

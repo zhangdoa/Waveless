@@ -35,5 +35,15 @@ namespace Waveless
 		/// Add an event prototype from a wave object
 		///
 		static uint64_t AddEventPrototype(const WavObject& wavObject);
+
+		///
+		/// Apply low pass filter to an event instance
+		///
+		static bool ApplyLPF(uint64_t UUID, float cutOffFreq);
+
+		///
+		/// Apply high pass filter to an event instance
+		///
+		static bool ApplyHPF(uint64_t UUID, float cutOffFreq);
 	};
 }

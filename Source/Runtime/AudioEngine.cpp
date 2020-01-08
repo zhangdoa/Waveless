@@ -46,7 +46,7 @@ namespace Waveless
 
 	std::unordered_map<uint64_t, WsEventPrototype> g_eventPrototypes;
 	std::unordered_map<WavObject*, uint64_t> g_registeredEventPrototypes;
-	std::vector<WsEventInstance*> g_eventInstances;
+	std::unordered_map<uint64_t, WsEventInstance*> g_eventInstances;
 	std::queue<WsEventInstance*> g_untriggeredEventInstances;
 
 	ma_device_config deviceConfig;
@@ -197,14 +197,14 @@ namespace Waveless
 	{
 		for (auto i : g_eventInstances)
 		{
-			if (i->objectState == ObjectState::Active)
+			if (i.second->objectState == ObjectState::Active)
 			{
-				auto l_frame = read_and_mix_pcm_frames(i, reinterpret_cast<float*>(pOutput), frameCount);
+				auto l_frame = read_and_mix_pcm_frames(i.second, reinterpret_cast<float*>(pOutput), frameCount);
 
 				if (l_frame < frameCount)
 				{
-					i->objectState = ObjectState::Terminated;
-					ma_event_signal(&i->stopEvent);
+					i.second->objectState = ObjectState::Terminated;
+					ma_event_signal(&i.second->stopEvent);
 				}
 			}
 		}
@@ -280,7 +280,7 @@ namespace Waveless
 			auto l_eventPrototype = &l_result->second;
 			auto l_eventInstance = CreateEventInstance(l_eventPrototype);
 
-			g_eventInstances.emplace_back(l_eventInstance);
+			g_eventInstances.emplace(l_eventInstance->UUID, l_eventInstance);
 			g_untriggeredEventInstances.push(l_eventInstance);
 
 			return l_eventInstance->UUID;
@@ -296,7 +296,7 @@ namespace Waveless
 	{
 		for (auto i : g_eventInstances)
 		{
-			ma_event_wait(&i->stopEvent);
+			ma_event_wait(&i.second->stopEvent);
 		}
 		ma_device_uninit(&device);
 	}
@@ -329,6 +329,52 @@ namespace Waveless
 			g_registeredEventPrototypes.emplace(l_eventPrototype.wavObject, l_UUID);
 
 			return l_UUID;
+		}
+	}
+
+	bool AudioEngine::ApplyLPF(uint64_t UUID, float cutOffFreq)
+	{
+		auto l_result = g_eventInstances.find(UUID);
+		if (l_result != g_eventInstances.end())
+		{
+			if (cutOffFreq * 2.0f > l_result->second->decoderConfig.sampleRate)
+			{
+				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate");
+				return false;
+			}
+			else
+			{
+				l_result->second->cutOffFreqLPF = cutOffFreq;
+				return true;
+			}
+		}
+		else
+		{
+			Logger::Log(LogLevel::Warning, "Can't find WsEventInstance.");
+			return false;
+		}
+	}
+
+	bool AudioEngine::ApplyHPF(uint64_t UUID, float cutOffFreq)
+	{
+		auto l_result = g_eventInstances.find(UUID);
+		if (l_result != g_eventInstances.end())
+		{
+			if (cutOffFreq * 2.0f > l_result->second->decoderConfig.sampleRate)
+			{
+				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate");
+				return false;
+			}
+			else
+			{
+				l_result->second->cutOffFreqHPF = cutOffFreq;
+				return true;
+			}
+		}
+		else
+		{
+			Logger::Log(LogLevel::Warning, "Can't find WsEventInstance.");
+			return false;
 		}
 	}
 }
