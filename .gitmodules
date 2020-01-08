@@ -12,3 +12,8 @@
 	path = GitSubmodules/imgui-node-editor
 	url = https://github.com/thedmd/imgui-node-editor
 	ignore = dirty
+
+[submodule "GitSubmodules/json"]
+	path = GitSubmodules/json
+	url = https://github.com/nlohmann/json
+	ignore = dirty

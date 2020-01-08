@@ -1,5 +1,6 @@
 #include "AudioEngine.h"
 #include "../Core/Math.h"
+#include "../Core/Logger.h"
 
 #define DR_FLAC_IMPLEMENTATION
 #include "../../GitSubmodules/miniaudio/extras/dr_flac.h"  /* Enables FLAC decoding. */
@@ -37,11 +38,16 @@ namespace Waveless
 	{
 		ma_decoder decoder;
 		ma_event stopEvent;
+		float sampleStateLPF[8] = { 0 };
+		float sampleStateHPF[8] = { 0 };
+		float cutOffFreqLPF = 0.0f;
+		float cutOffFreqHPF = 0.0f;
 	};
 
 	std::unordered_map<uint64_t, WsEventPrototype> g_eventPrototypes;
+	std::unordered_map<WavObject*, uint64_t> g_registeredEventPrototypes;
 	std::vector<WsEventInstance*> g_eventInstances;
-	std::queue<WsEventInstance*>g_untriggeredEventInstances;
+	std::queue<WsEventInstance*> g_untriggeredEventInstances;
 
 	ma_device_config deviceConfig;
 	ma_device device;
@@ -58,27 +64,34 @@ namespace Waveless
 
 		float temp[sizeOfTempBuffer];
 
+		// First frame
+		// Y0 = a0 * X0 + a1 * X-1 - b1 * Y-1
 		for (ma_uint32 i = 0; i < channels; ++i)
 		{
-			temp[i] = a0 * pSampleState[i];
+			temp[i] = a0 * pOutput[i] + pSampleState[i];
 		}
 
-		for (ma_uint32 i = channels; i < frameCount * channels; i += channels)
+		// Yn = a0 * Xn + a1 * Xn-1 - b1 * Yn-1
+		for (ma_uint32 i = 1; i < frameCount; ++i)
 		{
-			for (ma_uint32 j = 0; j < channels; j++)
+			for (ma_uint32 j = 0; j < channels; ++j)
 			{
-				temp[i + j] = a0 * pOutput[i + j] + a1 * pOutput[i + j - channels] - b1 * temp[i + j - channels];
+				temp[i * channels + j] = a0 * pOutput[i * channels + j] + a1 * pOutput[(i - 1) * channels + j] - b1 * temp[(i - 1) * channels + j];
 			}
 		}
 
+		// Save a1 * XN - b1 * YN of last frame
+		for (ma_uint32 i = 0; i < channels; ++i)
+		{
+			auto XN = pOutput[frameCount * channels - channels + i];
+			auto YN = temp[frameCount * channels - channels + i];
+			pSampleState[i] = a1 * XN - b1 * YN;
+		}
+
+		// Save Yn
 		for (ma_uint32 i = 0; i < frameCount * channels; ++i)
 		{
 			pOutput[i] = temp[i];
-		}
-
-		for (ma_uint32 i = 0; i < channels; ++i)
-		{
-			pSampleState[i] = temp[frameCount * channels - channels + i];
 		}
 
 		return frameCount;
@@ -94,27 +107,34 @@ namespace Waveless
 
 		float temp[sizeOfTempBuffer];
 
+		// First frame
+		// Y0 = a0 * X0 + a1 * X-1 - b1 * Y-1
 		for (ma_uint32 i = 0; i < channels; ++i)
 		{
-			temp[i] = a0 * pSampleState[i];
+			temp[i] = a0 * pOutput[i] + pSampleState[i];
 		}
 
-		for (ma_uint32 i = channels; i < frameCount * channels; i += channels)
+		// Yn = a0 * Xn + a1 * Xn-1 - b1 * Yn-1
+		for (ma_uint32 i = 1; i < frameCount; ++i)
 		{
-			for (ma_uint32 j = 0; j < channels; j++)
+			for (ma_uint32 j = 0; j < channels; ++j)
 			{
-				temp[i + j] = a0 * pOutput[i + j] + a1 * pOutput[i + j - channels] - b1 * temp[i + j - channels];
+				temp[i * channels + j] = a0 * pOutput[i * channels + j] + a1 * pOutput[(i - 1) * channels + j] - b1 * temp[(i - 1) * channels + j];
 			}
 		}
 
+		// Save a1 * XN - b1 * YN of last frame
+		for (ma_uint32 i = 0; i < channels; ++i)
+		{
+			auto XN = pOutput[frameCount * channels - channels + i];
+			auto YN = temp[frameCount * channels - channels + i];
+			pSampleState[i] = a1 * XN - b1 * YN;
+		}
+
+		// Save Yn
 		for (ma_uint32 i = 0; i < frameCount * channels; ++i)
 		{
 			pOutput[i] = temp[i];
-		}
-
-		for (ma_uint32 i = 0; i < channels; ++i)
-		{
-			pSampleState[i] = temp[frameCount * channels - channels + i];
 		}
 
 		return frameCount;
@@ -139,11 +159,21 @@ namespace Waveless
 				framesToReadThisIteration = totalFramesRemaining;
 			}
 
+			// Decode and apply filters
 			framesReadThisIteration = ma_decoder_read_pcm_frames(&eventInstance->decoder, temp, framesToReadThisIteration);
 
 			if (framesReadThisIteration == 0)
 			{
 				break;
+			}
+
+			if (eventInstance->cutOffFreqLPF != 0.0f)
+			{
+				low_pass_filter(deviceDecoderConfig.channels, eventInstance->cutOffFreqLPF, deviceDecoderConfig.sampleRate, eventInstance->sampleStateLPF, temp, framesToReadThisIteration);
+			}
+			if (eventInstance->cutOffFreqHPF != 0.0f)
+			{
+				high_pass_filter(deviceDecoderConfig.channels, eventInstance->cutOffFreqHPF, deviceDecoderConfig.sampleRate, eventInstance->sampleStateHPF, temp, framesToReadThisIteration);
 			}
 
 			/* Mix the frames together. */
@@ -198,7 +228,7 @@ namespace Waveless
 
 		if (ma_device_init(NULL, &deviceConfig, &device) != MA_SUCCESS)
 		{
-			printf("Failed to open playback device.\n");
+			Logger::Log(LogLevel::Error, "Failed to open playback device.");
 			Terminate();
 		}
 
@@ -206,7 +236,7 @@ namespace Waveless
 
 		if (ma_device_start(&device) != MA_SUCCESS)
 		{
-			printf("Failed to start playback device.\n");
+			Logger::Log(LogLevel::Error, "Failed to start playback device.");
 			Terminate();
 		}
 	}
@@ -233,7 +263,7 @@ namespace Waveless
 
 		if (ma_decoder_init_memory_raw(l_eventPrototype->wavObject->sample.data(), l_eventPrototype->wavObject->sample.size(), &l_eventInstance->decoderConfig, &deviceDecoderConfig, &l_eventInstance->decoder) != MA_SUCCESS)
 		{
-			printf("Failed to init decoder.\n");
+			Logger::Log(LogLevel::Error, "Failed to init decoder.");
 		}
 
 		ma_event_init(device.pContext, &l_eventInstance->stopEvent);
@@ -257,7 +287,7 @@ namespace Waveless
 		}
 		else
 		{
-			printf("Failed to find UUID.\n");
+			Logger::Log(LogLevel::Error, "Failed to find UUID: ", UUID);
 			return 0;
 		}
 	}
@@ -273,21 +303,32 @@ namespace Waveless
 
 	uint64_t AudioEngine::AddEventPrototype(const WavObject & wavObject)
 	{
-		auto l_UUID = GenerateUUID();
+		auto l_result = g_registeredEventPrototypes.find(&const_cast<WavObject&>(wavObject));
 
-		WsEventPrototype l_eventPrototype;
+		if (l_result != g_registeredEventPrototypes.end())
+		{
+			Logger::Log(LogLevel::Warning, "WsEventPrototype has been added.");
+			return l_result->second;
+		}
+		else
+		{
+			auto l_UUID = GenerateUUID();
 
-		l_eventPrototype.UUID = l_UUID;
-		l_eventPrototype.wavObject = &const_cast<WavObject&>(wavObject);
-		l_eventPrototype.decoderConfig = ma_decoder_config_init
-		(
-			ma_format(wavObject.header.fmtChunk.wBitsPerSample / 8),
-			wavObject.header.fmtChunk.nChannels,
-			wavObject.header.fmtChunk.nSamplesPerSec
-		);
+			WsEventPrototype l_eventPrototype;
 
-		g_eventPrototypes.emplace(l_UUID, l_eventPrototype);
+			l_eventPrototype.UUID = l_UUID;
+			l_eventPrototype.wavObject = &const_cast<WavObject&>(wavObject);
+			l_eventPrototype.decoderConfig = ma_decoder_config_init
+			(
+				ma_format(wavObject.header.fmtChunk.wBitsPerSample / 8),
+				wavObject.header.fmtChunk.nChannels,
+				wavObject.header.fmtChunk.nSamplesPerSec
+			);
 
-		return l_UUID;
+			g_eventPrototypes.emplace(l_UUID, l_eventPrototype);
+			g_registeredEventPrototypes.emplace(l_eventPrototype.wavObject, l_UUID);
+
+			return l_UUID;
+		}
 	}
 }
