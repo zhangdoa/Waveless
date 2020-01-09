@@ -2,6 +2,7 @@
 #include "../../Core/Config.h"
 #include "../../Core/stdafx.h"
 #include "../../IO/IOService.h"
+#include "../../IO/JSONParser.h"
 #include "../NodeDescriptorGenerator.h"
 
 #include <imgui_node_editor.h>
@@ -136,13 +137,15 @@ namespace ImGuiWrapperNS
 	Pin* newNodeLinkPin = nullptr;
 	Pin* newLinkPin = nullptr;
 
-	const int            s_PinIconSize = 24;
-	std::vector<Node>    s_Nodes;
-	std::vector<Link>    s_Links;
+	const int s_PinIconSize = 24;
+	std::vector<Node> s_Nodes;
+	std::vector<Pin> s_InputPins;
+	std::vector<Pin> s_OutputPins;
+	std::vector<Link> s_Links;
 
-	ImTextureID          s_HeaderBackground = nullptr;
+	ImTextureID s_HeaderBackground = nullptr;
 
-	const float          s_TouchTime = 1.0f;
+	const float s_TouchTime = 1.0f;
 	std::map<ed::NodeId, float, NodeIdLess> s_NodeTouchTime;
 
 	int s_NextId = 1;
@@ -395,60 +398,6 @@ static Node* SpawnMixerNode()
 	return &s_Nodes.back();
 }
 
-static Node* SpawnBranchNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Branch");
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Condition", PinType::Bool);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "True", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "False", PinType::Flow);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnDoNNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Do N");
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Enter", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "N", PinType::Int);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Reset", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Exit", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Counter", PinType::Int);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnPrintStringNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Print String");
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "In String", PinType::String);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnSetTimerNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Set Timer", ImColor(128, 195, 248));
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Object", PinType::Object);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Function Name", PinType::Function);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Time", PinType::Float);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Looping", PinType::Bool);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
 static Node* SpawnComment()
 {
 	s_Nodes.emplace_back(GetNextId(), "New Comment");
@@ -461,7 +410,85 @@ static Node* SpawnComment()
 void BuildNodes()
 {
 	for (auto& node : s_Nodes)
+	{
 		BuildNode(&node);
+	}
+}
+
+void LoadCanvas(const char* fileName)
+{
+	for (auto& node : s_Nodes)
+	{
+		ed::DeleteNode(node.ID);
+	}
+	for (auto& link : s_Links)
+	{
+		ed::DeleteLink(link.ID);
+	}
+	s_Nodes.clear();
+	s_Links.clear();
+
+	json j;
+
+	Waveless::JSONParser::loadJsonDataFromDisk(("..//..//Asset//Canvas//" + std::string(fileName)).c_str(), j);
+
+	Node* node;
+
+	for (auto& j_node : j["Nodes"])
+	{
+		node = reinterpret_cast<Node*>(SpawnNode(std::string(j_node["Name"]).c_str()));
+		ed::SetNodePosition(node->ID, ImVec2(j_node["Position"]["X"], j_node["Position"]["Y"]));
+	}
+
+	ed::NavigateToContent();
+	BuildNodes();
+}
+
+void SaveCanvas(const char* fileName)
+{
+	json j;
+
+	for (auto& node : s_Nodes)
+	{
+		auto l_pos = ed::GetNodePosition(node.ID);
+		json j_node;
+		j_node["ID"] = node.ID.Get();
+		j_node["Name"] = node.Name;
+		j_node["Position"]["X"] = (int)l_pos.x;
+		j_node["Position"]["Y"] = (int)l_pos.y;
+
+		for (auto& input : node.Inputs)
+		{
+			json j_input;
+			j_input["ID"] = input.ID.Get();
+			j_input["Name"] = input.Name;
+			j_input["Value"] = input.Value;
+			j_node["Inputs"].emplace_back(j_input);
+		}
+
+		for (auto& output : node.Outputs)
+		{
+			json j_output;
+			j_output["ID"] = output.ID.Get();
+			j_output["Name"] = output.Name;
+			j_output["Value"] = output.Value;
+			j_node["Outputs"].emplace_back(j_output);
+		}
+
+		j["Nodes"].emplace_back(j_node);
+	}
+
+	for (auto& link : s_Links)
+	{
+		json j_link;
+		j_link["ID"] = link.ID.Get();
+		j_link["StartPinID"] = link.StartPinID.Get();
+		j_link["EndPinID"] = link.EndPinID.Get();
+
+		j["Links"].emplace_back(j_link);
+	}
+
+	Waveless::JSONParser::saveJsonDataToDisk(("..//..//Asset//Canvas//" + std::string(fileName)).c_str(), j);
 }
 
 static bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
@@ -516,80 +543,6 @@ void DrawPinIcon(const Pin& pin, bool connected, int alpha)
 	ax::Widgets::Icon(ImVec2(s_PinIconSize, s_PinIconSize), iconType, connected, color, ImColor(32, 32, 32, alpha));
 };
 
-void ShowStyleEditor(bool* show = nullptr)
-{
-	if (!ImGui::Begin("Style", show))
-	{
-		ImGui::End();
-		return;
-	}
-
-	auto paneWidth = ImGui::GetContentRegionAvailWidth();
-
-	auto& editorStyle = ed::GetStyle();
-	ImGui::BeginHorizontal("Style buttons", ImVec2(paneWidth, 0), 1.0f);
-	ImGui::TextUnformatted("Values");
-	ImGui::Spring();
-	if (ImGui::Button("Reset to defaults"))
-		editorStyle = ed::Style();
-	ImGui::EndHorizontal();
-	ImGui::Spacing();
-	ImGui::DragFloat4("Node Padding", &editorStyle.NodePadding.x, 0.1f, 0.0f, 40.0f);
-	ImGui::DragFloat("Node Rounding", &editorStyle.NodeRounding, 0.1f, 0.0f, 40.0f);
-	ImGui::DragFloat("Node Border Width", &editorStyle.NodeBorderWidth, 0.1f, 0.0f, 15.0f);
-	ImGui::DragFloat("Hovered Node Border Width", &editorStyle.HoveredNodeBorderWidth, 0.1f, 0.0f, 15.0f);
-	ImGui::DragFloat("Selected Node Border Width", &editorStyle.SelectedNodeBorderWidth, 0.1f, 0.0f, 15.0f);
-	ImGui::DragFloat("Pin Rounding", &editorStyle.PinRounding, 0.1f, 0.0f, 40.0f);
-	ImGui::DragFloat("Pin Border Width", &editorStyle.PinBorderWidth, 0.1f, 0.0f, 15.0f);
-	ImGui::DragFloat("Link Strength", &editorStyle.LinkStrength, 1.0f, 0.0f, 500.0f);
-	//ImVec2  SourceDirection;
-	//ImVec2  TargetDirection;
-	ImGui::DragFloat("Scroll Duration", &editorStyle.ScrollDuration, 0.001f, 0.0f, 2.0f);
-	ImGui::DragFloat("Flow Marker Distance", &editorStyle.FlowMarkerDistance, 1.0f, 1.0f, 200.0f);
-	ImGui::DragFloat("Flow Speed", &editorStyle.FlowSpeed, 1.0f, 1.0f, 2000.0f);
-	ImGui::DragFloat("Flow Duration", &editorStyle.FlowDuration, 0.001f, 0.0f, 5.0f);
-	//ImVec2  PivotAlignment;
-	//ImVec2  PivotSize;
-	//ImVec2  PivotScale;
-	//float   PinCorners;
-	//float   PinRadius;
-	//float   PinArrowSize;
-	//float   PinArrowWidth;
-	ImGui::DragFloat("Group Rounding", &editorStyle.GroupRounding, 0.1f, 0.0f, 40.0f);
-	ImGui::DragFloat("Group Border Width", &editorStyle.GroupBorderWidth, 0.1f, 0.0f, 15.0f);
-
-	ImGui::Separator();
-
-	static ImGuiColorEditFlags edit_mode = ImGuiColorEditFlags_RGB;
-	ImGui::BeginHorizontal("Color Mode", ImVec2(paneWidth, 0), 1.0f);
-	ImGui::TextUnformatted("Filter Colors");
-	ImGui::Spring();
-	ImGui::RadioButton("RGB", &edit_mode, ImGuiColorEditFlags_RGB);
-	ImGui::Spring(0);
-	ImGui::RadioButton("HSV", &edit_mode, ImGuiColorEditFlags_HSV);
-	ImGui::Spring(0);
-	ImGui::RadioButton("HEX", &edit_mode, ImGuiColorEditFlags_HEX);
-	ImGui::EndHorizontal();
-
-	static ImGuiTextFilter filter;
-	filter.Draw("", paneWidth);
-
-	ImGui::Spacing();
-
-	ImGui::PushItemWidth(-160);
-	for (int i = 0; i < ed::StyleColor_Count; ++i)
-	{
-		auto name = ed::GetStyleColorName((ed::StyleColor)i);
-		if (!filter.PassFilter(name))
-			continue;
-
-		ImGui::ColorEdit4(name, &editorStyle.Colors[i].x, edit_mode);
-	}
-	ImGui::PopItemWidth();
-
-	ImGui::End();
-}
-
 void ShowLeftPane(float paneWidth)
 {
 	auto& io = ImGui::GetIO();
@@ -597,13 +550,34 @@ void ShowLeftPane(float paneWidth)
 	ImGui::BeginChild("Nodes", ImVec2(paneWidth, 0));
 
 	paneWidth = ImGui::GetContentRegionAvailWidth();
+
+	static char buffer[128] = "DefaultCanvas.json";
+	static bool wasActive = false;
+
+	ImGui::PushItemWidth(200.0f);
+	ImGui::InputText("##edit", buffer, 127);
+	ImGui::PopItemWidth();
+	if (ImGui::IsItemActive() && !wasActive)
+	{
+		ed::EnableShortcuts(false);
+		wasActive = true;
+	}
+	else if (!ImGui::IsItemActive() && wasActive)
+	{
+		ed::EnableShortcuts(true);
+		wasActive = false;
+	}
+
 	ImGui::BeginHorizontal("Serialization Function", ImVec2(paneWidth, 0));
+
 	if (ImGui::Button("Load"))
 	{
+		LoadCanvas(&buffer[0]);
 	}
 	ImGui::Spring(0.0f);
 	if (ImGui::Button("Save"))
 	{
+		SaveCanvas(&buffer[0]);
 	}
 	ImGui::Spring();
 	ImGui::EndHorizontal();
@@ -763,17 +737,6 @@ bool ImGuiWrapper::Initialize()
 		m_NodeEditorContext = ed::CreateEditor(&config);
 		ed::SetCurrentEditor(m_NodeEditorContext);
 
-		Node* node;
-		node = SpawnBranchNode();           ed::SetNodePosition(node->ID, ImVec2(-300, 351));
-		node = SpawnDoNNode();              ed::SetNodePosition(node->ID, ImVec2(-238, 504));
-		node = SpawnSetTimerNode();         ed::SetNodePosition(node->ID, ImVec2(168, 316));
-
-		node = SpawnPrintStringNode();      ed::SetNodePosition(node->ID, ImVec2(-69, 652));
-		node = SpawnComment();              ed::SetNodePosition(node->ID, ImVec2(112, 576));
-
-		ed::NavigateToContent();
-		BuildNodes();
-
 		s_HeaderBackground = ImGuiWrapperNS::m_rendererImpl->LoadTexture("../../GitSubmodules/imgui-node-editor/Data/BlueprintBackground.png");
 	}
 
@@ -920,13 +883,11 @@ void ShowContextMenu()
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Branch"))
-			node = SpawnBranchNode();
+			node = reinterpret_cast<Node*>(SpawnNode("Branch"));
 		if (ImGui::MenuItem("Do N"))
-			node = SpawnDoNNode();
-		if (ImGui::MenuItem("Set Timer"))
-			node = SpawnSetTimerNode();
+			node = reinterpret_cast<Node*>(SpawnNode("DoN"));
 		if (ImGui::MenuItem("Print String"))
-			node = SpawnPrintStringNode();
+			node = reinterpret_cast<Node*>(SpawnNode("PrintString"));
 
 		ImGui::Separator();
 

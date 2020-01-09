@@ -6,18 +6,18 @@
       "PinKind": 1
     },
     {
-      "Name": "WaveObject",
-      "PinType": "Object",
+      "Name": "In String",
+      "PinType": "String",
       "PinKind": 1
     },
     {
-      "Name": "EventID",
-      "PinType": "Int",
-      "PinKind": 1
+      "Name": "",
+      "PinType": "Flow",
+      "PinKind": 0
     }
   ],
   "Color": {
-    "R": 255,
+    "R": 128,
     "G": 128,
     "B": 128,
     "A": 255

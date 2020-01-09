@@ -1,0 +1,179 @@
+{
+    "Links": [
+        {
+            "EndPinID": 47,
+            "ID": 54,
+            "StartPinID": 29
+        }
+    ],
+    "Nodes": [
+        {
+            "ID": 28,
+            "Name": "Input",
+            "Outputs": [
+                {
+                    "ID": 29,
+                    "Name": "",
+                    "Value": 0
+                },
+                {
+                    "ID": 30,
+                    "Name": "WorldPosition",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": -508,
+                "Y": 251
+            }
+        },
+        {
+            "ID": 31,
+            "Inputs": [
+                {
+                    "ID": 32,
+                    "Name": "",
+                    "Value": 0
+                },
+                {
+                    "ID": 33,
+                    "Name": "WaveObject",
+                    "Value": 0
+                },
+                {
+                    "ID": 34,
+                    "Name": "EventID",
+                    "Value": 0
+                }
+            ],
+            "Name": "Output",
+            "Position": {
+                "X": 504,
+                "Y": 252
+            }
+        },
+        {
+            "ID": 35,
+            "Inputs": [
+                {
+                    "ID": 36,
+                    "Name": "FilePath",
+                    "Value": 0
+                }
+            ],
+            "Name": "WavePlayer",
+            "Outputs": [
+                {
+                    "ID": 37,
+                    "Name": "WaveObject",
+                    "Value": 0
+                },
+                {
+                    "ID": 38,
+                    "Name": "EventID",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": -389,
+                "Y": 400
+            }
+        },
+        {
+            "ID": 39,
+            "Inputs": [
+                {
+                    "ID": 40,
+                    "Name": "",
+                    "Value": 0
+                },
+                {
+                    "ID": 41,
+                    "Name": "Condition",
+                    "Value": 0
+                }
+            ],
+            "Name": "Branch",
+            "Outputs": [
+                {
+                    "ID": 42,
+                    "Name": "True",
+                    "Value": 0
+                },
+                {
+                    "ID": 43,
+                    "Name": "False",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": -56,
+                "Y": 256
+            }
+        },
+        {
+            "ID": 44,
+            "Inputs": [
+                {
+                    "ID": 45,
+                    "Name": "Enter",
+                    "Value": 0
+                },
+                {
+                    "ID": 46,
+                    "Name": "N",
+                    "Value": 0
+                },
+                {
+                    "ID": 47,
+                    "Name": "Reset",
+                    "Value": 0
+                }
+            ],
+            "Name": "DoN",
+            "Outputs": [
+                {
+                    "ID": 48,
+                    "Name": "Exit",
+                    "Value": 0
+                },
+                {
+                    "ID": 49,
+                    "Name": "Counter",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": -312,
+                "Y": 252
+            }
+        },
+        {
+            "ID": 50,
+            "Inputs": [
+                {
+                    "ID": 51,
+                    "Name": "",
+                    "Value": 0
+                },
+                {
+                    "ID": 52,
+                    "Name": "In String",
+                    "Value": 0
+                }
+            ],
+            "Name": "PrintString",
+            "Outputs": [
+                {
+                    "ID": 53,
+                    "Name": "",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": 234,
+                "Y": 252
+            }
+        }
+    ]
+}

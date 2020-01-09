@@ -1,0 +1,35 @@
+{
+  "Parameters": [
+    {
+      "Name": "Enter",
+      "PinType": "Flow",
+      "PinKind": 1
+    },
+    {
+      "Name": "N",
+      "PinType": "Int",
+      "PinKind": 1
+    },
+    {
+      "Name": "Reset",
+      "PinType": "Flow",
+      "PinKind": 1
+    },
+    {
+      "Name": "Exit",
+      "PinType": "Flow",
+      "PinKind": 0
+    },
+    {
+      "Name": "Counter",
+      "PinType": "Int",
+      "PinKind": 0
+    }
+  ],
+  "Color": {
+    "R": 128,
+    "G": 128,
+    "B": 128,
+    "A": 255
+  }
+}

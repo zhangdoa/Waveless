@@ -42,6 +42,6 @@ namespace Waveless
 		int inputPinIndexOffset = 0;
 		int outputPinIndexOffset = 0;
 		int size[2] = { 0 };
-		float color[4] = { 0.0f };
+		int color[4] = { 0 };
 	};
 }
