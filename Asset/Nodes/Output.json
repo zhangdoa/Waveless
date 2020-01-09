@@ -1,0 +1,25 @@
+{
+  "Parameters": [
+    {
+      "Name": "Flow",
+      "PinType": "Flow",
+      "PinKind": 1
+    },
+    {
+      "Name": "WaveObject",
+      "PinType": "Object",
+      "PinKind": 1
+    },
+    {
+      "Name": "EventID",
+      "PinType": "Int",
+      "PinKind": 1
+    }
+  ],
+  "Color": {
+    "R": 255,
+    "G": 128,
+    "B": 128,
+    "A": 255
+  }
+}

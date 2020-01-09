@@ -1,0 +1,20 @@
+{
+  "Parameters": [
+    {
+      "Name": "Flow",
+      "PinType": "Flow",
+      "PinKind": 0
+    },
+    {
+      "Name": "WorldPosition",
+      "PinType": "Vector",
+      "PinKind": 0
+    }
+  ],
+  "Color": {
+    "R": 255,
+    "G": 128,
+    "B": 128,
+    "A": 255
+  }
+}

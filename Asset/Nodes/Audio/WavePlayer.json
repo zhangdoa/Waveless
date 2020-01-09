@@ -1,0 +1,25 @@
+{
+  "Parameters": [
+    {
+      "Name": "FilePath",
+      "PinType": "String",
+      "PinKind": 1
+    },
+    {
+      "Name": "WaveObject",
+      "PinType": "Object",
+      "PinKind": 0
+    },
+    {
+      "Name": "EventID",
+      "PinType": "Int",
+      "PinKind": 0
+    }
+  ],
+  "Color": {
+    "R": 64,
+    "G": 64,
+    "B": 255,
+    "A": 255
+  }
+}

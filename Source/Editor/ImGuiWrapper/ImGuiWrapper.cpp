@@ -2,6 +2,7 @@
 #include "../../Core/Config.h"
 #include "../../Core/stdafx.h"
 #include "../../IO/IOService.h"
+#include "../NodeDescriptorGenerator.h"
 
 #include <imgui_node_editor.h>
 #include "ImGuiNodeUtil/Math2D.h"
@@ -47,43 +48,22 @@ using namespace Waveless;
 
 using ax::Widgets::IconType;
 
-enum class PinType
-{
-	Flow,
-	Bool,
-	Int,
-	Float,
-	String,
-	Vector,
-	Object,
-	Function,
-	Delegate,
-};
-
-enum class PinKind
-{
-	Output,
-	Input
-};
-
-enum class NodeType
-{
-	Blueprint,
-	Comment
-};
-
-struct Node;
-
 using PinValue = uint64_t;
+
+struct INode
+{
+	virtual void* GetID() = 0;
+};
 
 struct Pin
 {
 	ed::PinId   ID;
-	::Node*     Node;
+
 	std::string Name;
 	PinType     Type;
 	PinKind     Kind;
 	PinValue    Value;
+	INode*     Node;
 
 	Pin(int id, const char* name, PinType type) :
 		ID(id), Node(nullptr), Name(name), Type(type), Kind(PinKind::Input), Value(0)
@@ -91,22 +71,27 @@ struct Pin
 	}
 };
 
-struct Node
+struct Node : public INode
 {
 	ed::NodeId ID;
+
 	std::string Name;
-	std::vector<Pin> Inputs;
-	std::vector<Pin> Outputs;
 	ImColor Color;
+
 	NodeType Type;
 	ImVec2 Size;
 
-	std::string State;
-	std::string SavedState;
+	std::vector<Pin> Inputs;
+	std::vector<Pin> Outputs;
 
 	Node(int id, const char* name, ImColor color = ImColor(255, 255, 255)) :
 		ID(id), Name(name), Color(color), Type(NodeType::Blueprint), Size(0, 0)
 	{
+	}
+
+	void* GetID() override
+	{
+		return ID.AsPointer();
 	}
 };
 
@@ -154,6 +139,7 @@ namespace ImGuiWrapperNS
 	const int            s_PinIconSize = 24;
 	std::vector<Node>    s_Nodes;
 	std::vector<Link>    s_Links;
+
 	ImTextureID          s_HeaderBackground = nullptr;
 
 	const float          s_TouchTime = 1.0f;
@@ -285,6 +271,28 @@ static void BuildNode(Node* node)
 	}
 }
 
+INode* SpawnNode(const char* nodeDescriptorName)
+{
+	auto l_nodeDesc = NodeDescriptorGenerator::GetNodeDescriptor(nodeDescriptorName);
+
+	s_Nodes.emplace_back(GetNextId(), l_nodeDesc->name, ImColor(l_nodeDesc->color[0], l_nodeDesc->color[1], l_nodeDesc->color[2]));
+
+	for (int i = 0; i < l_nodeDesc->inputPinCount; i++)
+	{
+		auto l_pinDesc = NodeDescriptorGenerator::GetPinDescriptor(l_nodeDesc->inputPinIndexOffset + i, PinKind::Input);
+		s_Nodes.back().Inputs.emplace_back(GetNextId(), l_pinDesc->name, l_pinDesc->type);
+	}
+	for (int i = 0; i < l_nodeDesc->outputPinCount; i++)
+	{
+		auto l_pinDesc = NodeDescriptorGenerator::GetPinDescriptor(l_nodeDesc->outputPinIndexOffset + i, PinKind::Output);
+		s_Nodes.back().Outputs.emplace_back(GetNextId(), l_pinDesc->name, l_pinDesc->type);
+	}
+
+	BuildNode(&s_Nodes.back());
+
+	return &s_Nodes.back();
+};
+
 static Node* SpawnConstBoolNode()
 {
 	s_Nodes.emplace_back(GetNextId(), "ConstBool", ImColor(64, 255, 64));
@@ -321,30 +329,6 @@ static Node* SpawnConstStringNode()
 	return &s_Nodes.back();
 }
 
-static Node* SpawnInputNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Input", ImColor(255, 128, 128));
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WorldPosition", PinType::Vector);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WorldOrientation", PinType::Vector);
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnOutputNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Output", ImColor(255, 128, 128));
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WaveObject", PinType::Float);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Condition", PinType::Bool);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Event", PinType::Delegate);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
 static Node* SpawnVectorBreakNode()
 {
 	s_Nodes.emplace_back(GetNextId(), "Vector", ImColor(64, 64, 255));
@@ -352,17 +336,6 @@ static Node* SpawnVectorBreakNode()
 	s_Nodes.back().Outputs.emplace_back(GetNextId(), "X", PinType::Float);
 	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Y", PinType::Float);
 	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Z", PinType::Float);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnWavePlayerNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "WavePlayer", ImColor(128, 195, 248));
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "FileName", PinType::String);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
 
 	BuildNode(&s_Nodes.back());
 
@@ -387,6 +360,20 @@ static Node* SpawnSelectorNode()
 	s_Nodes.emplace_back(GetNextId(), "Selector");
 	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
 	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
+	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
+	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
+
+	BuildNode(&s_Nodes.back());
+
+	return &s_Nodes.back();
+}
+
+static Node* SpawnAttenuatorNode()
+{
+	s_Nodes.emplace_back(GetNextId(), "Attenuator");
+	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
+	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
+	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WorldPosition", PinType::Vector);
 	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
 	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
 
@@ -477,6 +464,18 @@ void BuildNodes()
 		BuildNode(&node);
 }
 
+static bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
+{
+	using namespace ImGui;
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	ImGuiID id = window->GetID("##Splitter");
+	ImRect bb;
+	bb.Min = window->DC.CursorPos + (split_vertically ? ImVec2(*size1, 0.0f) : ImVec2(0.0f, *size1));
+	bb.Max = bb.Min + CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
+	return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
+}
+
 ImColor GetIconColor(PinType type)
 {
 	switch (type)
@@ -516,6 +515,190 @@ void DrawPinIcon(const Pin& pin, bool connected, int alpha)
 
 	ax::Widgets::Icon(ImVec2(s_PinIconSize, s_PinIconSize), iconType, connected, color, ImColor(32, 32, 32, alpha));
 };
+
+void ShowStyleEditor(bool* show = nullptr)
+{
+	if (!ImGui::Begin("Style", show))
+	{
+		ImGui::End();
+		return;
+	}
+
+	auto paneWidth = ImGui::GetContentRegionAvailWidth();
+
+	auto& editorStyle = ed::GetStyle();
+	ImGui::BeginHorizontal("Style buttons", ImVec2(paneWidth, 0), 1.0f);
+	ImGui::TextUnformatted("Values");
+	ImGui::Spring();
+	if (ImGui::Button("Reset to defaults"))
+		editorStyle = ed::Style();
+	ImGui::EndHorizontal();
+	ImGui::Spacing();
+	ImGui::DragFloat4("Node Padding", &editorStyle.NodePadding.x, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Node Rounding", &editorStyle.NodeRounding, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Node Border Width", &editorStyle.NodeBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Hovered Node Border Width", &editorStyle.HoveredNodeBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Selected Node Border Width", &editorStyle.SelectedNodeBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Pin Rounding", &editorStyle.PinRounding, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Pin Border Width", &editorStyle.PinBorderWidth, 0.1f, 0.0f, 15.0f);
+	ImGui::DragFloat("Link Strength", &editorStyle.LinkStrength, 1.0f, 0.0f, 500.0f);
+	//ImVec2  SourceDirection;
+	//ImVec2  TargetDirection;
+	ImGui::DragFloat("Scroll Duration", &editorStyle.ScrollDuration, 0.001f, 0.0f, 2.0f);
+	ImGui::DragFloat("Flow Marker Distance", &editorStyle.FlowMarkerDistance, 1.0f, 1.0f, 200.0f);
+	ImGui::DragFloat("Flow Speed", &editorStyle.FlowSpeed, 1.0f, 1.0f, 2000.0f);
+	ImGui::DragFloat("Flow Duration", &editorStyle.FlowDuration, 0.001f, 0.0f, 5.0f);
+	//ImVec2  PivotAlignment;
+	//ImVec2  PivotSize;
+	//ImVec2  PivotScale;
+	//float   PinCorners;
+	//float   PinRadius;
+	//float   PinArrowSize;
+	//float   PinArrowWidth;
+	ImGui::DragFloat("Group Rounding", &editorStyle.GroupRounding, 0.1f, 0.0f, 40.0f);
+	ImGui::DragFloat("Group Border Width", &editorStyle.GroupBorderWidth, 0.1f, 0.0f, 15.0f);
+
+	ImGui::Separator();
+
+	static ImGuiColorEditFlags edit_mode = ImGuiColorEditFlags_RGB;
+	ImGui::BeginHorizontal("Color Mode", ImVec2(paneWidth, 0), 1.0f);
+	ImGui::TextUnformatted("Filter Colors");
+	ImGui::Spring();
+	ImGui::RadioButton("RGB", &edit_mode, ImGuiColorEditFlags_RGB);
+	ImGui::Spring(0);
+	ImGui::RadioButton("HSV", &edit_mode, ImGuiColorEditFlags_HSV);
+	ImGui::Spring(0);
+	ImGui::RadioButton("HEX", &edit_mode, ImGuiColorEditFlags_HEX);
+	ImGui::EndHorizontal();
+
+	static ImGuiTextFilter filter;
+	filter.Draw("", paneWidth);
+
+	ImGui::Spacing();
+
+	ImGui::PushItemWidth(-160);
+	for (int i = 0; i < ed::StyleColor_Count; ++i)
+	{
+		auto name = ed::GetStyleColorName((ed::StyleColor)i);
+		if (!filter.PassFilter(name))
+			continue;
+
+		ImGui::ColorEdit4(name, &editorStyle.Colors[i].x, edit_mode);
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::End();
+}
+
+void ShowLeftPane(float paneWidth)
+{
+	auto& io = ImGui::GetIO();
+
+	ImGui::BeginChild("Nodes", ImVec2(paneWidth, 0));
+
+	paneWidth = ImGui::GetContentRegionAvailWidth();
+	ImGui::BeginHorizontal("Serialization Function", ImVec2(paneWidth, 0));
+	if (ImGui::Button("Load"))
+	{
+	}
+	ImGui::Spring(0.0f);
+	if (ImGui::Button("Save"))
+	{
+	}
+	ImGui::Spring();
+	ImGui::EndHorizontal();
+
+	ImGui::BeginHorizontal("Compiler Function", ImVec2(paneWidth, 0));
+	if (ImGui::Button("Compile"))
+	{
+	}
+	ImGui::Spring();
+	ImGui::EndHorizontal();
+
+	ImGui::BeginHorizontal("Simulator Function", ImVec2(paneWidth, 0));
+	if (ImGui::Button("Trigger"))
+	{
+	}
+	ImGui::Spring();
+	ImGui::EndHorizontal();
+
+	ImGui::BeginHorizontal("Canvas Function", ImVec2(paneWidth, 0));
+	if (ImGui::Button("Zoom to Content"))
+	{
+		ed::NavigateToContent();
+	}
+	ImGui::Spring(0.0f);
+	if (ImGui::Button("Show Flow"))
+	{
+		for (auto& link : s_Links)
+		{
+			ed::Flow(link.ID);
+		}
+	}
+	ImGui::Spring();
+	ImGui::EndHorizontal();
+
+	std::vector<ed::NodeId> selectedNodes;
+	std::vector<ed::LinkId> selectedLinks;
+	selectedNodes.resize(ed::GetSelectedObjectCount());
+	selectedLinks.resize(ed::GetSelectedObjectCount());
+
+	int nodeCount = ed::GetSelectedNodes(selectedNodes.data(), static_cast<int>(selectedNodes.size()));
+	int linkCount = ed::GetSelectedLinks(selectedLinks.data(), static_cast<int>(selectedLinks.size()));
+
+	selectedNodes.resize(nodeCount);
+	selectedLinks.resize(linkCount);
+
+	ImGui::GetWindowDrawList()->AddRectFilled(
+		ImGui::GetCursorScreenPos(),
+		ImGui::GetCursorScreenPos() + ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+		ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]), ImGui::GetTextLineHeight() * 0.25f);
+	ImGui::Spacing(); ImGui::SameLine();
+	ImGui::TextUnformatted("Nodes");
+	ImGui::Indent();
+	for (auto& node : s_Nodes)
+	{
+		ImGui::PushID(node.ID.AsPointer());
+		auto start = ImGui::GetCursorScreenPos();
+
+		if (const auto progress = GetTouchProgress(node.ID))
+		{
+			ImGui::GetWindowDrawList()->AddLine(
+				start + ImVec2(-8, 0),
+				start + ImVec2(-8, ImGui::GetTextLineHeight()),
+				IM_COL32(255, 0, 0, 255 - (int)(255 * progress)), 4.0f);
+		}
+
+		bool isSelected = std::find(selectedNodes.begin(), selectedNodes.end(), node.ID) != selectedNodes.end();
+		if (ImGui::Selectable((node.Name + "##" + std::to_string(reinterpret_cast<uintptr_t>(node.ID.AsPointer()))).c_str(), &isSelected))
+		{
+			if (io.KeyCtrl)
+			{
+				if (isSelected)
+					ed::SelectNode(node.ID, true);
+				else
+					ed::DeselectNode(node.ID);
+			}
+			else
+				ed::SelectNode(node.ID, false);
+
+			ed::NavigateToSelection();
+		}
+		auto id = std::string("(") + std::to_string(reinterpret_cast<uintptr_t>(node.ID.AsPointer())) + ")";
+		auto textSize = ImGui::CalcTextSize(id.c_str(), nullptr);
+		auto iconPanelPos = start + ImVec2(
+			paneWidth - ImGui::GetStyle().FramePadding.x - ImGui::GetStyle().IndentSpacing - ImGui::GetStyle().ItemInnerSpacing.x * 1,
+			(ImGui::GetTextLineHeight()) / 2);
+		ImGui::GetWindowDrawList()->AddText(
+			ImVec2(iconPanelPos.x - textSize.x - ImGui::GetStyle().ItemInnerSpacing.x, start.y),
+			IM_COL32(255, 255, 255, 255), id.c_str(), nullptr);
+
+		ImGui::PopID();
+	}
+	ImGui::Unindent();
+
+	ImGui::EndChild();
+}
 
 bool ImGuiWrapper::Setup()
 {
@@ -577,38 +760,10 @@ bool ImGuiWrapper::Initialize()
 
 		config.SettingsFile = "WsEditor.json";
 
-		config.LoadNodeSettings = [](ed::NodeId nodeId, char* data, void* userPointer) -> size_t
-		{
-			auto node = FindNode(nodeId);
-			if (!node)
-				return 0;
-
-			if (data != nullptr)
-				memcpy(data, node->State.data(), node->State.size());
-			return node->State.size();
-		};
-
-		config.SaveNodeSettings = [](ed::NodeId nodeId, const char* data, size_t size, ed::SaveReasonFlags reason, void* userPointer) -> bool
-		{
-			auto node = FindNode(nodeId);
-			if (!node)
-				return false;
-
-			node->State.assign(data, size);
-
-			TouchNode(nodeId);
-
-			return true;
-		};
-
 		m_NodeEditorContext = ed::CreateEditor(&config);
 		ed::SetCurrentEditor(m_NodeEditorContext);
 
 		Node* node;
-		node = SpawnInputNode();      ed::SetNodePosition(node->ID, ImVec2(-252, 220));
-		node = SpawnOutputNode();     ed::SetNodePosition(node->ID, ImVec2(71, 80));
-		node = SpawnWavePlayerNode();         ed::SetNodePosition(node->ID, ImVec2(168, 512));
-
 		node = SpawnBranchNode();           ed::SetNodePosition(node->ID, ImVec2(-300, 351));
 		node = SpawnDoNNode();              ed::SetNodePosition(node->ID, ImVec2(-238, 504));
 		node = SpawnSetTimerNode();         ed::SetNodePosition(node->ID, ImVec2(168, 316));
@@ -693,7 +848,7 @@ void ShowContextMenu()
 		{
 			ImGui::Text("ID: %p", pin->ID.AsPointer());
 			if (pin->Node)
-				ImGui::Text("Node: %p", pin->Node->ID.AsPointer());
+				ImGui::Text("Node: %p", pin->Node->GetID());
 			else
 				ImGui::Text("Node: %s", "<none>");
 		}
@@ -734,9 +889,9 @@ void ShowContextMenu()
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Input"))
-			node = SpawnInputNode();
+			node = reinterpret_cast<Node*>(SpawnNode("Input"));
 		if (ImGui::MenuItem("Output"))
-			node = SpawnOutputNode();
+			node = reinterpret_cast<Node*>(SpawnNode("Output"));
 
 		ImGui::Separator();
 
@@ -752,11 +907,13 @@ void ShowContextMenu()
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("WavePlayer"))
-			node = SpawnWavePlayerNode();
+			node = reinterpret_cast<Node*>(SpawnNode("WavePlayer"));
 		if (ImGui::MenuItem("Sequencer"))
 			node = SpawnSequencerNode();
 		if (ImGui::MenuItem("Selector"))
 			node = SpawnSelectorNode();
+		if (ImGui::MenuItem("Attenuator"))
+			node = SpawnAttenuatorNode();
 		if (ImGui::MenuItem("Mixer"))
 			node = SpawnMixerNode();
 
@@ -1195,6 +1352,14 @@ bool Frame()
 		ImGui::Text("FPS: %.2f (%.2gms)", io.Framerate, io.Framerate ? 1000.0f / io.Framerate : 0.0f);
 
 		ed::SetCurrentEditor(m_NodeEditorContext);
+
+		static float leftPaneWidth = 400.0f;
+		static float rightPaneWidth = 800.0f;
+		Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+
+		ShowLeftPane(leftPaneWidth - 4.0f);
+
+		ImGui::SameLine(0.0f, 12.0f);
 
 		ShowEditorCanvas();
 
