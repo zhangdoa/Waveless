@@ -24,17 +24,17 @@ namespace Waveless
 
 	ma_decoder_config deviceDecoderConfig;
 
-	struct WsPlayableObject : public WsObject
+	struct PlayableObject : public Object
 	{
 		ma_decoder_config decoderConfig;
 	};
 
-	struct WsEventPrototype : public WsPlayableObject
+	struct EventPrototype : public PlayableObject
 	{
 		WavObject* wavObject;
 	};
 
-	struct WsEventInstance : public WsPlayableObject
+	struct EventInstance : public PlayableObject
 	{
 		ma_decoder decoder;
 		ma_event stopEvent;
@@ -44,10 +44,10 @@ namespace Waveless
 		float cutOffFreqHPF = 0.0f;
 	};
 
-	std::unordered_map<uint64_t, WsEventPrototype> g_eventPrototypes;
+	std::unordered_map<uint64_t, EventPrototype> g_eventPrototypes;
 	std::unordered_map<WavObject*, uint64_t> g_registeredEventPrototypes;
-	std::unordered_map<uint64_t, WsEventInstance*> g_eventInstances;
-	std::queue<WsEventInstance*> g_untriggeredEventInstances;
+	std::unordered_map<uint64_t, EventInstance*> g_eventInstances;
+	std::queue<EventInstance*> g_untriggeredEventInstances;
 
 	ma_device_config deviceConfig;
 	ma_device device;
@@ -140,7 +140,7 @@ namespace Waveless
 		return frameCount;
 	}
 
-	ma_uint32 read_and_mix_pcm_frames(WsEventInstance* eventInstance, float* pOutput, ma_uint32 frameCount)
+	ma_uint32 read_and_mix_pcm_frames(EventInstance* eventInstance, float* pOutput, ma_uint32 frameCount)
 	{
 		float temp[sizeOfTempBuffer];
 
@@ -251,10 +251,10 @@ namespace Waveless
 		}
 	}
 
-	WsEventInstance* CreateEventInstance(const WsEventPrototype* l_eventPrototype)
+	EventInstance* CreateEventInstance(const EventPrototype* l_eventPrototype)
 	{
 		// @TODO: Pool it
-		auto l_eventInstance = new WsEventInstance();
+		auto l_eventInstance = new EventInstance();
 
 		auto l_UUID = GenerateUUID();
 
@@ -307,14 +307,14 @@ namespace Waveless
 
 		if (l_result != g_registeredEventPrototypes.end())
 		{
-			Logger::Log(LogLevel::Warning, "WsEventPrototype has been added.");
+			Logger::Log(LogLevel::Warning, "EventPrototype has been added.");
 			return l_result->second;
 		}
 		else
 		{
 			auto l_UUID = GenerateUUID();
 
-			WsEventPrototype l_eventPrototype;
+			EventPrototype l_eventPrototype;
 
 			l_eventPrototype.UUID = l_UUID;
 			l_eventPrototype.wavObject = &const_cast<WavObject&>(wavObject);
@@ -350,7 +350,7 @@ namespace Waveless
 		}
 		else
 		{
-			Logger::Log(LogLevel::Warning, "Can't find WsEventInstance.");
+			Logger::Log(LogLevel::Warning, "Can't find EventInstance.");
 			return false;
 		}
 	}
@@ -373,7 +373,7 @@ namespace Waveless
 		}
 		else
 		{
-			Logger::Log(LogLevel::Warning, "Can't find WsEventInstance.");
+			Logger::Log(LogLevel::Warning, "Can't find EventInstance.");
 			return false;
 		}
 	}

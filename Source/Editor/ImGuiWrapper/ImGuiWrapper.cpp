@@ -43,6 +43,7 @@ namespace ed = ax::NodeEditor;
 namespace util = ax::NodeEditor::Utilities;
 
 using namespace ax;
+using namespace Waveless;
 
 using ax::Widgets::IconType;
 

@@ -4,11 +4,11 @@
 #include <string>
 #include <future>
 
-namespace LoggerNS
+namespace Waveless::LoggerNS
 {
 	inline std::ostream& GetTimestamp(std::ostream &s)
 	{
-		auto l_timeData = WsTimer::GetCurrentTime(8);
+		auto l_timeData = Timer::GetCurrentTime(8);
 		s
 			<< "["
 			<< l_timeData.Year
@@ -72,17 +72,17 @@ namespace LoggerNS
 	LogLevel m_LogLevel;
 }
 
-void Logger::SetDefaultLogLevel(LogLevel logLevel)
+void Waveless::Logger::SetDefaultLogLevel(LogLevel logLevel)
 {
 	LoggerNS::m_LogLevel = logLevel;
 }
 
-LogLevel Logger::GetDefaultLogLevel()
+Waveless::LogLevel Waveless::Logger::GetDefaultLogLevel()
 {
 	return LoggerNS::m_LogLevel;
 }
 
-void Logger::LogStartOfLine(LogLevel logLevel)
+void Waveless::Logger::LogStartOfLine(LogLevel logLevel)
 {
 	LoggerNS::m_Mutex.lock();
 
@@ -104,92 +104,92 @@ void Logger::LogStartOfLine(LogLevel logLevel)
 	LoggerNS::m_LogFile << LoggerNS::GetTimestamp;
 }
 
-void Logger::LogEndOfLine()
+void Waveless::Logger::LogEndOfLine()
 {
 	std::cout << std::endl;
 	LoggerNS::m_LogFile << std::endl;
 	LoggerNS::m_Mutex.unlock();
 }
 
-void Logger::LogImpl(const void * logMessage)
+void Waveless::Logger::LogImpl(const void * logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(bool logMessage)
+void Waveless::Logger::LogImpl(bool logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(uint8_t logMessage)
+void Waveless::Logger::LogImpl(uint8_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(uint16_t logMessage)
+void Waveless::Logger::LogImpl(uint16_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(uint32_t logMessage)
+void Waveless::Logger::LogImpl(uint32_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(uint64_t logMessage)
+void Waveless::Logger::LogImpl(uint64_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(int8_t logMessage)
+void Waveless::Logger::LogImpl(int8_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(int16_t logMessage)
+void Waveless::Logger::LogImpl(int16_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(int32_t logMessage)
+void Waveless::Logger::LogImpl(int32_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(int64_t logMessage)
+void Waveless::Logger::LogImpl(int64_t logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(float logMessage)
+void Waveless::Logger::LogImpl(float logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(double logMessage)
+void Waveless::Logger::LogImpl(double logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-void Logger::LogImpl(const char* logMessage)
+void Waveless::Logger::LogImpl(const char* logMessage)
 {
 	std::cout << logMessage;
 	LoggerNS::m_LogFile << logMessage;
 }
 
-bool Logger::Initialize()
+bool Waveless::Logger::Initialize()
 {
 	std::stringstream ss;
 	ss << LoggerNS::GetTimestamp << ".Log";
@@ -206,7 +206,7 @@ bool Logger::Initialize()
 	}
 }
 
-bool Logger::Terminate()
+bool Waveless::Logger::Terminate()
 {
 	Log(LogLevel::Success, "Logger: Terminated.");
 	LoggerNS::m_LogFile.close();

@@ -10,7 +10,7 @@ namespace Waveless
 		Terminated
 	};
 
-	struct WsObject
+	struct Object
 	{
 		uint64_t UUID;
 		ObjectState objectState = ObjectState::Created;

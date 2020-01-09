@@ -9,12 +9,12 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
-namespace IOService
+namespace Waveless::IOService
 {
 	std::string m_workingDir;
 }
 
-std::vector<char> IOService::loadFile(const char* filePath, IOMode openMode)
+std::vector<char> Waveless::IOService::loadFile(const char* filePath, IOMode openMode)
 {
 	std::ios_base::openmode l_mode = std::ios::in;
 	switch (openMode)
@@ -51,7 +51,7 @@ std::vector<char> IOService::loadFile(const char* filePath, IOMode openMode)
 	return buffer;
 }
 
-bool IOService::saveFile(const char* filePath, const std::vector<char>& content, IOMode saveMode)
+bool Waveless::IOService::saveFile(const char* filePath, const std::vector<char>& content, IOMode saveMode)
 {
 	std::ios_base::openmode l_mode = std::ios::out;
 	switch (saveMode)
@@ -83,7 +83,7 @@ bool IOService::saveFile(const char* filePath, const std::vector<char>& content,
 	return l_result;
 }
 
-bool IOService::isFileExist(const char* filePath)
+bool Waveless::IOService::isFileExist(const char* filePath)
 {
 	if (fs::exists(fs::path(m_workingDir + filePath)))
 	{
@@ -95,22 +95,22 @@ bool IOService::isFileExist(const char* filePath)
 	}
 }
 
-std::string IOService::getFilePath(const char* filePath)
+std::string Waveless::IOService::getFilePath(const char* filePath)
 {
 	return fs::path(filePath).remove_filename().generic_string();
 }
 
-std::string IOService::getFileExtension(const char* filePath)
+std::string Waveless::IOService::getFileExtension(const char* filePath)
 {
 	return fs::path(filePath).extension().generic_string();
 }
 
-std::string IOService::getFileName(const char* filePath)
+std::string Waveless::IOService::getFileName(const char* filePath)
 {
 	return fs::path(filePath).stem().generic_string();
 }
 
-const std::string& IOService::getWorkingDirectory()
+const std::string& Waveless::IOService::getWorkingDirectory()
 {
 	if (!m_workingDir.size())
 	{

@@ -6,26 +6,26 @@ using Days = std::chrono::duration<int32_t, std::ratio_multiply<std::chrono::hou
 using Months = std::chrono::duration<int32_t, std::ratio_multiply<std::chrono::hours::period, std::ratio<744>>::type>;
 using Years = std::chrono::duration<int32_t, std::ratio_multiply<std::chrono::hours::period, std::ratio<8760>>::type>;
 
-namespace InnoTimerNS
+namespace Waveless::TimerNS
 {
 	HRClock::time_point m_StartTime;
 	double m_FrameLength;
 	double m_UnprocessedTime;
 };
 
-bool WsTimer::Initialize()
+bool Waveless::Timer::Initialize()
 {
-	InnoTimerNS::m_StartTime = HRClock::now();
-	InnoTimerNS::m_FrameLength = (1.0 / 120.0) * 1000.0 * 1000.0;
+	Waveless::TimerNS::m_StartTime = HRClock::now();
+	Waveless::TimerNS::m_FrameLength = (1.0 / 120.0) * 1000.0 * 1000.0;
 	return true;
 }
 
-bool WsTimer::Terminate()
+bool Waveless::Timer::Terminate()
 {
 	return true;
 }
 
-const uint64_t WsTimer::GetCurrentTimeFromEpoch(TimeUnit time_unit)
+const uint64_t Waveless::Timer::GetCurrentTimeFromEpoch(TimeUnit time_unit)
 {
 	auto l_CurrentTime = HRClock::now().time_since_epoch();
 	uint64_t l_result;
@@ -63,7 +63,7 @@ const uint64_t WsTimer::GetCurrentTimeFromEpoch(TimeUnit time_unit)
 	return l_result;
 }
 
-const Timestamp WsTimer::GetCurrentTime(uint32_t time_zone_adjustment)
+const Waveless::Timestamp Waveless::Timer::GetCurrentTime(uint32_t time_zone_adjustment)
 {
 	auto tp = std::chrono::system_clock::now().time_since_epoch();
 
