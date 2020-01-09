@@ -2,8 +2,7 @@
 #include "../Core/stdafx.h"
 #include "../Core/Logger.h"
 #include "../IO/IOService.h"
-#include "../../GitSubmodules/json/single_include/nlohmann/json.hpp"
-using json = nlohmann::json;
+#include "../IO/JSONParser.h"
 
 namespace Waveless::NodeDescriptorGenerator
 {
@@ -14,24 +13,6 @@ namespace Waveless::NodeDescriptorGenerator
 
 	bool loadJsonDataFromDisk(const char* fileName, json & data);
 	PinType GetPinType(const char * pinType);
-}
-
-bool Waveless::NodeDescriptorGenerator::loadJsonDataFromDisk(const char* fileName, json & data)
-{
-	std::ifstream i;
-
-	i.open(IOService::getWorkingDirectory() + fileName);
-
-	if (!i.is_open())
-	{
-		Logger::Log(LogLevel::Error, "Can't open JSON file : ", fileName, "!");
-		return false;
-	}
-
-	i >> data;
-	i.close();
-
-	return true;
 }
 
 Waveless::PinType Waveless::NodeDescriptorGenerator::GetPinType(const char * pinType)
@@ -88,7 +69,7 @@ void Waveless::NodeDescriptorGenerator::GenerateNodeDescriptors(const char * nod
 			l_nodeDesc.name = m_stringPool[m_stringPool.size() - 1].c_str();
 
 			json j;
-			loadJsonDataFromDisk((std::string(nodeTemplateDirectoryPath) + i).c_str(), j);
+			JSONParser::loadJsonDataFromDisk((std::string(nodeTemplateDirectoryPath) + i).c_str(), j);
 
 			for (auto k : j["Parameters"])
 			{
