@@ -119,3 +119,24 @@ const std::string& Waveless::IOService::getWorkingDirectory()
 	}
 	return m_workingDir;
 }
+
+std::vector<std::string> Waveless::IOService::getAllFilePaths(const char * dirctoryPath)
+{
+	auto l_fullPath = getWorkingDirectory() + dirctoryPath;
+
+	std::vector<std::string> l_result;
+	l_result.reserve(8192);
+
+	for (auto& p : fs::recursive_directory_iterator(l_fullPath))
+	{
+		if (!p.is_directory())
+		{
+			auto l_relativePath = std::filesystem::relative(p, l_fullPath);
+			l_result.emplace_back(l_relativePath.generic_string());
+		}
+	}
+
+	l_result.shrink_to_fit();
+
+	return l_result;
+}

@@ -16,6 +16,8 @@ namespace Waveless
 		std::string getFileName(const char* filePath);
 		const std::string& getWorkingDirectory();
 
+		std::vector<std::string> getAllFilePaths(const char* dirctoryPath);
+
 		inline bool serialize(std::ostream& os, void* ptr, size_t size)
 		{
 			os.write((char*)ptr, size);
