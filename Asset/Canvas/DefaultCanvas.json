@@ -1,62 +1,82 @@
 {
     "Links": [
         {
-            "EndPinID": 47,
-            "ID": 54,
-            "StartPinID": 29
+            "EndPinID": 13,
+            "ID": 21,
+            "StartPinID": 2
+        },
+        {
+            "EndPinID": 5,
+            "ID": 22,
+            "StartPinID": 15
+        },
+        {
+            "EndPinID": 18,
+            "ID": 23,
+            "StartPinID": 16
+        },
+        {
+            "EndPinID": 6,
+            "ID": 24,
+            "StartPinID": 10
+        },
+        {
+            "EndPinID": 7,
+            "ID": 25,
+            "StartPinID": 11
         }
     ],
     "Nodes": [
         {
-            "ID": 28,
+            "ID": 1,
             "Name": "Input",
             "Outputs": [
                 {
-                    "ID": 29,
+                    "ID": 2,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 30,
+                    "ID": 3,
                     "Name": "WorldPosition",
                     "Value": 0
                 }
             ],
             "Position": {
-                "X": -508,
-                "Y": 251
+                "X": -308,
+                "Y": 59
             }
         },
         {
-            "ID": 31,
+            "ID": 4,
             "Inputs": [
                 {
-                    "ID": 32,
+                    "ID": 5,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 33,
+                    "ID": 6,
                     "Name": "WaveObject",
                     "Value": 0
                 },
                 {
-                    "ID": 34,
+                    "ID": 7,
                     "Name": "EventID",
                     "Value": 0
                 }
             ],
             "Name": "Output",
             "Position": {
-                "X": 504,
-                "Y": 252
+                "X": 520,
+                "Y": 60
             }
         },
         {
-            "ID": 35,
+            "ID": 8,
             "Inputs": [
                 {
-                    "ID": 36,
+                    "ID": 9,
                     "Name": "FilePath",
                     "Value": 0
                 }
@@ -64,31 +84,31 @@
             "Name": "WavePlayer",
             "Outputs": [
                 {
-                    "ID": 37,
+                    "ID": 10,
                     "Name": "WaveObject",
                     "Value": 0
                 },
                 {
-                    "ID": 38,
+                    "ID": 11,
                     "Name": "EventID",
                     "Value": 0
                 }
             ],
             "Position": {
-                "X": -389,
-                "Y": 400
+                "X": 232,
+                "Y": 240
             }
         },
         {
-            "ID": 39,
+            "ID": 12,
             "Inputs": [
                 {
-                    "ID": 40,
+                    "ID": 13,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 41,
+                    "ID": 14,
                     "Name": "Condition",
                     "Value": 0
                 }
@@ -96,68 +116,31 @@
             "Name": "Branch",
             "Outputs": [
                 {
-                    "ID": 42,
+                    "ID": 15,
                     "Name": "True",
                     "Value": 0
                 },
                 {
-                    "ID": 43,
+                    "ID": 16,
                     "Name": "False",
                     "Value": 0
                 }
             ],
             "Position": {
-                "X": -56,
-                "Y": 256
+                "X": -32,
+                "Y": 60
             }
         },
         {
-            "ID": 44,
+            "ID": 17,
             "Inputs": [
                 {
-                    "ID": 45,
-                    "Name": "Enter",
-                    "Value": 0
-                },
-                {
-                    "ID": 46,
-                    "Name": "N",
-                    "Value": 0
-                },
-                {
-                    "ID": 47,
-                    "Name": "Reset",
-                    "Value": 0
-                }
-            ],
-            "Name": "DoN",
-            "Outputs": [
-                {
-                    "ID": 48,
-                    "Name": "Exit",
-                    "Value": 0
-                },
-                {
-                    "ID": 49,
-                    "Name": "Counter",
-                    "Value": 0
-                }
-            ],
-            "Position": {
-                "X": -312,
-                "Y": 252
-            }
-        },
-        {
-            "ID": 50,
-            "Inputs": [
-                {
-                    "ID": 51,
+                    "ID": 18,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 52,
+                    "ID": 19,
                     "Name": "In String",
                     "Value": 0
                 }
@@ -165,14 +148,14 @@
             "Name": "PrintString",
             "Outputs": [
                 {
-                    "ID": 53,
+                    "ID": 20,
                     "Name": "",
                     "Value": 0
                 }
             ],
             "Position": {
-                "X": 234,
-                "Y": 252
+                "X": 280,
+                "Y": 124
             }
         }
     ]

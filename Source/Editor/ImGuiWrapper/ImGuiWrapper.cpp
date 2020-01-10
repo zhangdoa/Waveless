@@ -51,20 +51,18 @@ using ax::Widgets::IconType;
 
 using PinValue = uint64_t;
 
-struct INode
-{
-	virtual void* GetID() = 0;
-};
+struct Node;
 
 struct Pin
 {
-	ed::PinId   ID;
+	ed::PinId ID;
+	uintptr_t OldID = 0;
 
 	std::string Name;
-	PinType     Type;
-	PinKind     Kind;
-	PinValue    Value;
-	INode*     Node;
+	PinType Type;
+	PinKind Kind;
+	PinValue Value;
+	Node* Node;
 
 	Pin(int id, const char* name, PinType type) :
 		ID(id), Node(nullptr), Name(name), Type(type), Kind(PinKind::Input), Value(0)
@@ -72,9 +70,10 @@ struct Pin
 	}
 };
 
-struct Node : public INode
+struct Node
 {
 	ed::NodeId ID;
+	uintptr_t OldID = 0;
 
 	std::string Name;
 	ImColor Color;
@@ -89,24 +88,20 @@ struct Node : public INode
 		ID(id), Name(name), Color(color), Type(NodeType::Blueprint), Size(0, 0)
 	{
 	}
-
-	void* GetID() override
-	{
-		return ID.AsPointer();
-	}
 };
 
 struct Link
 {
 	ed::LinkId ID;
+	uintptr_t OldID = 0;
 
-	ed::PinId StartPinID;
-	ed::PinId EndPinID;
+	Pin* StartPin = 0;
+	Pin* EndPin = 0;
 
 	ImColor Color;
 
-	Link(ed::LinkId id, ed::PinId startPinId, ed::PinId endPinId) :
-		ID(id), StartPinID(startPinId), EndPinID(endPinId), Color(255, 255, 255)
+	Link(ed::LinkId id, Pin* startPin, Pin* endPin) :
+		ID(id), StartPin(startPin), EndPin(endPin), Color(255, 255, 255)
 	{
 	}
 };
@@ -167,6 +162,46 @@ static inline ImRect ImRect_Expanded(const ImRect& rect, float x, float y)
 	result.Max.y += y;
 	return result;
 }
+
+ImColor GetIconColor(PinType type)
+{
+	switch (type)
+	{
+	default:
+	case PinType::Flow:     return ImColor(255, 255, 255);
+	case PinType::Bool:     return ImColor(220, 48, 48);
+	case PinType::Int:      return ImColor(68, 201, 156);
+	case PinType::Float:    return ImColor(147, 226, 74);
+	case PinType::String:   return ImColor(124, 21, 153);
+	case PinType::Vector:   return ImColor(201, 201, 68);
+	case PinType::Object:   return ImColor(51, 150, 215);
+	case PinType::Function: return ImColor(218, 0, 183);
+	case PinType::Delegate: return ImColor(255, 48, 48);
+	}
+};
+
+void DrawPinIcon(const Pin& pin, bool connected, int alpha)
+{
+	IconType iconType;
+	ImColor  color = GetIconColor(pin.Type);
+	color.Value.w = alpha / 255.0f;
+	switch (pin.Type)
+	{
+	case PinType::Flow:     iconType = IconType::Flow;   break;
+	case PinType::Bool:     iconType = IconType::Circle; break;
+	case PinType::Int:      iconType = IconType::Circle; break;
+	case PinType::Float:    iconType = IconType::Circle; break;
+	case PinType::String:   iconType = IconType::Circle; break;
+	case PinType::Vector:   iconType = IconType::Circle; break;
+	case PinType::Object:   iconType = IconType::Circle; break;
+	case PinType::Function: iconType = IconType::Circle; break;
+	case PinType::Delegate: iconType = IconType::Square; break;
+	default:
+		return;
+	}
+
+	ax::Widgets::Icon(ImVec2(s_PinIconSize, s_PinIconSize), iconType, connected, color, ImColor(32, 32, 32, alpha));
+};
 
 static int GetNextId()
 {
@@ -239,14 +274,39 @@ static Pin* FindPin(ed::PinId id)
 	return nullptr;
 }
 
-static bool IsPinLinked(ed::PinId id)
+static Pin* FindPinByOldID(uint64_t id)
 {
 	if (!id)
+		return nullptr;
+
+	for (auto& node : s_Nodes)
+	{
+		for (auto& pin : node.Inputs)
+			if (pin.OldID == id)
+				return &pin;
+
+		for (auto& pin : node.Outputs)
+			if (pin.OldID == id)
+				return &pin;
+	}
+
+	return nullptr;
+}
+
+static bool IsPinLinked(Pin* pin)
+{
+	if (pin == nullptr)
+	{
 		return false;
+	}
 
 	for (auto& link : s_Links)
-		if (link.StartPinID == id || link.EndPinID == id)
+	{
+		if (link.StartPin == pin || link.EndPin == pin)
+		{
 			return true;
+		}
+	}
 
 	return false;
 }
@@ -274,7 +334,7 @@ static void BuildNode(Node* node)
 	}
 }
 
-INode* SpawnNode(const char* nodeDescriptorName)
+Node* SpawnNode(const char* nodeDescriptorName)
 {
 	auto l_nodeDesc = NodeDescriptorGenerator::GetNodeDescriptor(nodeDescriptorName);
 
@@ -295,6 +355,14 @@ INode* SpawnNode(const char* nodeDescriptorName)
 
 	return &s_Nodes.back();
 };
+
+Link* SpawnLink(Pin* startPin, Pin* endPin)
+{
+	s_Links.emplace_back(Link(GetNextId(), startPin, endPin));
+	s_Links.back().Color = GetIconColor(startPin->Type);
+
+	return &s_Links.back();
+}
 
 static Node* SpawnConstBoolNode()
 {
@@ -419,6 +487,11 @@ void LoadCanvas(const char* fileName)
 {
 	for (auto& node : s_Nodes)
 	{
+		node.Inputs.clear();
+		node.Outputs.clear();
+		node.Inputs.shrink_to_fit();
+		node.Outputs.shrink_to_fit();
+
 		ed::DeleteNode(node.ID);
 	}
 	for (auto& link : s_Links)
@@ -427,6 +500,8 @@ void LoadCanvas(const char* fileName)
 	}
 	s_Nodes.clear();
 	s_Links.clear();
+	s_Nodes.shrink_to_fit();
+	s_Links.shrink_to_fit();
 
 	json j;
 
@@ -436,8 +511,40 @@ void LoadCanvas(const char* fileName)
 
 	for (auto& j_node : j["Nodes"])
 	{
-		node = reinterpret_cast<Node*>(SpawnNode(std::string(j_node["Name"]).c_str()));
+		node = SpawnNode(std::string(j_node["Name"]).c_str());
+		node->OldID = j_node["ID"];
+
+		for (auto& j_input : j_node["Inputs"])
+		{
+			for (auto& pin : node->Inputs)
+			{
+				if (pin.Name == j_input["Name"])
+				{
+					pin.OldID = j_input["ID"];
+				}
+			}
+		}
+
+		for (auto& j_output : j_node["Outputs"])
+		{
+			for (auto& pin : node->Outputs)
+			{
+				if (pin.Name == j_output["Name"])
+				{
+					pin.OldID = j_output["ID"];
+				}
+			}
+		}
+
 		ed::SetNodePosition(node->ID, ImVec2(j_node["Position"]["X"], j_node["Position"]["Y"]));
+	}
+
+	for (auto& j_link : j["Links"])
+	{
+		auto l_startPin = FindPinByOldID(j_link["StartPinID"]);
+		auto l_endPin = FindPinByOldID(j_link["EndPinID"]);
+
+		SpawnLink(l_startPin, l_endPin);
 	}
 
 	ed::NavigateToContent();
@@ -482,9 +589,8 @@ void SaveCanvas(const char* fileName)
 	{
 		json j_link;
 		j_link["ID"] = link.ID.Get();
-		j_link["StartPinID"] = link.StartPinID.Get();
-		j_link["EndPinID"] = link.EndPinID.Get();
-
+		j_link["StartPinID"] = link.StartPin->ID.Get();
+		j_link["EndPinID"] = link.EndPin->ID.Get();
 		j["Links"].emplace_back(j_link);
 	}
 
@@ -502,46 +608,6 @@ static bool Splitter(bool split_vertically, float thickness, float* size1, float
 	bb.Max = bb.Min + CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
 	return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
 }
-
-ImColor GetIconColor(PinType type)
-{
-	switch (type)
-	{
-	default:
-	case PinType::Flow:     return ImColor(255, 255, 255);
-	case PinType::Bool:     return ImColor(220, 48, 48);
-	case PinType::Int:      return ImColor(68, 201, 156);
-	case PinType::Float:    return ImColor(147, 226, 74);
-	case PinType::String:   return ImColor(124, 21, 153);
-	case PinType::Vector:   return ImColor(201, 201, 68);
-	case PinType::Object:   return ImColor(51, 150, 215);
-	case PinType::Function: return ImColor(218, 0, 183);
-	case PinType::Delegate: return ImColor(255, 48, 48);
-	}
-};
-
-void DrawPinIcon(const Pin& pin, bool connected, int alpha)
-{
-	IconType iconType;
-	ImColor  color = GetIconColor(pin.Type);
-	color.Value.w = alpha / 255.0f;
-	switch (pin.Type)
-	{
-	case PinType::Flow:     iconType = IconType::Flow;   break;
-	case PinType::Bool:     iconType = IconType::Circle; break;
-	case PinType::Int:      iconType = IconType::Circle; break;
-	case PinType::Float:    iconType = IconType::Circle; break;
-	case PinType::String:   iconType = IconType::Circle; break;
-	case PinType::Vector:   iconType = IconType::Circle; break;
-	case PinType::Object:   iconType = IconType::Circle; break;
-	case PinType::Function: iconType = IconType::Circle; break;
-	case PinType::Delegate: iconType = IconType::Square; break;
-	default:
-		return;
-	}
-
-	ax::Widgets::Icon(ImVec2(s_PinIconSize, s_PinIconSize), iconType, connected, color, ImColor(32, 32, 32, alpha));
-};
 
 void ShowLeftPane(float paneWidth)
 {
@@ -811,7 +877,7 @@ void ShowContextMenu()
 		{
 			ImGui::Text("ID: %p", pin->ID.AsPointer());
 			if (pin->Node)
-				ImGui::Text("Node: %p", pin->Node->GetID());
+				ImGui::Text("Node: %p", pin->Node->ID.AsPointer());
 			else
 				ImGui::Text("Node: %s", "<none>");
 		}
@@ -830,8 +896,8 @@ void ShowContextMenu()
 		if (link)
 		{
 			ImGui::Text("ID: %p", link->ID.AsPointer());
-			ImGui::Text("From: %p", link->StartPinID.AsPointer());
-			ImGui::Text("To: %p", link->EndPinID.AsPointer());
+			ImGui::Text("From: %p", link->StartPin->ID.AsPointer());
+			ImGui::Text("To: %p", link->EndPin->ID.AsPointer());
 		}
 		else
 			ImGui::Text("Unknown link: %p", contextLinkId.AsPointer());
@@ -852,9 +918,9 @@ void ShowContextMenu()
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Input"))
-			node = reinterpret_cast<Node*>(SpawnNode("Input"));
+			node = SpawnNode("Input");
 		if (ImGui::MenuItem("Output"))
-			node = reinterpret_cast<Node*>(SpawnNode("Output"));
+			node = SpawnNode("Output");
 
 		ImGui::Separator();
 
@@ -870,7 +936,7 @@ void ShowContextMenu()
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("WavePlayer"))
-			node = reinterpret_cast<Node*>(SpawnNode("WavePlayer"));
+			node = SpawnNode("WavePlayer");
 		if (ImGui::MenuItem("Sequencer"))
 			node = SpawnSequencerNode();
 		if (ImGui::MenuItem("Selector"))
@@ -883,11 +949,11 @@ void ShowContextMenu()
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Branch"))
-			node = reinterpret_cast<Node*>(SpawnNode("Branch"));
+			node = SpawnNode("Branch");
 		if (ImGui::MenuItem("Do N"))
-			node = reinterpret_cast<Node*>(SpawnNode("DoN"));
+			node = SpawnNode("DoN");
 		if (ImGui::MenuItem("Print String"))
-			node = reinterpret_cast<Node*>(SpawnNode("PrintString"));
+			node = SpawnNode("PrintString");
 
 		ImGui::Separator();
 
@@ -912,9 +978,7 @@ void ShowContextMenu()
 						if (startPin->Kind == PinKind::Input)
 							std::swap(startPin, endPin);
 
-						s_Links.emplace_back(Link(GetNextId(), startPin->ID, endPin->ID));
-						s_Links.back().Color = GetIconColor(startPin->Type);
-
+						SpawnLink(startPin, endPin);
 						break;
 					}
 				}
@@ -968,7 +1032,7 @@ void ShowBlueprints(util::BlueprintNodeBuilder& builder, Node& node)
 				ImGui::TextUnformatted(output.Name.c_str());
 				ImGui::Spring(0);
 			}
-			DrawPinIcon(output, IsPinLinked(output.ID), (int)(alpha * 255));
+			DrawPinIcon(output, IsPinLinked(&output), (int)(alpha * 255));
 			ImGui::Spring(0, ImGui::GetStyle().ItemSpacing.x / 2);
 			ImGui::EndHorizontal();
 			ImGui::PopStyleVar();
@@ -994,7 +1058,7 @@ void ShowBlueprints(util::BlueprintNodeBuilder& builder, Node& node)
 
 		builder.Input(input.ID);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-		DrawPinIcon(input, IsPinLinked(input.ID), (int)(alpha * 255));
+		DrawPinIcon(input, IsPinLinked(&input), (int)(alpha * 255));
 		ImGui::Spring(0);
 
 		if (!input.Name.empty())
@@ -1072,7 +1136,7 @@ void ShowBlueprints(util::BlueprintNodeBuilder& builder, Node& node)
 			ImGui::TextUnformatted(output.Name.c_str());
 		}
 		ImGui::Spring(0);
-		DrawPinIcon(output, IsPinLinked(output.ID), (int)(alpha * 255));
+		DrawPinIcon(output, IsPinLinked(&output), (int)(alpha * 255));
 		ImGui::PopStyleVar();
 		builder.EndOutput();
 	}
@@ -1188,8 +1252,7 @@ void CreateNodes()
 					showLabel("+ Create Link", ImColor(32, 45, 32, 180));
 					if (ed::AcceptNewItem(ImColor(128, 255, 128), 4.0f))
 					{
-						s_Links.emplace_back(Link(GetNextId(), startPinId, endPinId));
-						s_Links.back().Color = GetIconColor(startPin->Type);
+						SpawnLink(startPin, endPin);
 					}
 				}
 			}
@@ -1274,7 +1337,7 @@ void ShowEditorCanvas()
 
 		for (auto& link : s_Links)
 		{
-			ed::Link(link.ID, link.StartPinID, link.EndPinID, link.Color, 2.0f);
+			ed::Link(link.ID, link.StartPin->ID, link.EndPin->ID, link.Color, 2.0f);
 		}
 
 		if (!createNewNode)
