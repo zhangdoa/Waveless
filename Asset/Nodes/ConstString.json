@@ -1,0 +1,15 @@
+{
+  "Parameters": [
+    {
+      "Name": "",
+      "PinType": "String",
+      "PinKind": 0
+    }
+  ],
+  "Color": {
+    "R": 128,
+    "G": 255,
+    "B": 128,
+    "A": 255
+  }
+}

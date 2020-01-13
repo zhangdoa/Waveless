@@ -364,108 +364,6 @@ Link* SpawnLink(Pin* startPin, Pin* endPin)
 	return &s_Links.back();
 }
 
-static Node* SpawnConstBoolNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "ConstBool", ImColor(64, 255, 64));
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Value", PinType::Bool);
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnConstIntNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "ConstInt", ImColor(64, 255, 64));
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Value", PinType::Int);
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnConstFloatNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "ConstFloat", ImColor(64, 255, 64));
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Value", PinType::Float);
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnConstStringNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "ConstString", ImColor(64, 255, 64));
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Value", PinType::String);
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnVectorBreakNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Vector", ImColor(64, 64, 255));
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "Vector", PinType::Vector);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "X", PinType::Float);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Y", PinType::Float);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "Z", PinType::Float);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnSequencerNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Sequencer");
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnSelectorNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Selector");
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnAttenuatorNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Attenuator");
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WorldPosition", PinType::Vector);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
-static Node* SpawnMixerNode()
-{
-	s_Nodes.emplace_back(GetNextId(), "Mixer");
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Inputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "", PinType::Flow);
-	s_Nodes.back().Outputs.emplace_back(GetNextId(), "WaveObject", PinType::Object);
-
-	BuildNode(&s_Nodes.back());
-
-	return &s_Nodes.back();
-}
-
 static Node* SpawnComment()
 {
 	s_Nodes.emplace_back(GetNextId(), "New Comment");
@@ -912,8 +810,8 @@ void ShowContextMenu()
 		auto newNodePostion = openPopupPosition;
 
 		Node* node = nullptr;
-		if (ImGui::MenuItem("Break"))
-			node = SpawnVectorBreakNode();
+		if (ImGui::MenuItem("BreakVector"))
+			node = SpawnNode("BreakVector");
 
 		ImGui::Separator();
 
@@ -925,26 +823,26 @@ void ShowContextMenu()
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("Const Bool"))
-			node = SpawnConstBoolNode();
+			node = SpawnNode("ConstBool");
 		if (ImGui::MenuItem("Const Int"))
-			node = SpawnConstIntNode();
+			node = SpawnNode("ConstInt");
 		if (ImGui::MenuItem("Const Float"))
-			node = SpawnConstFloatNode();
+			node = SpawnNode("ConstFloat");
 		if (ImGui::MenuItem("Const String"))
-			node = SpawnConstStringNode();
+			node = SpawnNode("ConstString");
 
 		ImGui::Separator();
 
 		if (ImGui::MenuItem("WavePlayer"))
 			node = SpawnNode("WavePlayer");
 		if (ImGui::MenuItem("Sequencer"))
-			node = SpawnSequencerNode();
+			node = SpawnNode("Sequencer");
 		if (ImGui::MenuItem("Selector"))
-			node = SpawnSelectorNode();
+			node = SpawnNode("Selector");
 		if (ImGui::MenuItem("Attenuator"))
-			node = SpawnAttenuatorNode();
+			node = SpawnNode("Attenuator");
 		if (ImGui::MenuItem("Mixer"))
-			node = SpawnMixerNode();
+			node = SpawnNode("Mixer");
 
 		ImGui::Separator();
 
