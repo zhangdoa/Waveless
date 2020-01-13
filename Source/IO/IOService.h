@@ -1,5 +1,6 @@
 #pragma once
 #include "../Core/stdafx.h"
+#include "../Core/Typedef.h"
 
 namespace Waveless
 {
@@ -7,8 +8,8 @@ namespace Waveless
 	{
 		enum class IOMode { Text, Binary };
 
-		std::vector<char> loadFile(const char* filePath, IOMode openMode);
-		bool saveFile(const char* filePath, const std::vector<char>& content, IOMode saveMode);
+		WsResult loadFile(const char* filePath, std::vector<char>& content, IOMode openMode);
+		WsResult saveFile(const char* filePath, const std::vector<char>& content, IOMode saveMode);
 
 		bool isFileExist(const char* filePath);
 		std::string getFilePath(const char* filePath);

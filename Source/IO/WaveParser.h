@@ -1,5 +1,6 @@
 #pragma once
 #include "../Core/stdafx.h"
+#include "../Core/Typedef.h"
 #include "../Core/Math.h"
 
 namespace Waveless
@@ -119,8 +120,8 @@ namespace Waveless
 		static WavHeader GenerateWavHeader(unsigned short channels, unsigned long sampleRate, unsigned short bitDepth, unsigned long sampleCount);
 		static WavObject GenerateWavObject(const WavHeader& header, const ComplexArray& x);
 
-		static bool WriteFile(const char* path, const WavObject& wavObject);
-		static bool WriteFile(const char* path, const WavHeader& header, const ComplexArray& x);
+		static WsResult WriteFile(const char* path, const WavObject& wavObject);
+		static WsResult WriteFile(const char* path, const WavHeader& header, const ComplexArray& x);
 
 		static void PrintWavHeader(WavHeader* header);
 	};

@@ -14,12 +14,12 @@ namespace Waveless
 		///
 		/// Initialize audio engine
 		///
-		static void Initialize();
+		static WsResult Initialize();
 
 		///
 		/// Force all event instances to be executed
 		///
-		static void Flush();
+		static WsResult Flush();
 
 		///
 		/// Trigger once an event prototype and get an event instance
@@ -29,7 +29,7 @@ namespace Waveless
 		///
 		/// Terminate audio engine
 		///
-		static void Terminate();
+		static WsResult Terminate();
 
 		///
 		/// Add an event prototype from a wave object
@@ -39,11 +39,11 @@ namespace Waveless
 		///
 		/// Apply low pass filter to an event instance
 		///
-		static bool ApplyLPF(uint64_t UUID, float cutOffFreq);
+		static WsResult ApplyLPF(uint64_t UUID, float cutOffFreq);
 
 		///
 		/// Apply high pass filter to an event instance
 		///
-		static bool ApplyHPF(uint64_t UUID, float cutOffFreq);
+		static WsResult ApplyHPF(uint64_t UUID, float cutOffFreq);
 	};
 }

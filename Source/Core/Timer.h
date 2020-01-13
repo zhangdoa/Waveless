@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "Typedef.h"
 
 namespace Waveless
 {
@@ -20,8 +21,8 @@ namespace Waveless
 	class Timer
 	{
 	public:
-		static bool Initialize();
-		static bool Terminate();
+		static WsResult Initialize();
+		static WsResult Terminate();
 
 		static const uint64_t GetCurrentTimeFromEpoch(TimeUnit time_unit);
 		static const Timestamp GetCurrentTime(uint32_t time_zone_adjustment);

@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "Typedef.h"
 
 namespace Waveless
 {
@@ -8,8 +9,8 @@ namespace Waveless
 	class Logger
 	{
 	public:
-		static bool Initialize();
-		static bool Terminate();
+		static WsResult Initialize();
+		static WsResult Terminate();
 
 		template<typename... Args>
 		static void Log(LogLevel logLevel, Args&&... values)

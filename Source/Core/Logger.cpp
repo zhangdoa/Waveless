@@ -1,7 +1,6 @@
 #include "Logger.h"
 #include "Timer.h"
 #include "Config.h"
-#include <string>
 #include <future>
 
 namespace Waveless::LoggerNS
@@ -189,7 +188,7 @@ void Waveless::Logger::LogImpl(const char* logMessage)
 	LoggerNS::m_LogFile << logMessage;
 }
 
-bool Waveless::Logger::Initialize()
+Waveless::WsResult Waveless::Logger::Initialize()
 {
 	std::stringstream ss;
 	ss << LoggerNS::GetTimestamp << ".Log";
@@ -197,18 +196,18 @@ bool Waveless::Logger::Initialize()
 
 	if (LoggerNS::m_LogFile.is_open())
 	{
-		return true;
+		return WsResult::Success;
 	}
 	else
 	{
 		Log(LogLevel::Error, "Logger: Can't open log file!");
-		return false;
+		return  WsResult::FileNotFound;
 	}
 }
 
-bool Waveless::Logger::Terminate()
+Waveless::WsResult Waveless::Logger::Terminate()
 {
 	Log(LogLevel::Success, "Logger: Terminated.");
 	LoggerNS::m_LogFile.close();
-	return true;
+	return WsResult::Success;
 }

@@ -212,7 +212,7 @@ namespace Waveless
 		(void)pInput;
 	}
 
-	void AudioEngine::Initialize()
+	WsResult AudioEngine::Initialize()
 	{
 		g_eventPrototypes.reserve(4096);
 		g_eventInstances.reserve(512);
@@ -230,6 +230,7 @@ namespace Waveless
 		{
 			Logger::Log(LogLevel::Error, "Failed to open playback device.");
 			Terminate();
+			return WsResult::Fail;
 		}
 
 		ma_event_init(device.pContext, &terminateEvent);
@@ -238,10 +239,13 @@ namespace Waveless
 		{
 			Logger::Log(LogLevel::Error, "Failed to start playback device.");
 			Terminate();
+			return WsResult::Fail;
 		}
+
+		return WsResult::Success;
 	}
 
-	void AudioEngine::Flush()
+	WsResult AudioEngine::Flush()
 	{
 		while (g_untriggeredEventInstances.size())
 		{
@@ -249,6 +253,8 @@ namespace Waveless
 			i->objectState = ObjectState::Active;
 			g_untriggeredEventInstances.pop();
 		}
+
+		return WsResult::Success;
 	}
 
 	EventInstance* CreateEventInstance(const EventPrototype* l_eventPrototype)
@@ -292,13 +298,15 @@ namespace Waveless
 		}
 	}
 
-	void AudioEngine::Terminate()
+	WsResult AudioEngine::Terminate()
 	{
 		for (auto i : g_eventInstances)
 		{
 			ma_event_wait(&i.second->stopEvent);
 		}
 		ma_device_uninit(&device);
+
+		return WsResult::Success;
 	}
 
 	uint64_t AudioEngine::AddEventPrototype(const WavObject & wavObject)
@@ -332,7 +340,7 @@ namespace Waveless
 		}
 	}
 
-	bool AudioEngine::ApplyLPF(uint64_t UUID, float cutOffFreq)
+	WsResult AudioEngine::ApplyLPF(uint64_t UUID, float cutOffFreq)
 	{
 		auto l_result = g_eventInstances.find(UUID);
 		if (l_result != g_eventInstances.end())
@@ -340,22 +348,22 @@ namespace Waveless
 			if (cutOffFreq * 2.0f > l_result->second->decoderConfig.sampleRate)
 			{
 				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate");
-				return false;
+				return WsResult::Fail;
 			}
 			else
 			{
 				l_result->second->cutOffFreqLPF = cutOffFreq;
-				return true;
+				return WsResult::Success;
 			}
 		}
 		else
 		{
 			Logger::Log(LogLevel::Warning, "Can't find EventInstance.");
-			return false;
+			return WsResult::IDNotFound;
 		}
 	}
 
-	bool AudioEngine::ApplyHPF(uint64_t UUID, float cutOffFreq)
+	WsResult AudioEngine::ApplyHPF(uint64_t UUID, float cutOffFreq)
 	{
 		auto l_result = g_eventInstances.find(UUID);
 		if (l_result != g_eventInstances.end())
@@ -363,18 +371,18 @@ namespace Waveless
 			if (cutOffFreq * 2.0f > l_result->second->decoderConfig.sampleRate)
 			{
 				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate");
-				return false;
+				return WsResult::Fail;
 			}
 			else
 			{
 				l_result->second->cutOffFreqHPF = cutOffFreq;
-				return true;
+				return WsResult::Success;
 			}
 		}
 		else
 		{
 			Logger::Log(LogLevel::Warning, "Can't find EventInstance.");
-			return false;
+			return WsResult::IDNotFound;
 		}
 	}
 }

@@ -286,14 +286,14 @@ namespace Waveless
 		return l_result;
 	}
 
-	bool WaveParser::WriteFile(const char* path, const WavObject& wavObject)
+	Waveless::WsResult WaveParser::WriteFile(const char* path, const WavObject& wavObject)
 	{
 		std::ofstream l_file(path, std::ios::out | std::ios::ate | std::ios::binary);
 
 		if (!l_file.is_open())
 		{
 			Logger::Log(LogLevel::Error, "std::ofstream: can't open file ", path, "!");
-			return false;
+			return WsResult::FileNotFound;
 		}
 		if (wavObject.header.ChunkValidities[0])
 		{
@@ -325,10 +325,10 @@ namespace Waveless
 
 		l_file.close();
 
-		return true;
+		return WsResult::Success;
 	}
 
-	bool WaveParser::WriteFile(const char* path, const WavHeader & header, const ComplexArray & x)
+	Waveless::WsResult WaveParser::WriteFile(const char* path, const WavHeader & header, const ComplexArray & x)
 	{
 		return WriteFile(path, GenerateWavObject(header, x));
 	}

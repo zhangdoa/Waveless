@@ -13,16 +13,16 @@ namespace Waveless::TimerNS
 	double m_UnprocessedTime;
 };
 
-bool Waveless::Timer::Initialize()
+Waveless::WsResult Waveless::Timer::Initialize()
 {
 	Waveless::TimerNS::m_StartTime = HRClock::now();
 	Waveless::TimerNS::m_FrameLength = (1.0 / 120.0) * 1000.0 * 1000.0;
-	return true;
+	return WsResult::Success;
 }
 
-bool Waveless::Timer::Terminate()
+Waveless::WsResult Waveless::Timer::Terminate()
 {
-	return true;
+	return WsResult::Success;
 }
 
 const uint64_t Waveless::Timer::GetCurrentTimeFromEpoch(TimeUnit time_unit)

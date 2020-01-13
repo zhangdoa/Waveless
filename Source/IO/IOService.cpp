@@ -14,7 +14,7 @@ namespace Waveless::IOService
 	std::string m_workingDir;
 }
 
-std::vector<char> Waveless::IOService::loadFile(const char* filePath, IOMode openMode)
+Waveless::WsResult Waveless::IOService::loadFile(const char* filePath, std::vector<char>& content, IOMode openMode)
 {
 	std::ios_base::openmode l_mode = std::ios::in;
 	switch (openMode)
@@ -36,22 +36,22 @@ std::vector<char> Waveless::IOService::loadFile(const char* filePath, IOMode ope
 	if (!l_file.is_open())
 	{
 		Logger::Log(LogLevel::Error, "IOService: Can't open file : ", filePath, "!");
-		return std::vector<char>();
+		return WsResult::FileNotFound;
 	}
 
 	auto pbuf = l_file.rdbuf();
 	std::size_t l_size = pbuf->pubseekoff(0, l_file.end, l_file.in);
 	pbuf->pubseekpos(0, l_file.in);
 
-	std::vector<char> buffer(l_size);
-	pbuf->sgetn(&buffer[0], l_size);
+	content.reserve(l_size);
+	pbuf->sgetn(&content[0], l_size);
 
 	l_file.close();
 
-	return buffer;
+	return WsResult::Success;
 }
 
-bool Waveless::IOService::saveFile(const char* filePath, const std::vector<char>& content, IOMode saveMode)
+Waveless::WsResult Waveless::IOService::saveFile(const char* filePath, const std::vector<char>& content, IOMode saveMode)
 {
 	std::ios_base::openmode l_mode = std::ios::out;
 	switch (saveMode)
@@ -73,14 +73,14 @@ bool Waveless::IOService::saveFile(const char* filePath, const std::vector<char>
 	if (!l_file.is_open())
 	{
 		Logger::Log(LogLevel::Error, "IOService: Can't open file : ", filePath, "!");
-		return false;
+		return WsResult::FileNotFound;
 	}
 
 	auto l_result = serializeVector(l_file, content);
 
 	l_file.close();
 
-	return l_result;
+	return WsResult::Success;
 }
 
 bool Waveless::IOService::isFileExist(const char* filePath)

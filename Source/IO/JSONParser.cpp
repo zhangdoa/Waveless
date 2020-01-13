@@ -3,7 +3,7 @@
 #include "../Core/Logger.h"
 #include "../Core/stdafx.h"
 
-bool Waveless::JSONParser::loadJsonDataFromDisk(const char* fileName, json & data)
+Waveless::WsResult Waveless::JSONParser::loadJsonDataFromDisk(const char* fileName, json & data)
 {
 	std::ifstream i;
 
@@ -12,16 +12,18 @@ bool Waveless::JSONParser::loadJsonDataFromDisk(const char* fileName, json & dat
 	if (!i.is_open())
 	{
 		Logger::Log(LogLevel::Error, "JSONParser: Can't open JSON file : ", fileName, "!");
-		return false;
+		return WsResult::FileNotFound;
 	}
 
 	i >> data;
 	i.close();
 
-	return true;
+	Logger::Log(LogLevel::Verbose, "JSONParser: JSON file : ", fileName, " has been loaded.");
+
+	return WsResult::Success;
 }
 
-bool Waveless::JSONParser::saveJsonDataToDisk(const char* fileName, const json & data)
+Waveless::WsResult Waveless::JSONParser::saveJsonDataToDisk(const char* fileName, const json & data)
 {
 	std::ofstream o;
 
@@ -30,7 +32,7 @@ bool Waveless::JSONParser::saveJsonDataToDisk(const char* fileName, const json &
 	if (!o.is_open())
 	{
 		Logger::Log(LogLevel::Error, "JSONParser: Can't open JSON file : ", fileName, "!");
-		return false;
+		return WsResult::FileNotFound;
 	}
 
 	o << std::setw(4) << data << std::endl;
@@ -38,5 +40,5 @@ bool Waveless::JSONParser::saveJsonDataToDisk(const char* fileName, const json &
 
 	Logger::Log(LogLevel::Verbose, "JSONParser: JSON file : ", fileName, " has been saved.");
 
-	return true;
+	return WsResult::Success;
 }
