@@ -1,21 +1,20 @@
-#include "NodeDescriptorGenerator.h"
+#include "NodeDescriptorManager.h"
 #include "../Core/stdafx.h"
 #include "../Core/Logger.h"
 #include "../IO/IOService.h"
 #include "../IO/JSONParser.h"
 
-namespace Waveless::NodeDescriptorGenerator
+namespace Waveless::NodeDescriptorManager
 {
 	std::vector<std::string> m_stringPool;
 	std::vector<PinDescriptor> m_inputPinDescriptors;
 	std::vector<PinDescriptor> m_outputPinDescriptors;
 	std::unordered_map<std::string, NodeDescriptor> m_nodeDescriptors;
 
-	bool loadJsonDataFromDisk(const char* fileName, json & data);
 	PinType GetPinType(const char * pinType);
 }
 
-Waveless::PinType Waveless::NodeDescriptorGenerator::GetPinType(const char * pinType)
+Waveless::PinType Waveless::NodeDescriptorManager::GetPinType(const char * pinType)
 {
 	if (!strcmp(pinType, "Flow"))
 	{
@@ -53,7 +52,7 @@ Waveless::PinType Waveless::NodeDescriptorGenerator::GetPinType(const char * pin
 	}
 }
 
-void Waveless::NodeDescriptorGenerator::GenerateNodeDescriptors(const char * nodeTemplateDirectoryPath)
+void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeTemplateDirectoryPath)
 {
 	// @TODO: A string pool shouldn't be managed by this module
 	m_stringPool.reserve(8192);
@@ -66,7 +65,7 @@ void Waveless::NodeDescriptorGenerator::GenerateNodeDescriptors(const char * nod
 		{
 			NodeDescriptor l_nodeDesc;
 			m_stringPool.emplace_back(IOService::getFileName(i.c_str()));
-			l_nodeDesc.name = m_stringPool[m_stringPool.size() - 1].c_str();
+			l_nodeDesc.Name = m_stringPool[m_stringPool.size() - 1].c_str();
 
 			json j;
 			JSONParser::loadJsonDataFromDisk((std::string(nodeTemplateDirectoryPath) + i).c_str(), j);
@@ -78,44 +77,44 @@ void Waveless::NodeDescriptorGenerator::GenerateNodeDescriptors(const char * nod
 				std::string pinName = k["Name"];
 
 				PinDescriptor pinDesc;
-				pinDesc.kind = PinKind(pinKind);
+				pinDesc.Kind = PinKind(pinKind);
 				m_stringPool.emplace_back(pinName);
-				pinDesc.name = m_stringPool[m_stringPool.size() - 1].c_str();
-				pinDesc.type = GetPinType(pinType.c_str());
+				pinDesc.Name = m_stringPool.back().c_str();
+				pinDesc.Type = GetPinType(pinType.c_str());
 
 				if (pinKind == 0)
 				{
-					l_nodeDesc.outputPinCount++;
+					l_nodeDesc.OutputPinCount++;
 					m_outputPinDescriptors.emplace_back(pinDesc);
 				}
 				else
 				{
-					l_nodeDesc.inputPinCount++;
+					l_nodeDesc.InputPinCount++;
 					m_inputPinDescriptors.emplace_back(pinDesc);
 				}
 			}
 
-			if (l_nodeDesc.inputPinCount)
+			if (l_nodeDesc.InputPinCount)
 			{
-				l_nodeDesc.inputPinIndexOffset = (int)m_inputPinDescriptors.size() - l_nodeDesc.inputPinCount;
+				l_nodeDesc.InputPinIndexOffset = (int)m_inputPinDescriptors.size() - l_nodeDesc.InputPinCount;
 			}
 
-			if (l_nodeDesc.outputPinCount)
+			if (l_nodeDesc.OutputPinCount)
 			{
-				l_nodeDesc.outputPinIndexOffset = (int)m_outputPinDescriptors.size() - l_nodeDesc.outputPinCount;
+				l_nodeDesc.OutputPinIndexOffset = (int)m_outputPinDescriptors.size() - l_nodeDesc.OutputPinCount;
 			}
 
-			l_nodeDesc.color[0] = j["Color"]["R"];
-			l_nodeDesc.color[1] = j["Color"]["G"];
-			l_nodeDesc.color[2] = j["Color"]["B"];
-			l_nodeDesc.color[3] = j["Color"]["A"];
+			l_nodeDesc.Color[0] = j["Color"]["R"];
+			l_nodeDesc.Color[1] = j["Color"]["G"];
+			l_nodeDesc.Color[2] = j["Color"]["B"];
+			l_nodeDesc.Color[3] = j["Color"]["A"];
 
-			m_nodeDescriptors.emplace(l_nodeDesc.name, l_nodeDesc);
+			m_nodeDescriptors.emplace(l_nodeDesc.Name, l_nodeDesc);
 		}
 	}
 }
 
-Waveless::PinDescriptor * Waveless::NodeDescriptorGenerator::GetPinDescriptor(int pinIndex, PinKind pinKind)
+Waveless::PinDescriptor * Waveless::NodeDescriptorManager::GetPinDescriptor(int pinIndex, PinKind pinKind)
 {
 	if (pinKind == PinKind::Input)
 	{
@@ -127,7 +126,7 @@ Waveless::PinDescriptor * Waveless::NodeDescriptorGenerator::GetPinDescriptor(in
 	}
 }
 
-Waveless::NodeDescriptor * Waveless::NodeDescriptorGenerator::GetNodeDescriptor(const char * nodeTemplateName)
+Waveless::NodeDescriptor * Waveless::NodeDescriptorManager::GetNodeDescriptor(const char * nodeTemplateName)
 {
 	auto l_result = m_nodeDescriptors.find(nodeTemplateName);
 

@@ -1,13 +1,17 @@
 #pragma once
+#include "../Core/Typedef.h"
 
-class WsEditor
+namespace Waveless
 {
-public:
-	WsEditor() = default;
-	~WsEditor() = default;
+	class Editor
+	{
+	public:
+		Editor() = default;
+		~Editor() = default;
 
-	void Setup();
-	void Initialize();
-	void Render();
-	void Terminate();
-};
+		WsResult Setup();
+		WsResult Initialize();
+		WsResult Render();
+		WsResult Terminate();
+	};
+}

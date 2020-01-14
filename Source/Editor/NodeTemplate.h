@@ -1,4 +1,6 @@
 #pragma once
+#include "../Core/Object.h"
+
 namespace Waveless
 {
 	enum class PinType
@@ -26,22 +28,22 @@ namespace Waveless
 		Comment
 	};
 
-	struct PinDescriptor
+	struct PinDescriptor : public Object
 	{
-		const char* name;
-		PinType type;
-		PinKind kind;
+		const char* Name;
+		PinType Type;
+		PinKind Kind;
 	};
 
-	struct NodeDescriptor
+	struct NodeDescriptor : public Object
 	{
-		const char* name;
+		const char* Name;
 		NodeType Type = NodeType::Blueprint;
-		int inputPinCount = 0;
-		int outputPinCount = 0;
-		int inputPinIndexOffset = 0;
-		int outputPinIndexOffset = 0;
-		int size[2] = { 0 };
-		int color[4] = { 0 };
+		int InputPinCount = 0;
+		int OutputPinCount = 0;
+		int InputPinIndexOffset = 0;
+		int OutputPinIndexOffset = 0;
+		int Size[2] = { 0 };
+		int Color[4] = { 0 };
 	};
 }

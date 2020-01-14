@@ -1,20 +1,24 @@
 #pragma once
+#include "../../Core/Typedef.h"
 
-class ImGuiWrapper
+namespace Waveless
 {
-public:
-	~ImGuiWrapper() {};
-
-	static ImGuiWrapper& get()
+	class ImGuiWrapper
 	{
-		static ImGuiWrapper instance;
-		return instance;
-	}
-	bool Setup();
-	bool Initialize();
-	bool Render();
-	bool Terminate();
+	public:
+		~ImGuiWrapper() {};
 
-private:
-	ImGuiWrapper() {};
-};
+		static ImGuiWrapper& get()
+		{
+			static ImGuiWrapper instance;
+			return instance;
+		}
+		WsResult Setup();
+		WsResult Initialize();
+		WsResult Render();
+		WsResult Terminate();
+
+	private:
+		ImGuiWrapper() {};
+	};
+}

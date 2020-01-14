@@ -1,32 +1,45 @@
 #include "Editor.h"
 #include "ImGuiWrapper/ImGuiWrapper.h"
+#include "NodeDescriptorManager.h"
 #include "../Runtime/AudioEngine.h"
-#include "NodeDescriptorGenerator.h"
 
 using namespace Waveless;
 
-void WsEditor::Setup()
+WsResult Editor::Setup()
 {
-	NodeDescriptorGenerator::GenerateNodeDescriptors("..//..//Asset//Nodes//");
-	ImGuiWrapper::get().Setup();
+	NodeDescriptorManager::GenerateNodeDescriptors("..//..//Asset//Nodes//");
+	return ImGuiWrapper::get().Setup();
 }
 
-void WsEditor::Initialize()
+WsResult Editor::Initialize()
 {
-	ImGuiWrapper::get().Initialize();
-	AudioEngine::Initialize();
-}
-
-void WsEditor::Render()
-{
-	while (ImGuiWrapper::get().Render())
+	if (ImGuiWrapper::get().Initialize() == WsResult::Success)
 	{
-		AudioEngine::Flush();
+		return AudioEngine::Initialize();
+	}
+	else
+	{
+		return WsResult::Fail;
 	}
 }
 
-void WsEditor::Terminate()
+WsResult Editor::Render()
 {
-	AudioEngine::Terminate();
-	ImGuiWrapper::get().Terminate();
+	while (ImGuiWrapper::get().Render() == WsResult::Success)
+	{
+		AudioEngine::Flush();
+	}
+	return WsResult::Success;
+}
+
+WsResult Editor::Terminate()
+{
+	if (AudioEngine::Terminate() == WsResult::Success)
+	{
+		return 	ImGuiWrapper::get().Terminate();
+	}
+	else
+	{
+		return WsResult::Fail;
+	}
 }

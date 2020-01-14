@@ -43,7 +43,7 @@ Waveless::WsResult Waveless::IOService::loadFile(const char* filePath, std::vect
 	std::size_t l_size = pbuf->pubseekoff(0, l_file.end, l_file.in);
 	pbuf->pubseekpos(0, l_file.in);
 
-	content.reserve(l_size);
+	content.resize(l_size);
 	pbuf->sgetn(&content[0], l_size);
 
 	l_file.close();

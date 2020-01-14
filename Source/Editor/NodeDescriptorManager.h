@@ -3,7 +3,7 @@
 
 namespace Waveless
 {
-	namespace NodeDescriptorGenerator
+	namespace NodeDescriptorManager
 	{
 		void GenerateNodeDescriptors(const char* nodeTemplateDirectoryPath);
 		PinDescriptor* GetPinDescriptor(int pinIndex, PinKind pinKind);
