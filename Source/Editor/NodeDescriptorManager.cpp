@@ -64,8 +64,10 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 		if (IOService::getFileExtension(i.c_str()) == ".json")
 		{
 			NodeDescriptor l_nodeDesc;
+			m_stringPool.emplace_back(i);
+			l_nodeDesc.RelativePath = m_stringPool.back().c_str();
 			m_stringPool.emplace_back(IOService::getFileName(i.c_str()));
-			l_nodeDesc.Name = m_stringPool[m_stringPool.size() - 1].c_str();
+			l_nodeDesc.Name = m_stringPool.back().c_str();
 
 			json j;
 			JSONParser::loadJsonDataFromDisk((std::string(nodeTemplateDirectoryPath) + i).c_str(), j);

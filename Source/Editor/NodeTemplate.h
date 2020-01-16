@@ -37,6 +37,7 @@ namespace Waveless
 
 	struct NodeDescriptor : public Object
 	{
+		const char* RelativePath;
 		const char* Name;
 		NodeType Type = NodeType::Blueprint;
 		int InputPinCount = 0;
