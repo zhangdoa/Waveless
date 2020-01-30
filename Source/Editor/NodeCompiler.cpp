@@ -17,11 +17,19 @@ struct PinModel : public Object
 	NodeModel* NodeModel;
 };
 
+using ParamMetadata = std::tuple<std::string, std::string>;
+
+struct FunctionMetadata
+{
+	std::string Name;
+	std::string Defi;
+	std::unordered_map<uint64_t, ParamMetadata> Params;
+};
+
 struct NodeModel : public Object
 {
 	NodeDescriptor* Desc;
-	std::string FuncSign;
-	std::string FuncBody;
+	FunctionMetadata FuncMetadata;
 
 	std::vector<PinModel> Inputs;
 	std::vector<PinModel> Outputs;
@@ -156,6 +164,27 @@ void SortModels()
 	}
 }
 
+void ParseParams(NodeModel* nodeModel, const std::string& params)
+{
+	std::stringstream ss(params);
+	std::string s;
+	size_t index = 0;
+
+	while (std::getline(ss, s, ','))
+	{
+		ParamMetadata p;
+		auto l_spacePos = s.find_last_of(" ");
+		auto l_type = s.substr(0, l_spacePos);
+		l_type.erase(std::remove_if(l_type.begin(), l_type.end(), isspace), l_type.end());
+
+		std::get<0>(p) = l_type;
+		std::get<1>(p) = s.substr(l_spacePos + 1, std::string::npos);
+
+		nodeModel->FuncMetadata.Params.emplace(index, p);
+		index++;
+	}
+}
+
 WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
 {
 	LoadModels(inputFileName);
@@ -173,19 +202,22 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 
 		if (IOService::loadFile(l_filePath.c_str(), l_code, IOService::IOMode::Text) == WsResult::Success)
 		{
-			std::string l_func = &l_code[0];
+			std::string l_functionDefi = &l_code[0];
 			auto l_funcName = l_fileName;
 			std::replace(l_funcName.begin(), l_funcName.end(), '/', '_');
+			l_funcName = "Execute_" + l_funcName;
+			node->FuncMetadata.Name = l_funcName;
 
-			l_func.insert(l_func.find("Execute") + 7, "_" + l_funcName);
-			l_func.append("\n\n");
+			auto l_signEndPos = l_functionDefi.find_first_of("\n");
+			node->FuncMetadata.Defi = l_functionDefi.substr(l_signEndPos + 1, std::string::npos);
 
-			auto l_signEndPos = l_func.find_first_of("\n");
+			auto l_params = l_functionDefi.substr(13, l_signEndPos - 14);
+			ParseParams(node, l_params);
 
-			node->FuncSign = l_func.substr(0, l_signEndPos);
-			node->FuncBody = l_func.substr(l_signEndPos + 1, std::string::npos);
+			l_functionDefi.replace(l_functionDefi.begin() + 5, l_functionDefi.begin() + 12, l_funcName);
+			l_functionDefi.append("\n\n");
 
-			std::copy(l_func.begin(), l_func.end(), std::back_inserter(l_TU));
+			std::copy(l_functionDefi.begin(), l_functionDefi.end(), std::back_inserter(l_TU));
 		}
 	}
 
