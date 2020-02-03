@@ -42,6 +42,8 @@ namespace Waveless
 		Math() = default;
 		~Math() = default;
 
+		static uint64_t GenerateUUID();
+
 		static double DB2LinearMag(double dB);
 
 		static double Linear2dBMag(double linear);

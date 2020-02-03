@@ -13,15 +13,6 @@
 
 namespace Waveless
 {
-	std::random_device rd;
-	std::mt19937_64 e2(rd());
-	std::uniform_int_distribution<uint64_t> dist(std::llround(std::pow(2, 61)), std::llround(std::pow(2, 62)));
-
-	uint64_t GenerateUUID()
-	{
-		return dist(e2);
-	}
-
 	ma_decoder_config deviceDecoderConfig;
 
 	struct PlayableObject : public Object
@@ -262,7 +253,7 @@ namespace Waveless
 		// @TODO: Pool it
 		auto l_eventInstance = new EventInstance();
 
-		auto l_UUID = GenerateUUID();
+		auto l_UUID = Math::GenerateUUID();
 
 		l_eventInstance->UUID = l_UUID;
 		l_eventInstance->decoderConfig = l_eventPrototype->decoderConfig;
@@ -320,7 +311,7 @@ namespace Waveless
 		}
 		else
 		{
-			auto l_UUID = GenerateUUID();
+			auto l_UUID = Math::GenerateUUID();
 
 			EventPrototype l_eventPrototype;
 
