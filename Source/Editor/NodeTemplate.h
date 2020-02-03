@@ -35,6 +35,20 @@ namespace Waveless
 		PinKind Kind;
 	};
 
+	struct ParamMetadata
+	{
+		const char* Type;
+		const char* Name;
+	};
+
+	struct FunctionMetadata
+	{
+		const char* Name;
+		const char* Defi;
+		int ParamsCount = 0;
+		int ParamsIndexOffset = 0;
+	};
+
 	struct NodeDescriptor : public Object
 	{
 		const char* RelativePath;
@@ -44,6 +58,7 @@ namespace Waveless
 		int OutputPinCount = 0;
 		int InputPinIndexOffset = 0;
 		int OutputPinIndexOffset = 0;
+		FunctionMetadata* FuncMetadata;
 		int Size[2] = { 0 };
 		int Color[4] = { 0 };
 	};

@@ -18,22 +18,12 @@ struct PinModel : public Object
 	PinValue Value;
 };
 
-using ParamMetadata = std::tuple<std::string, std::string>;
-
-struct FunctionMetadata
-{
-	std::string Name;
-	std::string Defi;
-	std::vector<ParamMetadata> Params;
-};
-
 enum class NodeConnectionState { Isolate, Connected };
 
 struct NodeModel : public Object
 {
 	NodeDescriptor* Desc;
 	NodeConnectionState ConnectionState = NodeConnectionState::Isolate;
-	FunctionMetadata FuncMetadata;
 
 	std::vector<PinModel> Inputs;
 	std::vector<PinModel> Outputs;
@@ -198,56 +188,35 @@ void SortModels()
 	}
 }
 
-void ParseParams(NodeModel* nodeModel, const std::string& params)
-{
-	std::stringstream ss(params);
-	std::string s;
-	size_t index = 0;
-
-	while (std::getline(ss, s, ','))
-	{
-		ParamMetadata p;
-		auto l_spacePos = s.find_last_of(" ");
-		auto l_type = s.substr(0, l_spacePos - 1);
-		l_type.erase(std::remove_if(l_type.begin(), l_type.end(), isspace), l_type.end());
-
-		std::get<0>(p) = l_type;
-		std::get<1>(p) = s.substr(l_spacePos + 1, std::string::npos);
-
-		nodeModel->FuncMetadata.Params.emplace_back(p);
-		index++;
-	}
-}
-
-void LoadFunctionDefinitions(std::vector<char>& TU)
+void WriteFunctionDefinitions(std::vector<char>& TU)
 {
 	for (auto node : s_Nodes)
 	{
-		auto l_fileName = std::string(node->Desc->RelativePath);
-		l_fileName = l_fileName.substr(0, l_fileName.find("."));
-		auto l_filePath = "..//..//Asset//Nodes//" + l_fileName + ".h";
-
-		std::vector<char> l_code;
-
-		if (IOService::loadFile(l_filePath.c_str(), l_code, IOService::IOMode::Text) == WsResult::Success)
+		std::string l_sign;
+		l_sign += "void ";
+		l_sign += node->Desc->FuncMetadata->Name;
+		l_sign += "(";
+		for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
 		{
-			std::string l_functionDefi = &l_code[0];
-			auto l_funcName = l_fileName;
-			std::replace(l_funcName.begin(), l_funcName.end(), '/', '_');
-			l_funcName = "Execute_" + l_funcName;
-			node->FuncMetadata.Name = l_funcName;
+			auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
+			l_sign += l_paramMetadata->Type;
+			l_sign += " ";
+			l_sign += l_paramMetadata->Name;
 
-			auto l_signEndPos = l_functionDefi.find_first_of("\n");
-			node->FuncMetadata.Defi = l_functionDefi.substr(l_signEndPos + 1, std::string::npos);
-
-			auto l_params = l_functionDefi.substr(13, l_signEndPos - 14);
-			ParseParams(node, l_params);
-
-			l_functionDefi.replace(l_functionDefi.begin() + 5, l_functionDefi.begin() + 12, l_funcName);
-			l_functionDefi.append("\n\n");
-
-			std::copy(l_functionDefi.begin(), l_functionDefi.end(), std::back_inserter(TU));
+			if (i < node->Desc->FuncMetadata->ParamsCount - 1)
+			{
+				l_sign += ", ";
+			}
 		}
+
+		l_sign += ");\n";
+
+		std::copy(l_sign.begin(), l_sign.end(), std::back_inserter(TU));
+
+		std::string l_defi = node->Desc->FuncMetadata->Defi;
+		l_defi += "\n\n";
+
+		std::copy(l_defi.begin(), l_defi.end(), std::back_inserter(TU));
 	}
 }
 
@@ -261,19 +230,43 @@ void WriteExecutionFlows(std::vector<char>& TU)
 		if (node->Inputs.size() == 0 && node != StartNode)
 		{
 			std::string l_localVarDecl;
-			for (auto l_params : node->FuncMetadata.Params)
+
+			for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
 			{
-				l_localVarDecl += "\t" + std::get<0>(l_params) + " " + node->FuncMetadata.Name + "_" + std::get<1>(l_params) + "_" + std::to_string(Waveless::Math::GenerateUUID()) + ";\n";
+				auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
+				l_localVarDecl += "\t";
+				std::string l_type = l_paramMetadata->Type;
+				if (!strcmp(&l_type.back(), "&"))
+				{
+					l_type = l_type.substr(0, l_type.size() - 1);
+				}
+
+				l_localVarDecl += l_type;
+				l_localVarDecl += " ";
+				l_localVarDecl += node->Desc->FuncMetadata->Name;
+				l_localVarDecl += "_";
+				l_localVarDecl += l_paramMetadata->Name;
+				l_localVarDecl += "_";
+				l_localVarDecl += std::to_string(Waveless::Math::GenerateUUID());
+				l_localVarDecl += ";\n";
 			}
+
 			std::copy(l_localVarDecl.begin(), l_localVarDecl.end(), std::back_inserter(TU));
 
-			auto l_funcInvocation = "\t" + node->FuncMetadata.Name + "(";
+			std::string l_funcInvocation;
 
-			for (size_t i = 0; i < node->FuncMetadata.Params.size(); i++)
+			l_funcInvocation += "\t";
+			l_funcInvocation += node->Desc->FuncMetadata->Name;
+			l_funcInvocation += "(";
+
+			for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
 			{
-				auto l_params = node->FuncMetadata.Params[i];
-				l_funcInvocation += node->FuncMetadata.Name + "_" + std::get<1>(l_params);
-				if (i < node->FuncMetadata.Params.size() - 1)
+				auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
+				l_funcInvocation += node->Desc->FuncMetadata->Name;
+				l_funcInvocation += "_";
+				l_funcInvocation += l_paramMetadata->Name;
+
+				if (i < node->Desc->FuncMetadata->ParamsCount - 1)
 				{
 					l_funcInvocation += ", ";
 				}
@@ -288,13 +281,20 @@ void WriteExecutionFlows(std::vector<char>& TU)
 	{
 		if (node->Inputs.size() > 0 || node == StartNode)
 		{
-			auto l_funcInvocation = "\t" + node->FuncMetadata.Name + "(";
+			std::string l_funcInvocation;
 
-			for (size_t i = 0; i < node->FuncMetadata.Params.size(); i++)
+			l_funcInvocation += "\t";
+			l_funcInvocation += node->Desc->FuncMetadata->Name;
+			l_funcInvocation += "(";
+
+			for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
 			{
-				auto l_params = node->FuncMetadata.Params[i];
-				l_funcInvocation += node->FuncMetadata.Name + "_" + std::get<1>(l_params);
-				if (i < node->FuncMetadata.Params.size() - 1)
+				auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
+				l_funcInvocation += node->Desc->FuncMetadata->Name;
+				l_funcInvocation += "_";
+				l_funcInvocation += l_paramMetadata->Name;
+
+				if (i < node->Desc->FuncMetadata->ParamsCount - 1)
 				{
 					l_funcInvocation += ", ";
 				}
@@ -309,13 +309,31 @@ void WriteExecutionFlows(std::vector<char>& TU)
 
 WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
 {
+	for (auto node : s_Nodes)
+	{
+		node->Inputs.clear();
+		node->Outputs.clear();
+		node->Inputs.shrink_to_fit();
+		node->Outputs.shrink_to_fit();
+		delete node;
+	}
+	for (auto& link : s_Links)
+	{
+		delete link;
+	}
+
+	s_Nodes.clear();
+	s_Links.clear();
+	s_Nodes.shrink_to_fit();
+	s_Links.shrink_to_fit();
+
 	LoadModels(inputFileName);
 
 	SortModels();
 
 	std::vector<char> l_TU;
 
-	LoadFunctionDefinitions(l_TU);
+	WriteFunctionDefinitions(l_TU);
 
 	auto l_scriptSign = "void EventScript_" + IOService::getFileName(inputFileName);
 	std::string l_scriptBodyBegin = "()\n{\n";

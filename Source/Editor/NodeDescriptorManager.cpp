@@ -9,10 +9,16 @@ namespace Waveless::NodeDescriptorManager
 	std::vector<std::string> m_stringPool;
 	std::vector<PinDescriptor> m_inputPinDescriptors;
 	std::vector<PinDescriptor> m_outputPinDescriptors;
+	std::vector<ParamMetadata> m_ParamMetadatas;
+	std::vector<FunctionMetadata> m_FunctionMetadatas;
 	std::unordered_map<std::string, NodeDescriptor> m_nodeDescriptors;
 
 	PinType GetPinType(const char * pinType);
+	void ParseParams(FunctionMetadata* FuncMetadata, const std::string& params);
+	void LoadFunctionDefinitions(NodeDescriptor* nodeDesc);
 }
+
+using namespace Waveless;
 
 Waveless::PinType Waveless::NodeDescriptorManager::GetPinType(const char * pinType)
 {
@@ -52,10 +58,81 @@ Waveless::PinType Waveless::NodeDescriptorManager::GetPinType(const char * pinTy
 	}
 }
 
+void Waveless::NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata, const std::string& params)
+{
+	std::stringstream ss(params);
+	std::string s;
+	int index = 0;
+
+	while (std::getline(ss, s, ','))
+	{
+		ParamMetadata p;
+		auto l_spacePos = s.find_last_of(" ");
+		auto l_type = s.substr(0, l_spacePos);
+		l_type.erase(std::remove_if(l_type.begin(), l_type.end(), isspace), l_type.end());
+
+		m_stringPool.emplace_back(l_type);
+		p.Type = m_stringPool.back().c_str();
+
+		auto l_name = s.substr(l_spacePos + 1, std::string::npos);
+		m_stringPool.emplace_back(l_name);
+		p.Name = m_stringPool.back().c_str();
+
+		m_ParamMetadatas.emplace_back(p);
+
+		index++;
+	}
+
+	if (index)
+	{
+		FuncMetadata->ParamsCount = index;
+		FuncMetadata->ParamsIndexOffset = (int)m_ParamMetadatas.size() - index;
+	}
+}
+
+void Waveless::NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* nodeDesc)
+{
+	auto l_fileName = std::string(nodeDesc->RelativePath);
+	l_fileName = l_fileName.substr(0, l_fileName.find("."));
+	auto l_filePath = "..//..//Asset//Nodes//" + l_fileName + ".h";
+
+	std::vector<char> l_code;
+
+	if (IOService::loadFile(l_filePath.c_str(), l_code, IOService::IOMode::Text) == WsResult::Success)
+	{
+		std::string l_codeStr = &l_code[0];
+		auto l_funcName = l_fileName;
+		std::replace(l_funcName.begin(), l_funcName.end(), '/', '_');
+		l_funcName = "Execute_" + l_funcName;
+		m_stringPool.emplace_back(l_funcName);
+		FunctionMetadata l_funcMetadata;
+
+		l_funcMetadata.Name = m_stringPool.back().c_str();
+
+		auto l_signEndPos = l_codeStr.find_first_of("\n");
+		auto l_funcDefi = l_codeStr.substr(l_signEndPos + 1, std::string::npos);
+		m_stringPool.emplace_back(l_funcDefi);
+		l_funcMetadata.Defi = m_stringPool.back().c_str();
+
+		auto l_params = l_codeStr.substr(13, l_signEndPos - 14);
+		ParseParams(&l_funcMetadata, l_params);
+
+		l_codeStr.replace(l_codeStr.begin() + 5, l_codeStr.begin() + 12, l_funcName);
+		l_codeStr.append("\n\n");
+
+		m_FunctionMetadatas.emplace_back(l_funcMetadata);
+		nodeDesc->FuncMetadata = &m_FunctionMetadatas.back();
+	}
+}
+
 void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeTemplateDirectoryPath)
 {
 	// @TODO: A string pool shouldn't be managed by this module
 	m_stringPool.reserve(8192);
+
+	// @TODO: Pool them
+	m_ParamMetadatas.reserve(8192);
+	m_FunctionMetadatas.reserve(8192);
 
 	auto l_filePaths = IOService::getAllFilePaths(nodeTemplateDirectoryPath);
 
@@ -111,6 +188,8 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 			l_nodeDesc.Color[2] = j["Color"]["B"];
 			l_nodeDesc.Color[3] = j["Color"]["A"];
 
+			LoadFunctionDefinitions(&l_nodeDesc);
+
 			m_nodeDescriptors.emplace(l_nodeDesc.Name, l_nodeDesc);
 		}
 	}
@@ -141,4 +220,9 @@ Waveless::NodeDescriptor * Waveless::NodeDescriptorManager::GetNodeDescriptor(co
 		Logger::Log(LogLevel::Error, "Can't find node descriptor!");
 		return nullptr;
 	}
+}
+
+Waveless::ParamMetadata* Waveless::NodeDescriptorManager::GetParamMetadata(int paramMetadataIndex)
+{
+	return &m_ParamMetadatas[paramMetadataIndex];
 }
