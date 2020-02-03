@@ -1,6 +1,7 @@
 #include "NodeCompiler.h"
 #include "../IO/JSONParser.h"
 #include "../IO/IOService.h"
+#include "../Core/Math.h"
 #include "NodeDescriptorManager.h"
 
 using namespace Waveless;
@@ -13,8 +14,8 @@ struct PinModel : public Object
 {
 	PinDescriptor* Desc;
 
+	NodeModel* Owner;
 	PinValue Value;
-	NodeModel* NodeModel;
 };
 
 using ParamMetadata = std::tuple<std::string, std::string>;
@@ -23,26 +24,34 @@ struct FunctionMetadata
 {
 	std::string Name;
 	std::string Defi;
-	std::unordered_map<uint64_t, ParamMetadata> Params;
+	std::vector<ParamMetadata> Params;
 };
+
+enum class NodeConnectionState { Isolate, Connected };
 
 struct NodeModel : public Object
 {
 	NodeDescriptor* Desc;
+	NodeConnectionState ConnectionState = NodeConnectionState::Isolate;
 	FunctionMetadata FuncMetadata;
 
 	std::vector<PinModel> Inputs;
 	std::vector<PinModel> Outputs;
 };
 
+enum class LinkType { Flow, Param };
+
 struct LinkModel : public Object
 {
+	LinkType LinkType = LinkType::Flow;
 	PinModel* StartPin = 0;
 	PinModel* EndPin = 0;
 };
 
 namespace NodeCompilerNS
 {
+	NodeModel* StartNode;
+	NodeModel* EndNode;
 	std::vector<NodeModel*> s_Nodes;
 	std::vector<LinkModel*> s_Links;
 }
@@ -62,14 +71,14 @@ NodeModel* SpawnNodeModel(const char* nodeDescriptorName)
 		auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->InputPinIndexOffset + i, PinKind::Input);
 		l_NodeModel->Inputs.emplace_back();
 		l_NodeModel->Inputs.back().Desc = l_pinDesc;
-		l_NodeModel->Inputs.back().NodeModel = l_NodeModel;
+		l_NodeModel->Inputs.back().Owner = l_NodeModel;
 	}
 	for (int i = 0; i < l_nodeDesc->OutputPinCount; i++)
 	{
 		auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->OutputPinIndexOffset + i, PinKind::Output);
 		l_NodeModel->Outputs.emplace_back();
 		l_NodeModel->Outputs.back().Desc = l_pinDesc;
-		l_NodeModel->Outputs.back().NodeModel = l_NodeModel;
+		l_NodeModel->Outputs.back().Owner = l_NodeModel;
 	}
 
 	return l_NodeModel;
@@ -80,8 +89,20 @@ LinkModel* SpawnLinkModel(PinModel* startPin, PinModel* endPin)
 	auto l_link = new LinkModel();
 	s_Links.emplace_back(l_link);
 
+	if (startPin->Desc->Type == PinType::Flow && endPin->Desc->Type == PinType::Flow)
+	{
+		l_link->LinkType = LinkType::Flow;
+	}
+	else
+	{
+		l_link->LinkType = LinkType::Param;
+	}
+
 	l_link->StartPin = startPin;
 	l_link->EndPin = endPin;
+
+	startPin->Owner->ConnectionState = NodeConnectionState::Connected;
+	endPin->Owner->ConnectionState = NodeConnectionState::Connected;
 
 	return l_link;
 }
@@ -113,8 +134,18 @@ void LoadModels(const char * inputFileName)
 
 	for (auto& j_node : j["Nodes"])
 	{
-		auto node = SpawnNodeModel(std::string(j_node["Name"]).c_str());
+		auto l_nodeName = std::string(j_node["Name"]);
+		auto node = SpawnNodeModel(l_nodeName.c_str());
 		node->UUID = j_node["ID"];
+
+		if (l_nodeName == "Input")
+		{
+			StartNode = node;
+		}
+		else if (l_nodeName == "Output")
+		{
+			EndNode = node;
+		}
 
 		for (auto& j_input : j_node["Inputs"])
 		{
@@ -154,12 +185,15 @@ void SortModels()
 {
 	for (auto link : s_Links)
 	{
-		auto l_startNode = std::find(s_Nodes.begin(), s_Nodes.end(), link->StartPin->NodeModel);
-		auto l_endNode = std::find(s_Nodes.begin(), s_Nodes.end(), link->EndPin->NodeModel);
+		auto l_startNode = std::find(s_Nodes.begin(), s_Nodes.end(), link->StartPin->Owner);
+		auto l_endNode = std::find(s_Nodes.begin(), s_Nodes.end(), link->EndPin->Owner);
 
-		if (l_startNode > l_endNode)
+		if (link->LinkType == LinkType::Flow)
 		{
-			std::swap(l_startNode, l_endNode);
+			if (l_startNode > l_endNode)
+			{
+				std::iter_swap(l_startNode, l_endNode);
+			}
 		}
 	}
 }
@@ -174,24 +208,19 @@ void ParseParams(NodeModel* nodeModel, const std::string& params)
 	{
 		ParamMetadata p;
 		auto l_spacePos = s.find_last_of(" ");
-		auto l_type = s.substr(0, l_spacePos);
+		auto l_type = s.substr(0, l_spacePos - 1);
 		l_type.erase(std::remove_if(l_type.begin(), l_type.end(), isspace), l_type.end());
 
 		std::get<0>(p) = l_type;
 		std::get<1>(p) = s.substr(l_spacePos + 1, std::string::npos);
 
-		nodeModel->FuncMetadata.Params.emplace(index, p);
+		nodeModel->FuncMetadata.Params.emplace_back(p);
 		index++;
 	}
 }
 
-WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
+void LoadFunctionDefinitions(std::vector<char>& TU)
 {
-	LoadModels(inputFileName);
-	SortModels();
-
-	std::vector<char> l_TU;
-
 	for (auto node : s_Nodes)
 	{
 		auto l_fileName = std::string(node->Desc->RelativePath);
@@ -217,17 +246,87 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 			l_functionDefi.replace(l_functionDefi.begin() + 5, l_functionDefi.begin() + 12, l_funcName);
 			l_functionDefi.append("\n\n");
 
-			std::copy(l_functionDefi.begin(), l_functionDefi.end(), std::back_inserter(l_TU));
+			std::copy(l_functionDefi.begin(), l_functionDefi.end(), std::back_inserter(TU));
 		}
 	}
+}
+
+void WriteExecutionFlows(std::vector<char>& TU)
+{
+	std::unordered_map<uint64_t, std::string> l_localVarDecls;
+
+	for (auto node : s_Nodes)
+	{
+		// Functions without input could be executed at any time
+		if (node->Inputs.size() == 0 && node != StartNode)
+		{
+			std::string l_localVarDecl;
+			for (auto l_params : node->FuncMetadata.Params)
+			{
+				l_localVarDecl += "\t" + std::get<0>(l_params) + " " + node->FuncMetadata.Name + "_" + std::get<1>(l_params) + "_" + std::to_string(Waveless::Math::GenerateUUID()) + ";\n";
+			}
+			std::copy(l_localVarDecl.begin(), l_localVarDecl.end(), std::back_inserter(TU));
+
+			auto l_funcInvocation = "\t" + node->FuncMetadata.Name + "(";
+
+			for (size_t i = 0; i < node->FuncMetadata.Params.size(); i++)
+			{
+				auto l_params = node->FuncMetadata.Params[i];
+				l_funcInvocation += node->FuncMetadata.Name + "_" + std::get<1>(l_params);
+				if (i < node->FuncMetadata.Params.size() - 1)
+				{
+					l_funcInvocation += ", ";
+				}
+			}
+
+			l_funcInvocation += ");\n";
+
+			std::copy(l_funcInvocation.begin(), l_funcInvocation.end(), std::back_inserter(TU));
+		}
+	}
+	for (auto node : s_Nodes)
+	{
+		if (node->Inputs.size() > 0 || node == StartNode)
+		{
+			auto l_funcInvocation = "\t" + node->FuncMetadata.Name + "(";
+
+			for (size_t i = 0; i < node->FuncMetadata.Params.size(); i++)
+			{
+				auto l_params = node->FuncMetadata.Params[i];
+				l_funcInvocation += node->FuncMetadata.Name + "_" + std::get<1>(l_params);
+				if (i < node->FuncMetadata.Params.size() - 1)
+				{
+					l_funcInvocation += ", ";
+				}
+			}
+
+			l_funcInvocation += ");\n";
+
+			std::copy(l_funcInvocation.begin(), l_funcInvocation.end(), std::back_inserter(TU));
+		}
+	}
+}
+
+WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
+{
+	LoadModels(inputFileName);
+
+	SortModels();
+
+	std::vector<char> l_TU;
+
+	LoadFunctionDefinitions(l_TU);
 
 	auto l_scriptSign = "void EventScript_" + IOService::getFileName(inputFileName);
+	std::string l_scriptBodyBegin = "()\n{\n";
+	std::string l_scriptBodyEnd = "}";
 
-	auto l_scriptBody = "()\n{\n}";
+	std::copy(l_scriptSign.begin(), l_scriptSign.end(), std::back_inserter(l_TU));
+	std::copy(l_scriptBodyBegin.begin(), l_scriptBodyBegin.end(), std::back_inserter(l_TU));
 
-	auto l_script = l_scriptSign + l_scriptBody;
+	WriteExecutionFlows(l_TU);
 
-	std::copy(l_script.begin(), l_script.end(), std::back_inserter(l_TU));
+	std::copy(l_scriptBodyEnd.begin(), l_scriptBodyEnd.end(), std::back_inserter(l_TU));
 
 	auto l_outputPath = "..//..//Asset//Canvas//" + std::string(inputFileName) + ".h";
 
