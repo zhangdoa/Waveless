@@ -24,7 +24,8 @@ namespace Waveless
 
 	enum class NodeType
 	{
-		Blueprint,
+		ConstVar,
+		Function,
 		Comment
 	};
 
@@ -53,7 +54,7 @@ namespace Waveless
 	{
 		const char* RelativePath;
 		const char* Name;
-		NodeType Type = NodeType::Blueprint;
+		NodeType Type = NodeType::ConstVar;
 		int InputPinCount = 0;
 		int OutputPinCount = 0;
 		int InputPinIndexOffset = 0;

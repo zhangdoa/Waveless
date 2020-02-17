@@ -2,114 +2,115 @@
     "Links": [
         {
             "EndPinID": 9,
-            "ID": 13,
+            "ID": 61,
             "StartPinID": 3
         },
         {
-            "EndPinID": 27,
-            "ID": 36,
+            "EndPinID": 26,
+            "ID": 62,
             "StartPinID": 2
         },
         {
-            "EndPinID": 28,
-            "ID": 37,
-            "StartPinID": 24
+            "EndPinID": 27,
+            "ID": 63,
+            "StartPinID": 23
         },
         {
-            "EndPinID": 23,
-            "ID": 38,
-            "StartPinID": 21
+            "EndPinID": 22,
+            "ID": 64,
+            "StartPinID": 20
+        },
+        {
+            "EndPinID": 31,
+            "ID": 65,
+            "StartPinID": 28
         },
         {
             "EndPinID": 32,
-            "ID": 39,
+            "ID": 66,
             "StartPinID": 29
         },
         {
-            "EndPinID": 33,
-            "ID": 40,
-            "StartPinID": 30
+            "EndPinID": 36,
+            "ID": 67,
+            "StartPinID": 33
         },
         {
-            "EndPinID": 42,
-            "ID": 47,
+            "EndPinID": 38,
+            "ID": 68,
             "StartPinID": 34
         },
         {
-            "EndPinID": 44,
-            "ID": 48,
-            "StartPinID": 35
-        },
-        {
-            "EndPinID": 43,
-            "ID": 49,
+            "EndPinID": 37,
+            "ID": 69,
             "StartPinID": 3
         },
         {
-            "EndPinID": 51,
-            "ID": 55,
-            "StartPinID": 45
+            "EndPinID": 42,
+            "ID": 70,
+            "StartPinID": 39
+        },
+        {
+            "EndPinID": 43,
+            "ID": 71,
+            "StartPinID": 40
+        },
+        {
+            "EndPinID": 47,
+            "ID": 72,
+            "StartPinID": 44
+        },
+        {
+            "EndPinID": 48,
+            "ID": 73,
+            "StartPinID": 14
         },
         {
             "EndPinID": 52,
-            "ID": 56,
-            "StartPinID": 46
+            "ID": 74,
+            "StartPinID": 49
         },
         {
-            "EndPinID": 58,
-            "ID": 62,
-            "StartPinID": 53
+            "EndPinID": 54,
+            "ID": 75,
+            "StartPinID": 50
+        },
+        {
+            "EndPinID": 53,
+            "ID": 76,
+            "StartPinID": 16
         },
         {
             "EndPinID": 59,
-            "ID": 63,
-            "StartPinID": 15
+            "ID": 77,
+            "StartPinID": 20
         },
         {
-            "EndPinID": 65,
-            "ID": 70,
-            "StartPinID": 60
-        },
-        {
-            "EndPinID": 67,
-            "ID": 71,
-            "StartPinID": 61
-        },
-        {
-            "EndPinID": 66,
-            "ID": 72,
-            "StartPinID": 17
-        },
-        {
-            "EndPinID": 76,
+            "EndPinID": 58,
             "ID": 78,
-            "StartPinID": 21
-        },
-        {
-            "EndPinID": 75,
-            "ID": 79,
-            "StartPinID": 68
+            "StartPinID": 55
         },
         {
             "EndPinID": 5,
-            "ID": 80,
-            "StartPinID": 77
+            "ID": 79,
+            "StartPinID": 60
         },
         {
             "EndPinID": 6,
-            "ID": 81,
-            "StartPinID": 54
+            "ID": 80,
+            "StartPinID": 45
         },
         {
             "EndPinID": 7,
-            "ID": 82,
-            "StartPinID": 25
+            "ID": 81,
+            "StartPinID": 24
         }
     ],
     "Nodes": [
         {
             "ID": 1,
             "Name": "Input",
+            "NodeType": 1,
             "Outputs": [
                 {
                     "ID": 2,
@@ -147,6 +148,7 @@
                 }
             ],
             "Name": "Output",
+            "NodeType": 1,
             "Position": {
                 "X": 2488,
                 "Y": 44
@@ -162,6 +164,7 @@
                 }
             ],
             "Name": "BreakVector",
+            "NodeType": 1,
             "Outputs": [
                 {
                     "ID": 10,
@@ -185,11 +188,12 @@
             }
         },
         {
-            "ID": 14,
+            "ID": 13,
             "Name": "ConstBool",
+            "NodeType": 0,
             "Outputs": [
                 {
-                    "ID": 15,
+                    "ID": 14,
                     "Name": "",
                     "Value": 0
                 }
@@ -200,11 +204,12 @@
             }
         },
         {
-            "ID": 16,
+            "ID": 15,
             "Name": "ConstInt",
+            "NodeType": 0,
             "Outputs": [
                 {
-                    "ID": 17,
+                    "ID": 16,
                     "Name": "",
                     "Value": 0
                 }
@@ -215,11 +220,12 @@
             }
         },
         {
-            "ID": 18,
+            "ID": 17,
             "Name": "ConstFloat",
+            "NodeType": 0,
             "Outputs": [
                 {
-                    "ID": 19,
+                    "ID": 18,
                     "Name": "",
                     "Value": 0
                 }
@@ -230,11 +236,12 @@
             }
         },
         {
-            "ID": 20,
+            "ID": 19,
             "Name": "ConstString",
+            "NodeType": 0,
             "Outputs": [
                 {
-                    "ID": 21,
+                    "ID": 20,
                     "Name": "",
                     "Value": 0
                 }
@@ -245,23 +252,24 @@
             }
         },
         {
-            "ID": 22,
+            "ID": 21,
             "Inputs": [
                 {
-                    "ID": 23,
+                    "ID": 22,
                     "Name": "FilePath",
                     "Value": 0
                 }
             ],
             "Name": "WavePlayer",
+            "NodeType": 1,
             "Outputs": [
                 {
-                    "ID": 24,
+                    "ID": 23,
                     "Name": "WaveObject",
                     "Value": 0
                 },
                 {
-                    "ID": 25,
+                    "ID": 24,
                     "Name": "EventID",
                     "Value": 0
                 }
@@ -272,28 +280,29 @@
             }
         },
         {
-            "ID": 26,
+            "ID": 25,
             "Inputs": [
                 {
-                    "ID": 27,
+                    "ID": 26,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 28,
+                    "ID": 27,
                     "Name": "WaveObject",
                     "Value": 0
                 }
             ],
             "Name": "Sequencer",
+            "NodeType": 1,
             "Outputs": [
                 {
-                    "ID": 29,
+                    "ID": 28,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 30,
+                    "ID": 29,
                     "Name": "WaveObject",
                     "Value": 0
                 }
@@ -304,28 +313,29 @@
             }
         },
         {
-            "ID": 31,
+            "ID": 30,
             "Inputs": [
                 {
-                    "ID": 32,
+                    "ID": 31,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 33,
+                    "ID": 32,
                     "Name": "WaveObject",
                     "Value": 0
                 }
             ],
             "Name": "Selector",
+            "NodeType": 1,
             "Outputs": [
                 {
-                    "ID": 34,
+                    "ID": 33,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 35,
+                    "ID": 34,
                     "Name": "WaveObject",
                     "Value": 0
                 }
@@ -333,6 +343,44 @@
             "Position": {
                 "X": 984,
                 "Y": 96
+            }
+        },
+        {
+            "ID": 35,
+            "Inputs": [
+                {
+                    "ID": 36,
+                    "Name": "",
+                    "Value": 0
+                },
+                {
+                    "ID": 37,
+                    "Name": "WorldPosition",
+                    "Value": 0
+                },
+                {
+                    "ID": 38,
+                    "Name": "WaveObject",
+                    "Value": 0
+                }
+            ],
+            "Name": "Attenuator",
+            "NodeType": 1,
+            "Outputs": [
+                {
+                    "ID": 39,
+                    "Name": "",
+                    "Value": 0
+                },
+                {
+                    "ID": 40,
+                    "Name": "WaveObject",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": 1304,
+                "Y": 308
             }
         },
         {
@@ -345,56 +393,20 @@
                 },
                 {
                     "ID": 43,
-                    "Name": "WorldPosition",
-                    "Value": 0
-                },
-                {
-                    "ID": 44,
-                    "Name": "WaveObject",
-                    "Value": 0
-                }
-            ],
-            "Name": "Attenuator",
-            "Outputs": [
-                {
-                    "ID": 45,
-                    "Name": "",
-                    "Value": 0
-                },
-                {
-                    "ID": 46,
-                    "Name": "WaveObject",
-                    "Value": 0
-                }
-            ],
-            "Position": {
-                "X": 1304,
-                "Y": 308
-            }
-        },
-        {
-            "ID": 50,
-            "Inputs": [
-                {
-                    "ID": 51,
-                    "Name": "",
-                    "Value": 0
-                },
-                {
-                    "ID": 52,
                     "Name": "WaveObject",
                     "Value": 0
                 }
             ],
             "Name": "Mixer",
+            "NodeType": 1,
             "Outputs": [
                 {
-                    "ID": 53,
+                    "ID": 44,
                     "Name": "",
                     "Value": 0
                 },
                 {
-                    "ID": 54,
+                    "ID": 45,
                     "Name": "WaveObject",
                     "Value": 0
                 }
@@ -402,6 +414,77 @@
             "Position": {
                 "X": 1640,
                 "Y": 64
+            }
+        },
+        {
+            "ID": 46,
+            "Inputs": [
+                {
+                    "ID": 47,
+                    "Name": "",
+                    "Value": 0
+                },
+                {
+                    "ID": 48,
+                    "Name": "Condition",
+                    "Value": 0
+                }
+            ],
+            "Name": "Branch",
+            "NodeType": 1,
+            "Outputs": [
+                {
+                    "ID": 49,
+                    "Name": "True",
+                    "Value": 0
+                },
+                {
+                    "ID": 50,
+                    "Name": "False",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": 1928,
+                "Y": 236
+            }
+        },
+        {
+            "ID": 51,
+            "Inputs": [
+                {
+                    "ID": 52,
+                    "Name": "Enter",
+                    "Value": 0
+                },
+                {
+                    "ID": 53,
+                    "Name": "N",
+                    "Value": 0
+                },
+                {
+                    "ID": 54,
+                    "Name": "Reset",
+                    "Value": 0
+                }
+            ],
+            "Name": "DoN",
+            "NodeType": 1,
+            "Outputs": [
+                {
+                    "ID": 55,
+                    "Name": "Exit",
+                    "Value": 0
+                },
+                {
+                    "ID": 56,
+                    "Name": "Counter",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": 2203,
+                "Y": 252
             }
         },
         {
@@ -414,83 +497,15 @@
                 },
                 {
                     "ID": 59,
-                    "Name": "Condition",
-                    "Value": 0
-                }
-            ],
-            "Name": "Branch",
-            "Outputs": [
-                {
-                    "ID": 60,
-                    "Name": "True",
-                    "Value": 0
-                },
-                {
-                    "ID": 61,
-                    "Name": "False",
-                    "Value": 0
-                }
-            ],
-            "Position": {
-                "X": 1928,
-                "Y": 236
-            }
-        },
-        {
-            "ID": 64,
-            "Inputs": [
-                {
-                    "ID": 65,
-                    "Name": "Enter",
-                    "Value": 0
-                },
-                {
-                    "ID": 66,
-                    "Name": "N",
-                    "Value": 0
-                },
-                {
-                    "ID": 67,
-                    "Name": "Reset",
-                    "Value": 0
-                }
-            ],
-            "Name": "DoN",
-            "Outputs": [
-                {
-                    "ID": 68,
-                    "Name": "Exit",
-                    "Value": 0
-                },
-                {
-                    "ID": 69,
-                    "Name": "Counter",
-                    "Value": 0
-                }
-            ],
-            "Position": {
-                "X": 2203,
-                "Y": 252
-            }
-        },
-        {
-            "ID": 74,
-            "Inputs": [
-                {
-                    "ID": 75,
-                    "Name": "",
-                    "Value": 0
-                },
-                {
-                    "ID": 76,
                     "Name": "In String",
                     "Value": 0
                 }
             ],
             "Name": "PrintString",
+            "NodeType": 1,
             "Outputs": [
                 {
-                    "ID": 77,
+                    "ID": 60,
                     "Name": "",
                     "Value": 0
                 }

@@ -459,6 +459,7 @@ void SaveCanvas(const char* fileName)
 		json j_node;
 		j_node["ID"] = node.ID.Get();
 		j_node["Name"] = node.Desc->Name;
+		j_node["NodeType"] = node.Desc->Type;
 		j_node["Position"]["X"] = (int)l_pos.x;
 		j_node["Position"]["Y"] = (int)l_pos.y;
 
@@ -748,7 +749,7 @@ void ShowContextMenu()
 		if (node)
 		{
 			ImGui::Text("ID: %p", node->ID.AsPointer());
-			ImGui::Text("Type: %s", node->Desc->Type == NodeType::Blueprint ? "Blueprint" : "Comment");
+			ImGui::Text("Type: %s", node->Desc->Type == NodeType::Function ? "Function" : "Comment");
 			ImGui::Text("Inputs: %d", (int)node->Inputs.size());
 			ImGui::Text("Outputs: %d", (int)node->Outputs.size());
 			if (node->Desc->Name == "Sequencer" || node->Desc->Name == "Selector" || node->Desc->Name == "Mixer")
@@ -900,7 +901,7 @@ void ShowContextMenu()
 	ed::Resume();
 }
 
-void ShowBlueprints(util::BlueprintNodeBuilder& builder, NodeWidget& node)
+void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 {
 	bool hasOutputDelegates = false;
 	for (auto& output : node.Outputs)
@@ -990,7 +991,7 @@ void ShowBlueprints(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 		builder.Output(output.ID);
 
-		if (strstr(node.Desc->Name, "Const") != nullptr)
+		if (strstr(node.Desc->Name, "ConstVar") != nullptr)
 		{
 			if (output.Desc->Type == PinType::Bool)
 			{
@@ -1230,9 +1231,9 @@ void ShowEditorCanvas()
 
 		for (auto& node : s_Nodes)
 		{
-			if (node.Desc->Type == NodeType::Blueprint)
+			if (node.Desc->Type == NodeType::Function || node.Desc->Type == NodeType::ConstVar)
 			{
-				ShowBlueprints(builder, node);
+				ShowFunctionsAndVars(builder, node);
 			}
 			else if (node.Desc->Type == NodeType::Comment)
 			{

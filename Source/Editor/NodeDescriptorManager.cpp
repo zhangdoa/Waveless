@@ -149,6 +149,9 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 			json j;
 			JSONParser::loadJsonDataFromDisk((std::string(nodeTemplateDirectoryPath) + i).c_str(), j);
 
+			int nodeType = j["NodeType"];
+			l_nodeDesc.Type = NodeType(nodeType);
+
 			for (auto k : j["Parameters"])
 			{
 				int pinKind = k["PinKind"];
