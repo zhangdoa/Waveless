@@ -1,3 +1,3 @@
-void Execute(int& out_)
+void Execute(int& out)
 {
 }

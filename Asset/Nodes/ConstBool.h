@@ -1,3 +1,3 @@
-void Execute(bool& out_)
+void Execute(bool& out)
 {
 }

@@ -1,0 +1,117 @@
+{
+    "Links": [
+        {
+            "EndPinID": 5,
+            "ID": 14,
+            "StartPinID": 2
+        },
+        {
+            "EndPinID": 9,
+            "ID": 15,
+            "StartPinID": 13
+        },
+        {
+            "EndPinID": 6,
+            "ID": 16,
+            "StartPinID": 10
+        },
+        {
+            "EndPinID": 7,
+            "ID": 17,
+            "StartPinID": 11
+        }
+    ],
+    "Nodes": [
+        {
+            "ID": 1,
+            "Name": "Input",
+            "NodeType": 1,
+            "Outputs": [
+                {
+                    "ID": 2,
+                    "Name": "NoName",
+                    "Value": 0
+                },
+                {
+                    "ID": 3,
+                    "Name": "WorldPosition",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": 320,
+                "Y": -252
+            }
+        },
+        {
+            "ID": 4,
+            "Inputs": [
+                {
+                    "ID": 5,
+                    "Name": "NoName",
+                    "Value": 0
+                },
+                {
+                    "ID": 6,
+                    "Name": "WaveObject",
+                    "Value": 0
+                },
+                {
+                    "ID": 7,
+                    "Name": "EventID",
+                    "Value": 0
+                }
+            ],
+            "Name": "Output",
+            "NodeType": 1,
+            "Position": {
+                "X": 936,
+                "Y": -256
+            }
+        },
+        {
+            "ID": 8,
+            "Inputs": [
+                {
+                    "ID": 9,
+                    "Name": "FilePath",
+                    "Value": 0
+                }
+            ],
+            "Name": "WavePlayer",
+            "NodeType": 1,
+            "Outputs": [
+                {
+                    "ID": 10,
+                    "Name": "WaveObject",
+                    "Value": 0
+                },
+                {
+                    "ID": 11,
+                    "Name": "EventID",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": 568,
+                "Y": -144
+            }
+        },
+        {
+            "ID": 12,
+            "Name": "ConstString",
+            "NodeType": 0,
+            "Outputs": [
+                {
+                    "ID": 13,
+                    "Name": "NoName",
+                    "Value": 0
+                }
+            ],
+            "Position": {
+                "X": 243,
+                "Y": -134
+            }
+        }
+    ]
+}

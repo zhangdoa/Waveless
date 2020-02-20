@@ -15,6 +15,7 @@ struct PinModel : public Object
 	PinDescriptor* Desc;
 
 	NodeModel* Owner;
+	std::string InstanceName;
 	PinValue Value;
 };
 
@@ -60,15 +61,19 @@ NodeModel* SpawnNodeModel(const char* nodeDescriptorName)
 	{
 		auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->InputPinIndexOffset + i, PinKind::Input);
 		l_NodeModel->Inputs.emplace_back();
-		l_NodeModel->Inputs.back().Desc = l_pinDesc;
-		l_NodeModel->Inputs.back().Owner = l_NodeModel;
+		auto& l_pin = l_NodeModel->Inputs.back();
+		l_pin.Desc = l_pinDesc;
+		l_pin.Owner = l_NodeModel;
+		l_pin.InstanceName = std::string(l_pinDesc->Name) + "_" + std::to_string(Waveless::Math::GenerateUUID());
 	}
 	for (int i = 0; i < l_nodeDesc->OutputPinCount; i++)
 	{
 		auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->OutputPinIndexOffset + i, PinKind::Output);
 		l_NodeModel->Outputs.emplace_back();
-		l_NodeModel->Outputs.back().Desc = l_pinDesc;
-		l_NodeModel->Outputs.back().Owner = l_NodeModel;
+		auto& l_pin = l_NodeModel->Outputs.back();
+		l_pin.Desc = l_pinDesc;
+		l_pin.Owner = l_NodeModel;
+		l_pin.InstanceName = std::string(l_pinDesc->Name) + "_" + std::to_string(Waveless::Math::GenerateUUID());
 	}
 
 	return l_NodeModel;
@@ -247,9 +252,9 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 		l_constDecl += "_";
 		l_constDecl += l_paramMetadata->Name;
 		l_constDecl += "_";
-		l_constDecl += std::to_string(Waveless::Math::GenerateUUID());
-		l_constDecl += " =";
-		l_constDecl += " value";
+		l_constDecl += node->Outputs[i].InstanceName;
+		l_constDecl += " = ";
+		l_constDecl += std::to_string(node->Outputs[i].Value);
 		l_constDecl += ";\n";
 	}
 
@@ -277,7 +282,7 @@ void WriteLocalVar(NodeModel* node, std::vector<char> & TU)
 		l_localVarDecl += "_";
 		l_localVarDecl += l_paramMetadata->Name;
 		l_localVarDecl += "_";
-		l_localVarDecl += std::to_string(Waveless::Math::GenerateUUID());
+		l_localVarDecl += node->Inputs[i].InstanceName;
 		l_localVarDecl += ";\n";
 	}
 

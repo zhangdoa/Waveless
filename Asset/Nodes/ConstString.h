@@ -1,3 +1,3 @@
-void Execute(std::string& out_)
+void Execute(std::string& out)
 {
 }

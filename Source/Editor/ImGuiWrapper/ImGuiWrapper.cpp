@@ -991,7 +991,7 @@ void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 		builder.Output(output.ID);
 
-		if (strstr(node.Desc->Name, "ConstVar") != nullptr)
+		if (strstr(node.Desc->Name, "Const") != nullptr)
 		{
 			if (output.Desc->Type == PinType::Bool)
 			{

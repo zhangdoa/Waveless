@@ -157,6 +157,10 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 				int pinKind = k["PinKind"];
 				std::string pinType = k["PinType"];
 				std::string pinName = k["Name"];
+				if (!pinName.size())
+				{
+					pinName = "NoName";
+				}
 
 				PinDescriptor pinDesc;
 				pinDesc.Kind = PinKind(pinKind);

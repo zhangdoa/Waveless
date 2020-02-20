@@ -1,3 +1,3 @@
-void Execute(float& out_)
+void Execute(float& out)
 {
 }
