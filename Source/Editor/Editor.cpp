@@ -2,11 +2,13 @@
 #include "ImGuiWrapper/ImGuiWrapper.h"
 #include "NodeDescriptorManager.h"
 #include "../Runtime/AudioEngine.h"
+#include "../Core/String.h"
 
 using namespace Waveless;
 
 WsResult Editor::Setup()
 {
+	StringManager::Setup();
 	NodeDescriptorManager::GenerateNodeDescriptors("..//..//Asset//Nodes//");
 	return ImGuiWrapper::get().Setup();
 }

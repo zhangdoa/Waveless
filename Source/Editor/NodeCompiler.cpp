@@ -3,185 +3,27 @@
 #include "../IO/IOService.h"
 #include "../Core/Math.h"
 #include "NodeDescriptorManager.h"
+#include "NodeModelManager.h"
 
 using namespace Waveless;
-
-struct NodeModel;
-
-using PinValue = uint64_t;
-
-struct PinModel : public Object
-{
-	PinDescriptor* Desc;
-
-	NodeModel* Owner;
-	std::string InstanceName;
-	PinValue Value;
-};
-
-enum class NodeConnectionState { Isolate, Connected };
-
-struct NodeModel : public Object
-{
-	NodeDescriptor* Desc;
-	NodeConnectionState ConnectionState = NodeConnectionState::Isolate;
-
-	std::vector<PinModel> Inputs;
-	std::vector<PinModel> Outputs;
-};
-
-enum class LinkType { Flow, Param };
-
-struct LinkModel : public Object
-{
-	LinkType LinkType = LinkType::Flow;
-	PinModel* StartPin = 0;
-	PinModel* EndPin = 0;
-};
 
 namespace NodeCompilerNS
 {
 	NodeModel* StartNode;
 	NodeModel* EndNode;
-	std::vector<NodeModel*> s_Nodes;
-	std::vector<LinkModel*> s_Links;
 }
 
 using namespace NodeCompilerNS;
 
-NodeModel* SpawnNodeModel(const char* nodeDescriptorName)
-{
-	auto l_nodeDesc = NodeDescriptorManager::GetNodeDescriptor(nodeDescriptorName);
-	auto l_NodeModel = new NodeModel();
-
-	s_Nodes.emplace_back(l_NodeModel);
-	l_NodeModel->Desc = l_nodeDesc;
-
-	for (int i = 0; i < l_nodeDesc->InputPinCount; i++)
-	{
-		auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->InputPinIndexOffset + i, PinKind::Input);
-		l_NodeModel->Inputs.emplace_back();
-		auto& l_pin = l_NodeModel->Inputs.back();
-		l_pin.Desc = l_pinDesc;
-		l_pin.Owner = l_NodeModel;
-		l_pin.InstanceName = std::string(l_pinDesc->Name) + "_" + std::to_string(Waveless::Math::GenerateUUID());
-	}
-	for (int i = 0; i < l_nodeDesc->OutputPinCount; i++)
-	{
-		auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->OutputPinIndexOffset + i, PinKind::Output);
-		l_NodeModel->Outputs.emplace_back();
-		auto& l_pin = l_NodeModel->Outputs.back();
-		l_pin.Desc = l_pinDesc;
-		l_pin.Owner = l_NodeModel;
-		l_pin.InstanceName = std::string(l_pinDesc->Name) + "_" + std::to_string(Waveless::Math::GenerateUUID());
-	}
-
-	return l_NodeModel;
-};
-
-LinkModel* SpawnLinkModel(PinModel* startPin, PinModel* endPin)
-{
-	auto l_link = new LinkModel();
-	s_Links.emplace_back(l_link);
-
-	if (startPin->Desc->Type == PinType::Flow && endPin->Desc->Type == PinType::Flow)
-	{
-		l_link->LinkType = LinkType::Flow;
-	}
-	else
-	{
-		l_link->LinkType = LinkType::Param;
-	}
-
-	l_link->StartPin = startPin;
-	l_link->EndPin = endPin;
-
-	startPin->Owner->ConnectionState = NodeConnectionState::Connected;
-	endPin->Owner->ConnectionState = NodeConnectionState::Connected;
-
-	return l_link;
-}
-
-static PinModel* FindPinByUUID(uint64_t id)
-{
-	if (!id)
-		return nullptr;
-
-	for (auto node : s_Nodes)
-	{
-		for (auto& pin : node->Inputs)
-			if (pin.UUID == id)
-				return &pin;
-
-		for (auto& pin : node->Outputs)
-			if (pin.UUID == id)
-				return &pin;
-	}
-
-	return nullptr;
-}
-
-static void LoadCanvas(const char * inputFileName)
-{
-	json j;
-
-	JSONParser::loadJsonDataFromDisk(("..//..//Asset//Canvas//" + std::string(inputFileName)).c_str(), j);
-
-	for (auto& j_node : j["Nodes"])
-	{
-		auto l_nodeName = std::string(j_node["Name"]);
-		auto node = SpawnNodeModel(l_nodeName.c_str());
-		node->UUID = j_node["ID"];
-
-		if (l_nodeName == "Input")
-		{
-			StartNode = node;
-		}
-		else if (l_nodeName == "Output")
-		{
-			EndNode = node;
-		}
-
-		for (auto& j_input : j_node["Inputs"])
-		{
-			for (auto& pin : node->Inputs)
-			{
-				if (pin.Desc->Name == j_input["Name"])
-				{
-					pin.UUID = j_input["ID"];
-					pin.Value = j_input["Value"];
-				}
-			}
-		}
-
-		for (auto& j_output : j_node["Outputs"])
-		{
-			for (auto& pin : node->Outputs)
-			{
-				if (pin.Desc->Name == j_output["Name"])
-				{
-					pin.UUID = j_output["ID"];
-					pin.Value = j_output["Value"];
-				}
-			}
-		}
-	}
-
-	for (auto& j_link : j["Links"])
-	{
-		auto l_startPin = FindPinByUUID(j_link["StartPinID"]);
-		auto l_endPin = FindPinByUUID(j_link["EndPinID"]);
-
-		SpawnLinkModel(l_startPin, l_endPin);
-	}
-}
-
 void SortNodes()
 {
-	for (auto link : s_Links)
+	auto l_nodes = NodeModelManager::GetAllNodeModels();
+	auto& l_links = NodeModelManager::GetAllLinkModels();
+
+	for (auto link : l_links)
 	{
-		auto l_startNode = std::find(s_Nodes.begin(), s_Nodes.end(), link->StartPin->Owner);
-		auto l_endNode = std::find(s_Nodes.begin(), s_Nodes.end(), link->EndPin->Owner);
+		auto l_startNode = std::find(l_nodes.begin(), l_nodes.end(), link->StartPin->Owner);
+		auto l_endNode = std::find(l_nodes.begin(), l_nodes.end(), link->EndPin->Owner);
 
 		if (link->LinkType == LinkType::Flow)
 		{
@@ -195,7 +37,9 @@ void SortNodes()
 
 void WriteFunctionDefinitions(std::vector<char>& TU)
 {
-	for (auto node : s_Nodes)
+	auto& l_nodes = NodeModelManager::GetAllNodeModels();
+
+	for (auto node : l_nodes)
 	{
 		if (node->ConnectionState == NodeConnectionState::Connected)
 		{
@@ -246,15 +90,17 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 			l_type = l_type.substr(0, l_type.size() - 1);
 		}
 
+		auto l_pin = NodeModelManager::GetPinModel(node->OutputPinIndexOffset + (int)i);
+
 		l_constDecl += l_type;
 		l_constDecl += " ";
 		l_constDecl += node->Desc->FuncMetadata->Name;
 		l_constDecl += "_";
 		l_constDecl += l_paramMetadata->Name;
 		l_constDecl += "_";
-		l_constDecl += node->Outputs[i].InstanceName;
+		l_constDecl += l_pin->InstanceName;
 		l_constDecl += " = ";
-		l_constDecl += std::to_string(node->Outputs[i].Value);
+		l_constDecl += std::to_string(l_pin->Value);
 		l_constDecl += ";\n";
 	}
 
@@ -276,13 +122,15 @@ void WriteLocalVar(NodeModel* node, std::vector<char> & TU)
 			l_type = l_type.substr(0, l_type.size() - 1);
 		}
 
+		auto l_pin = NodeModelManager::GetPinModel(node->InputPinIndexOffset + (int)i);
+
 		l_localVarDecl += l_type;
 		l_localVarDecl += " ";
 		l_localVarDecl += node->Desc->FuncMetadata->Name;
 		l_localVarDecl += "_";
 		l_localVarDecl += l_paramMetadata->Name;
 		l_localVarDecl += "_";
-		l_localVarDecl += node->Inputs[i].InstanceName;
+		l_localVarDecl += l_pin->InstanceName;
 		l_localVarDecl += ";\n";
 	}
 
@@ -318,13 +166,14 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 void WriteExecutionFlows(std::vector<char>& TU)
 {
 	std::unordered_map<uint64_t, std::string> l_localVarDecls;
+	auto& l_nodes = NodeModelManager::GetAllNodeModels();
 
-	for (auto node : s_Nodes)
+	for (auto node : l_nodes)
 	{
 		if (node->ConnectionState == NodeConnectionState::Connected)
 		{
 			// Functions without input could be executed at any time, or they are the constant declarations
-			if (node->Inputs.size() == 0 && node != StartNode)
+			if (node->InputPinCount == 0 && node != StartNode)
 			{
 				if (node->Desc->Type == NodeType::ConstVar)
 				{
@@ -339,12 +188,12 @@ void WriteExecutionFlows(std::vector<char>& TU)
 			}
 		}
 	}
-	for (auto node : s_Nodes)
+	for (auto node : l_nodes)
 	{
 		if (node->ConnectionState == NodeConnectionState::Connected)
 		{
 			// Functions which has the execution order restriction
-			if (node->Inputs.size() > 0 || node == StartNode)
+			if (node->InputPinCount > 0 || node == StartNode)
 			{
 				WriteFunctionInvocation(node, TU);
 			}
@@ -354,26 +203,6 @@ void WriteExecutionFlows(std::vector<char>& TU)
 
 WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
 {
-	for (auto node : s_Nodes)
-	{
-		node->Inputs.clear();
-		node->Outputs.clear();
-		node->Inputs.shrink_to_fit();
-		node->Outputs.shrink_to_fit();
-		delete node;
-	}
-	for (auto& link : s_Links)
-	{
-		delete link;
-	}
-
-	s_Nodes.clear();
-	s_Links.clear();
-	s_Nodes.shrink_to_fit();
-	s_Links.shrink_to_fit();
-
-	LoadCanvas(inputFileName);
-
 	SortNodes();
 
 	std::vector<char> l_TU;

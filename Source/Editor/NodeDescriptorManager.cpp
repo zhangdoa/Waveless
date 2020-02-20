@@ -1,12 +1,12 @@
 #include "NodeDescriptorManager.h"
 #include "../Core/stdafx.h"
 #include "../Core/Logger.h"
+#include "../Core/String.h"
 #include "../IO/IOService.h"
 #include "../IO/JSONParser.h"
 
 namespace Waveless::NodeDescriptorManager
 {
-	std::vector<std::string> m_stringPool;
 	std::vector<PinDescriptor> m_inputPinDescriptors;
 	std::vector<PinDescriptor> m_outputPinDescriptors;
 	std::vector<ParamMetadata> m_ParamMetadatas;
@@ -70,13 +70,10 @@ void Waveless::NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata
 		auto l_spacePos = s.find_last_of(" ");
 		auto l_type = s.substr(0, l_spacePos);
 		l_type.erase(std::remove_if(l_type.begin(), l_type.end(), isspace), l_type.end());
-
-		m_stringPool.emplace_back(l_type);
-		p.Type = m_stringPool.back().c_str();
+		p.Type = StringManager::SpawnString(l_type.c_str());
 
 		auto l_name = s.substr(l_spacePos + 1, std::string::npos);
-		m_stringPool.emplace_back(l_name);
-		p.Name = m_stringPool.back().c_str();
+		p.Name = StringManager::SpawnString(l_name.c_str());
 
 		m_ParamMetadatas.emplace_back(p);
 
@@ -101,18 +98,18 @@ void Waveless::NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* no
 	if (IOService::loadFile(l_filePath.c_str(), l_code, IOService::IOMode::Text) == WsResult::Success)
 	{
 		std::string l_codeStr = &l_code[0];
+
 		auto l_funcName = l_fileName;
 		std::replace(l_funcName.begin(), l_funcName.end(), '/', '_');
 		l_funcName = "Execute_" + l_funcName;
-		m_stringPool.emplace_back(l_funcName);
-		FunctionMetadata l_funcMetadata;
+		auto l_funcNameCStr = StringManager::SpawnString(l_funcName.c_str());
 
-		l_funcMetadata.Name = m_stringPool.back().c_str();
+		FunctionMetadata l_funcMetadata;
+		l_funcMetadata.Name = l_funcNameCStr;
 
 		auto l_signEndPos = l_codeStr.find_first_of("\n");
 		auto l_funcDefi = l_codeStr.substr(l_signEndPos + 1, std::string::npos);
-		m_stringPool.emplace_back(l_funcDefi);
-		l_funcMetadata.Defi = m_stringPool.back().c_str();
+		l_funcMetadata.Defi = StringManager::SpawnString(l_funcDefi.c_str());
 
 		auto l_params = l_codeStr.substr(13, l_signEndPos - 14);
 		ParseParams(&l_funcMetadata, l_params);
@@ -127,9 +124,6 @@ void Waveless::NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* no
 
 void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeTemplateDirectoryPath)
 {
-	// @TODO: A string pool shouldn't be managed by this module
-	m_stringPool.reserve(8192);
-
 	// @TODO: Pool them
 	m_ParamMetadatas.reserve(8192);
 	m_FunctionMetadatas.reserve(8192);
@@ -141,10 +135,8 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 		if (IOService::getFileExtension(i.c_str()) == ".json")
 		{
 			NodeDescriptor l_nodeDesc;
-			m_stringPool.emplace_back(i);
-			l_nodeDesc.RelativePath = m_stringPool.back().c_str();
-			m_stringPool.emplace_back(IOService::getFileName(i.c_str()));
-			l_nodeDesc.Name = m_stringPool.back().c_str();
+			l_nodeDesc.RelativePath = StringManager::SpawnString(i.c_str());
+			l_nodeDesc.Name = StringManager::SpawnString(IOService::getFileName(i.c_str()).c_str());
 
 			json j;
 			JSONParser::loadJsonDataFromDisk((std::string(nodeTemplateDirectoryPath) + i).c_str(), j);
@@ -164,8 +156,7 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 
 				PinDescriptor pinDesc;
 				pinDesc.Kind = PinKind(pinKind);
-				m_stringPool.emplace_back(pinName);
-				pinDesc.Name = m_stringPool.back().c_str();
+				pinDesc.Name = StringManager::SpawnString(pinName.c_str());
 				pinDesc.Type = GetPinType(pinType.c_str());
 
 				if (pinKind == 0)
