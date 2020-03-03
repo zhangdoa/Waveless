@@ -16,19 +16,19 @@
             "StartPinID": 20
         },
         {
-            "EndPinID": 31,
-            "ID": 64,
-            "StartPinID": 28
-        },
-        {
             "EndPinID": 32,
-            "ID": 65,
+            "ID": 64,
             "StartPinID": 29
         },
         {
             "EndPinID": 27,
-            "ID": 66,
+            "ID": 65,
             "StartPinID": 23
+        },
+        {
+            "EndPinID": 31,
+            "ID": 66,
+            "StartPinID": 28
         },
         {
             "EndPinID": 36,
@@ -36,34 +36,34 @@
             "StartPinID": 33
         },
         {
-            "EndPinID": 38,
-            "ID": 68,
-            "StartPinID": 34
-        },
-        {
             "EndPinID": 37,
-            "ID": 69,
+            "ID": 68,
             "StartPinID": 3
         },
         {
-            "EndPinID": 42,
-            "ID": 70,
-            "StartPinID": 39
+            "EndPinID": 38,
+            "ID": 69,
+            "StartPinID": 34
         },
         {
             "EndPinID": 43,
-            "ID": 71,
+            "ID": 70,
             "StartPinID": 40
         },
         {
-            "EndPinID": 47,
-            "ID": 72,
-            "StartPinID": 44
+            "EndPinID": 42,
+            "ID": 71,
+            "StartPinID": 39
         },
         {
-            "EndPinID": 48,
+            "EndPinID": 6,
+            "ID": 72,
+            "StartPinID": 45
+        },
+        {
+            "EndPinID": 58,
             "ID": 73,
-            "StartPinID": 14
+            "StartPinID": 49
         },
         {
             "EndPinID": 52,
@@ -71,34 +71,29 @@
             "StartPinID": 50
         },
         {
-            "EndPinID": 53,
+            "EndPinID": 47,
             "ID": 75,
-            "StartPinID": 16
-        },
-        {
-            "EndPinID": 58,
-            "ID": 76,
-            "StartPinID": 49
+            "StartPinID": 44
         },
         {
             "EndPinID": 5,
-            "ID": 77,
+            "ID": 76,
             "StartPinID": 60
         },
         {
-            "EndPinID": 6,
-            "ID": 78,
-            "StartPinID": 45
-        },
-        {
             "EndPinID": 7,
-            "ID": 79,
-            "StartPinID": 24
+            "ID": 77,
+            "StartPinID": 56
         },
         {
-            "EndPinID": 59,
-            "ID": 80,
-            "StartPinID": 20
+            "EndPinID": 53,
+            "ID": 78,
+            "StartPinID": 16
+        },
+        {
+            "EndPinID": 48,
+            "ID": 79,
+            "StartPinID": 14
         }
     ],
     "Nodes": [

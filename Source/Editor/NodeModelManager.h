@@ -28,6 +28,7 @@ namespace Waveless
 		int OutputPinCount = 0;
 		int InputPinIndexOffset = 0;
 		int OutputPinIndexOffset = 0;
+		float InitialPosition[2];
 	};
 
 	enum class LinkType { Flow, Param };

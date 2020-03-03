@@ -10,6 +10,7 @@ namespace NodeModelManagerNS
 {
 	NodeModel* StartNode;
 	NodeModel* EndNode;
+
 	std::vector<NodeModel*> s_Nodes;
 	std::vector<PinModel*> s_Pins;
 	std::vector<LinkModel*> s_Links;
@@ -114,8 +115,43 @@ const std::vector<LinkModel*>& Waveless::NodeModelManager::GetAllLinkModels()
 	return s_Links;
 }
 
+static PinModel* FindPinByUUID(uint64_t id)
+{
+	if (!id)
+		return nullptr;
+
+	for (auto pin : s_Pins)
+	{
+		if (pin->UUID == id)
+			return pin;
+	}
+
+	return nullptr;
+}
+
 WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 {
+	for (auto node : s_Nodes)
+	{
+		delete node;
+	}
+	for (auto pin : s_Pins)
+	{
+		delete pin;
+	}
+	for (auto link : s_Links)
+	{
+		delete link;
+	}
+
+	s_Nodes.clear();
+	s_Pins.clear();
+	s_Links.clear();
+
+	s_Nodes.shrink_to_fit();
+	s_Pins.shrink_to_fit();
+	s_Links.shrink_to_fit();
+
 	json j;
 
 	if (JSONParser::loadJsonDataFromDisk(("..//..//Asset//Canvas//" + std::string(inputFileName)).c_str(), j) != WsResult::Success)
@@ -151,26 +187,30 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 			}
 		}
 
-		for (auto& j_input : j_node["Outputs"])
+		for (auto& j_output : j_node["Outputs"])
 		{
 			for (uint64_t i = 0; i < node->OutputPinCount; i++)
 			{
 				auto l_pin = GetPinModel(node->OutputPinIndexOffset + (int)i);
-				if (l_pin->Desc->Name == j_input["Name"])
+				if (l_pin->Desc->Name == j_output["Name"])
 				{
-					l_pin->UUID = j_input["ID"];
-					l_pin->Value = j_input["Value"];
+					l_pin->UUID = j_output["ID"];
+					l_pin->Value = j_output["Value"];
 				}
 			}
 		}
+
+		node->InitialPosition[0] = j_node["Position"]["X"];
+		node->InitialPosition[1] = j_node["Position"]["Y"];
 	}
 
 	for (auto& j_link : j["Links"])
 	{
-		auto l_startPin = GetPinModel(j_link["StartPinID"]);
-		auto l_endPin = GetPinModel(j_link["EndPinID"]);
+		auto l_startPin = FindPinByUUID(j_link["StartPinID"]);
+		auto l_endPin = FindPinByUUID(j_link["EndPinID"]);
 
-		SpawnLinkModel(l_startPin, l_endPin);
+		auto l_link = SpawnLinkModel(l_startPin, l_endPin);
+		l_link->UUID = j_link["ID"];
 	}
 
 	return WsResult::Success;
