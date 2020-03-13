@@ -1,6 +1,7 @@
 #include "ImGuiWrapper.h"
 #include "../../Core/Config.h"
 #include "../../Core/stdafx.h"
+#include "../../Core/Math.h"
 #include "../../IO/IOService.h"
 #include "../../IO/JSONParser.h"
 #include "../NodeDescriptorManager.h"
@@ -62,7 +63,7 @@ struct PinWidget : public Object
 	PinModel* Model;
 	NodeWidget* Owner;
 
-	PinWidget(int id, PinModel* model) : ID(id), Model(model)
+	PinWidget(uint64_t id, PinModel* model) : ID(id), Model(model)
 	{
 	}
 };
@@ -79,7 +80,7 @@ struct NodeWidget : public Object
 	std::vector<PinWidget> Inputs;
 	std::vector<PinWidget> Outputs;
 
-	NodeWidget(int id, NodeModel* model) : ID(id), Model(model)
+	NodeWidget(uint64_t id, NodeModel* model) : ID(id), Model(model)
 	{
 		Color = ImColor(model->Desc->Color[0], model->Desc->Color[1], model->Desc->Color[2]);
 	}
@@ -96,7 +97,7 @@ struct LinkWidget : public Object
 	PinWidget* StartPin = 0;
 	PinWidget* EndPin = 0;
 
-	LinkWidget(ed::LinkId id, PinWidget* startPin, PinWidget* endPin) :
+	LinkWidget(uint64_t id, PinWidget* startPin, PinWidget* endPin) :
 		ID(id), StartPin(startPin), EndPin(endPin), Color(255, 255, 255)
 	{
 	}
@@ -138,8 +139,6 @@ namespace ImGuiWrapperNS
 
 	const float s_TouchTime = 1.0f;
 	std::map<ed::NodeId, float, NodeIdLess> s_NodeTouchTime;
-
-	int s_NextId = 1;
 }
 
 using namespace ImGuiWrapperNS;
@@ -199,9 +198,9 @@ void DrawPinIcon(const PinWidget& pin, bool connected, int alpha)
 	ax::Widgets::Icon(ImVec2(s_PinIconSize, s_PinIconSize), iconType, connected, color, ImColor(32, 32, 32, alpha));
 };
 
-static int GetNextId()
+static uint64_t GetNextId()
 {
-	return s_NextId++;
+	return Waveless::Math::GenerateUUID();
 }
 
 static void TouchNode(ed::NodeId id)
