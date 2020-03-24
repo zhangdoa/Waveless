@@ -1,5 +1,6 @@
 #include "NodeCompiler.h"
 #include "../IO/JSONParser.h"
+#include "../Core/Logger.h"
 #include "../IO/IOService.h"
 #include "../Core/Math.h"
 #include "NodeDescriptorManager.h"
@@ -7,56 +8,92 @@
 
 using namespace Waveless;
 
+struct NodeOrderInfo
+{
+	NodeModel* Model;
+	uint64_t Index;
+};
+
 namespace NodeCompilerNS
 {
-	NodeModel* StartNode;
-	NodeModel* EndNode;
+	NodeModel* m_StartNode;
+	NodeModel* m_EndNode;
+	uint64_t m_CurrentIndex = 0;
+	std::vector<NodeOrderInfo> m_SortedNodes;
 }
 
 using namespace NodeCompilerNS;
 
 void SortNodes()
 {
-	auto l_nodes = NodeModelManager::GetAllNodeModels();
-	auto& l_links = NodeModelManager::GetAllLinkModels();
+	m_CurrentIndex = 0;
+	m_SortedNodes.clear();
 
-	for (auto link : l_links)
+	auto l_modes = NodeModelManager::GetAllNodeModels();
+	auto l_links = NodeModelManager::GetAllLinkModels();
+
+	auto l_startNodeIt = std::find_if(l_modes.begin(), l_modes.end(), [](NodeModel* val) {
+		return !strcmp(val->Desc->Name, "Input");
+	});
+	auto l_endNodeIt = std::find_if(l_modes.begin(), l_modes.end(), [](NodeModel* val) {
+		return !strcmp(val->Desc->Name, "Output");
+	});
+
+	if (l_startNodeIt == l_modes.end())
 	{
-		auto l_startNode = std::find(l_nodes.begin(), l_nodes.end(), link->StartPin->Owner);
-		auto l_endNode = std::find(l_nodes.begin(), l_nodes.end(), link->EndPin->Owner);
-
-		if (link->LinkType == LinkType::Flow)
-		{
-			if (l_startNode > l_endNode)
-			{
-				std::iter_swap(l_startNode, l_endNode);
-			}
-		}
+		Logger::Log(LogLevel::Error, "No Start Node.");
+		return;
 	}
+	if (l_endNodeIt == l_modes.end())
+	{
+		Logger::Log(LogLevel::Error, "No End Node.");
+		return;
+	}
+
+	auto l_startNode = *l_startNodeIt;
+	auto l_endNode = *l_endNodeIt;
+
+	auto l_currentNode = l_startNode;
+
+	while (l_currentNode != l_endNode)
+	{
+		NodeOrderInfo l_nodeOrderInfo;
+		l_nodeOrderInfo.Model = l_currentNode;
+		l_nodeOrderInfo.Index = m_CurrentIndex;
+		m_SortedNodes.emplace_back(l_nodeOrderInfo);
+
+		auto l_link = *std::find_if(l_links.begin(), l_links.end(), [l_currentNode](LinkModel* val) { return val->StartPin->Owner == l_currentNode; });
+		l_currentNode = l_link->EndPin->Owner;
+
+		m_CurrentIndex++;
+	}
+
+	NodeOrderInfo l_nodeOrderInfo;
+	l_nodeOrderInfo.Model = l_endNode;
+	l_nodeOrderInfo.Index = m_CurrentIndex;
+	m_SortedNodes.emplace_back(l_nodeOrderInfo);
 }
 
 void WriteFunctionDefinitions(std::vector<char>& TU)
 {
-	auto& l_nodes = NodeModelManager::GetAllNodeModels();
-
-	for (auto node : l_nodes)
+	for (auto node : m_SortedNodes)
 	{
-		if (node->ConnectionState == NodeConnectionState::Connected)
+		if (node.Model->ConnectionState == NodeConnectionState::Connected)
 		{
-			if (node->Desc->Type == NodeType::Function)
+			if (node.Model->Desc->Type == NodeType::Function)
 			{
 				std::string l_sign;
 				l_sign += "void ";
-				l_sign += node->Desc->FuncMetadata->Name;
+				l_sign += node.Model->Desc->FuncMetadata->Name;
 				l_sign += "(";
-				for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
+				for (size_t i = 0; i < node.Model->Desc->FuncMetadata->ParamsCount; i++)
 				{
-					auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
+					auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node.Model->Desc->FuncMetadata->ParamsIndexOffset);
 					l_sign += l_paramMetadata->Type;
 					l_sign += " ";
 					l_sign += l_paramMetadata->Name;
 
-					if (i < node->Desc->FuncMetadata->ParamsCount - 1)
+					if (i < node.Model->Desc->FuncMetadata->ParamsCount - 1)
 					{
 						l_sign += ", ";
 					}
@@ -66,7 +103,7 @@ void WriteFunctionDefinitions(std::vector<char>& TU)
 
 				std::copy(l_sign.begin(), l_sign.end(), std::back_inserter(TU));
 
-				std::string l_defi = node->Desc->FuncMetadata->Defi;
+				std::string l_defi = node.Model->Desc->FuncMetadata->Defi;
 				l_defi += "\n\n";
 
 				std::copy(l_defi.begin(), l_defi.end(), std::back_inserter(TU));
@@ -166,36 +203,35 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 void WriteExecutionFlows(std::vector<char>& TU)
 {
 	std::unordered_map<uint64_t, std::string> l_localVarDecls;
-	auto& l_nodes = NodeModelManager::GetAllNodeModels();
 
-	for (auto node : l_nodes)
+	for (auto node : m_SortedNodes)
 	{
-		if (node->ConnectionState == NodeConnectionState::Connected)
+		if (node.Model->ConnectionState == NodeConnectionState::Connected)
 		{
 			// Functions without input could be executed at any time, or they are the constant declarations
-			if (node->InputPinCount == 0 && node != StartNode)
+			if (node.Model->InputPinCount == 0 && node.Model != m_StartNode)
 			{
-				if (node->Desc->Type == NodeType::ConstVar)
+				if (node.Model->Desc->Type == NodeType::ConstVar)
 				{
-					WriteConstant(node, TU);
+					WriteConstant(node.Model, TU);
 				}
 				else
 				{
-					WriteLocalVar(node, TU);
+					WriteLocalVar(node.Model, TU);
 
-					WriteFunctionInvocation(node, TU);
+					WriteFunctionInvocation(node.Model, TU);
 				}
 			}
 		}
 	}
-	for (auto node : l_nodes)
+	for (auto node : m_SortedNodes)
 	{
-		if (node->ConnectionState == NodeConnectionState::Connected)
+		if (node.Model->ConnectionState == NodeConnectionState::Connected)
 		{
 			// Functions which has the execution order restriction
-			if (node->InputPinCount > 0 || node == StartNode)
+			if (node.Model->InputPinCount > 0 || node.Model == m_StartNode)
 			{
-				WriteFunctionInvocation(node, TU);
+				WriteFunctionInvocation(node.Model, TU);
 			}
 		}
 	}
