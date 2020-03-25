@@ -15,5 +15,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Bin)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 set(CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/../../Build/LibArchive/${CMAKE_BUILD_TYPE})
-message(${CMAKE_PREFIX_PATH})
-add_subdirectory("MinimalTest")
+
+file(GLOB HEADERS "*.h")
+file(GLOB SOURCES "*.cpp")
+add_library(WsCanvas SHARED ${HEADERS} ${SOURCES})
+
+find_library(AudioEngine WsRuntime)
+
+target_link_libraries(WsCanvas "${AudioEngine}")

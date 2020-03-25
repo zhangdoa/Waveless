@@ -76,10 +76,12 @@ void SortNodes()
 
 void WriteIncludes(std::vector<char>& TU)
 {
-	std::string l_waveParser = "#include \"../../../Source/IO/WaveParser.h\"\n";
-	std::string l_audioEngine = "#include \"../../../Source/Runtime/AudioEngine.h\"\n";
+	std::string l_APIExport = "#include \"../../Source/Core/WsCanvasAPIExport.h\"\n";
+	std::string l_waveParser = "#include \"../../Source/IO/WaveParser.h\"\n";
+	std::string l_audioEngine = "#include \"../../Source/Runtime/AudioEngine.h\"\n";
 	std::string l_usingNS = "using namespace Waveless;\n\n";
 
+	std::copy(l_APIExport.begin(), l_APIExport.end(), std::back_inserter(TU));
 	std::copy(l_waveParser.begin(), l_waveParser.end(), std::back_inserter(TU));
 	std::copy(l_audioEngine.begin(), l_audioEngine.end(), std::back_inserter(TU));
 	std::copy(l_usingNS.begin(), l_usingNS.end(), std::back_inserter(TU));
@@ -258,7 +260,7 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 
 	WriteFunctionDefinitions(l_TU);
 
-	auto l_scriptSign = "void EventScript_" + IOService::getFileName(inputFileName);
+	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
 	std::string l_scriptBodyBegin = "()\n{\n";
 	std::string l_scriptBodyEnd = "}";
 

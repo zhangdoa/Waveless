@@ -1,5 +1,0 @@
-file(GLOB HEADERS "*.h")
-file(GLOB SOURCES "*.cpp")
-add_library(MinimalTest SHARED ${HEADERS} ${SOURCES})
-find_library(AudioEngine WsRuntime)
-target_link_libraries(MinimalTest "${AudioEngine}")

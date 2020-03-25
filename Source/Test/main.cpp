@@ -92,10 +92,19 @@ void testRealTimeFeatures()
 	AudioEngine::Terminate();
 }
 
+#include "../Core/WsCanvasAPIExport.h"
+WS_CANVAS_API void EventScript_MinimalTest();
+
+void testCanvasDLL()
+{
+	EventScript_MinimalTest();
+}
+
 int main()
 {
 	//testOfflineFeatures();
 	testRealTimeFeatures();
+	testCanvasDLL();
 
 	return 0;
 }
