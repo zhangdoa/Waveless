@@ -6,6 +6,14 @@ namespace Waveless
 	template<class T>
 	inline static const T PI = T(3.14159265358979323846264338327950288L);
 
+	struct Vector
+	{
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+
 	using Complex = std::complex<double>;
 	using ComplexArray = std::valarray<Complex>;
 
