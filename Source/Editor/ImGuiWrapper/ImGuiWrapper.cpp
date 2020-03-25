@@ -490,7 +490,7 @@ static void ShowLeftPane(float paneWidth)
 
 	paneWidth = ImGui::GetContentRegionAvailWidth();
 
-	static char buffer[128] = "DefaultCanvas.json";
+	static char buffer[128] = "DefaultCanvas/DefaultCanvas.json";
 	static bool wasActive = false;
 
 	ImGui::PushItemWidth(200.0f);
