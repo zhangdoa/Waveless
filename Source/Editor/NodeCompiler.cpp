@@ -74,6 +74,17 @@ void SortNodes()
 	m_SortedNodes.emplace_back(l_nodeOrderInfo);
 }
 
+void WriteIncludes(std::vector<char>& TU)
+{
+	std::string l_waveParser = "#include \"../../../Source/IO/WaveParser.h\"\n";
+	std::string l_audioEngine = "#include \"../../../Source/Runtime/AudioEngine.h\"\n";
+	std::string l_usingNS = "using namespace Waveless;\n\n";
+
+	std::copy(l_waveParser.begin(), l_waveParser.end(), std::back_inserter(TU));
+	std::copy(l_audioEngine.begin(), l_audioEngine.end(), std::back_inserter(TU));
+	std::copy(l_usingNS.begin(), l_usingNS.end(), std::back_inserter(TU));
+}
+
 void WriteFunctionDefinitions(std::vector<char>& TU)
 {
 	for (auto node : m_SortedNodes)
@@ -99,7 +110,7 @@ void WriteFunctionDefinitions(std::vector<char>& TU)
 					}
 				}
 
-				l_sign += ");\n";
+				l_sign += ")\n";
 
 				std::copy(l_sign.begin(), l_sign.end(), std::back_inserter(TU));
 
@@ -242,6 +253,8 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 	SortNodes();
 
 	std::vector<char> l_TU;
+
+	WriteIncludes(l_TU);
 
 	WriteFunctionDefinitions(l_TU);
 

@@ -37,3 +37,4 @@ Source/Core/Config.h
 #For ImGui
 /Source/ThirdParty/ImGui/*
 !/Source/ThirdParty/ImGui/CMakeLists.txt
+Build-Canvas/
