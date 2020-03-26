@@ -25,7 +25,8 @@ namespace Waveless
 	enum class NodeType
 	{
 		ConstVar,
-		Function,
+		FlowFunc,
+		AuxFunc,
 		Comment
 	};
 

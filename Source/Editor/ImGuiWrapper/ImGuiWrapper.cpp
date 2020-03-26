@@ -723,7 +723,7 @@ void ShowContextMenu()
 		if (node)
 		{
 			ImGui::Text("ID: %p", node->ID.AsPointer());
-			ImGui::Text("Type: %s", node->Model->Desc->Type == NodeType::Function ? "Function" : "Comment");
+			ImGui::Text("Type: %d", node->Model->Desc->Type);
 			ImGui::Text("Inputs: %d", (int)node->Inputs.size());
 			ImGui::Text("Outputs: %d", (int)node->Outputs.size());
 			if (node->Model->Desc->Name == "Sequencer" || node->Model->Desc->Name == "Selector" || node->Model->Desc->Name == "Mixer")
@@ -1206,13 +1206,13 @@ void ShowEditorCanvas()
 
 		for (auto& node : s_Nodes)
 		{
-			if (node.Model->Desc->Type == NodeType::Function || node.Model->Desc->Type == NodeType::ConstVar)
-			{
-				ShowFunctionsAndVars(builder, node);
-			}
-			else if (node.Model->Desc->Type == NodeType::Comment)
+			if (node.Model->Desc->Type == NodeType::Comment)
 			{
 				ShowComments(builder, node);
+			}
+			else
+			{
+				ShowFunctionsAndVars(builder, node);
 			}
 		}
 
