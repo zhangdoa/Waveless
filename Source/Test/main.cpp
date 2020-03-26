@@ -93,17 +93,18 @@ void testRealTimeFeatures()
 }
 
 #include "../Core/WsCanvasAPIExport.h"
-WS_CANVAS_API void EventScript_MinimalTest();
+WS_CANVAS_API void EventScript_MinimalTest(Vector& in_Position);
 
 void testCanvasDLL()
 {
-	EventScript_MinimalTest();
+	Vector in_Position;
+	EventScript_MinimalTest(in_Position);
 }
 
 int main()
 {
 	//testOfflineFeatures();
-	testRealTimeFeatures();
+	//testRealTimeFeatures();
 	testCanvasDLL();
 
 	return 0;

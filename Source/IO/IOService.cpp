@@ -115,7 +115,7 @@ const std::string& Waveless::IOService::getWorkingDirectory()
 	if (!m_workingDir.size())
 	{
 		m_workingDir = fs::current_path().generic_string();
-		m_workingDir = m_workingDir + "//";
+		m_workingDir = m_workingDir + "/";
 	}
 	return m_workingDir;
 }

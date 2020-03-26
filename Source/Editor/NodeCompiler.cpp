@@ -16,8 +16,8 @@ struct NodeOrderInfo
 
 namespace NodeCompilerNS
 {
-	NodeModel* m_StartNode;
-	NodeModel* m_EndNode;
+	NodeModel* m_StartNode = 0;
+	NodeModel* m_EndNode = 0;
 	uint64_t m_CurrentIndex = 0;
 	std::vector<NodeOrderInfo> m_SortedNodes;
 }
@@ -26,6 +26,8 @@ using namespace NodeCompilerNS;
 
 void SortNodes()
 {
+	m_StartNode = 0;
+	m_EndNode = 0;
 	m_CurrentIndex = 0;
 	m_SortedNodes.clear();
 
@@ -50,8 +52,11 @@ void SortNodes()
 		return;
 	}
 
-	auto l_startNode = *l_startNodeIt;
-	auto l_endNode = *l_endNodeIt;
+	m_StartNode = *l_startNodeIt;
+	m_EndNode = *l_endNodeIt;
+
+	auto l_startNode = m_StartNode;
+	auto l_endNode = m_EndNode;
 
 	auto l_currentNode = l_startNode;
 
@@ -76,7 +81,7 @@ void SortNodes()
 
 void WriteIncludes(std::vector<char>& TU)
 {
-	std::string l_APIExport = "#include \"../../Source/Core/WsCanvasAPIExport.h\"\n";
+	std::string l_APIExport = "#define WS_CANVAS_EXPORTS\n#include \"../../Source/Core/WsCanvasAPIExport.h\"\n";
 	std::string l_waveParser = "#include \"../../Source/IO/WaveParser.h\"\n";
 	std::string l_audioEngine = "#include \"../../Source/Runtime/AudioEngine.h\"\n";
 	std::string l_usingNS = "using namespace Waveless;\n\n";
@@ -213,9 +218,22 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 	std::copy(l_funcInvocation.begin(), l_funcInvocation.end(), std::back_inserter(TU));
 }
 
+void WriteStartNode(std::vector<char>& TU)
+{
+	std::string l_funcInvocation;
+
+	l_funcInvocation += "\t";
+	l_funcInvocation += m_StartNode->Desc->FuncMetadata->Name;
+	l_funcInvocation += "(in_Position);\n";
+
+	std::copy(l_funcInvocation.begin(), l_funcInvocation.end(), std::back_inserter(TU));
+}
+
 void WriteExecutionFlows(std::vector<char>& TU)
 {
 	std::unordered_map<uint64_t, std::string> l_localVarDecls;
+
+	WriteStartNode(TU);
 
 	for (auto node : m_SortedNodes)
 	{
@@ -242,7 +260,7 @@ void WriteExecutionFlows(std::vector<char>& TU)
 		if (node.Model->ConnectionState == NodeConnectionState::Connected)
 		{
 			// Functions which has the execution order restriction
-			if (node.Model->InputPinCount > 0 || node.Model == m_StartNode)
+			if (node.Model->InputPinCount > 0 && node.Model != m_StartNode)
 			{
 				WriteFunctionInvocation(node.Model, TU);
 			}
@@ -250,7 +268,7 @@ void WriteExecutionFlows(std::vector<char>& TU)
 	}
 }
 
-WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
+WsResult GenerateCPPFile(const char* inputFileName, const char* outputFileName)
 {
 	SortNodes();
 
@@ -261,7 +279,7 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 	WriteFunctionDefinitions(l_TU);
 
 	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
-	std::string l_scriptBodyBegin = "()\n{\n";
+	std::string l_scriptBodyBegin = "(Vector& in_Position)\n{\n";
 	std::string l_scriptBodyEnd = "}";
 
 	std::copy(l_scriptSign.begin(), l_scriptSign.end(), std::back_inserter(l_TU));
@@ -273,12 +291,39 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 
 	auto l_outputPath = "..//..//Asset//Canvas//" + std::string(inputFileName) + ".cpp";
 
-	if (IOService::saveFile(l_outputPath.c_str(), l_TU, IOService::IOMode::Text) == WsResult::Success)
-	{
-		return WsResult::Success;
-	}
-	else
+	if (IOService::saveFile(l_outputPath.c_str(), l_TU, IOService::IOMode::Text) != WsResult::Success)
 	{
 		return WsResult::Fail;
 	}
+	return WsResult::Success;
+}
+
+WsResult BuildDLL()
+{
+	auto l_cd = IOService::getWorkingDirectory();
+
+	std::string l_command = "mkdir \"" + l_cd + "../../Build-Canvas\"";
+	std::system(l_command.c_str());
+
+	l_command = "cmake -DCMAKE_BUILD_TYPE=Debug -G \"Visual Studio 15 Win64\" -S ../../Asset/Canvas -B ../../Build-Canvas";
+	std::system(l_command.c_str());
+
+	l_command = "\"\"%VS2017INSTALLDIR%/MSBuild/15.0/Bin/msbuild.exe\" ../../Build-Canvas/Waveless-Canvas.sln\"";
+
+	std::system(l_command.c_str());
+
+	return WsResult::Success;
+}
+
+WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
+{
+	if (GenerateCPPFile(inputFileName, outputFileName) != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+	if (BuildDLL() != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+	return WsResult::Success;
 }
