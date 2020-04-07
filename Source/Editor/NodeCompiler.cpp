@@ -121,8 +121,21 @@ void GetNodeOrderInfos()
 		}
 	}
 
-	auto it = std::unique(m_NodeOrderInfos.begin(), m_NodeOrderInfos.end(), [](NodeOrderInfo& A, NodeOrderInfo& B) {return A.Model == B.Model; });
+	std::sort(m_NodeOrderInfos.begin(), m_NodeOrderInfos.end(), [](const NodeOrderInfo& lhs, const NodeOrderInfo& rhs)
+	{
+		return lhs.Model < rhs.Model;
+	});
+
+	auto it = std::unique(m_NodeOrderInfos.begin(), m_NodeOrderInfos.end(), [](const NodeOrderInfo& A, const NodeOrderInfo& B)
+	{
+		return A.Model == B.Model;
+	});
 	m_NodeOrderInfos.resize(std::distance(m_NodeOrderInfos.begin(), it));
+
+	std::sort(m_NodeOrderInfos.begin(), m_NodeOrderInfos.end(), [](const NodeOrderInfo& lhs, const NodeOrderInfo& rhs)
+	{
+		return lhs.Index < rhs.Index;
+	});
 }
 
 void GetNodeDescriptors()
@@ -208,10 +221,6 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 
 		l_constDecl += l_type;
 		l_constDecl += " ";
-		l_constDecl += node->Desc->FuncMetadata->Name;
-		l_constDecl += "_";
-		l_constDecl += l_paramMetadata->Name;
-		l_constDecl += "_";
 		l_constDecl += l_pin->InstanceName;
 		l_constDecl += " = ";
 		l_constDecl += std::to_string(l_pin->Value);
@@ -239,13 +248,9 @@ void WriteLocalVar(NodeModel* node, std::vector<char> & TU)
 		auto l_pin = NodeModelManager::GetPinModel(node->InputPinIndexOffset + (int)i);
 
 		l_localVarDecl += l_type;
-		l_localVarDecl += " ";
-		l_localVarDecl += node->Desc->FuncMetadata->Name;
-		l_localVarDecl += "_";
-		l_localVarDecl += l_paramMetadata->Name;
-		l_localVarDecl += "_";
+		l_localVarDecl += "* ";
 		l_localVarDecl += l_pin->InstanceName;
-		l_localVarDecl += ";\n";
+		l_localVarDecl += " = 0;\n";
 	}
 
 	std::copy(l_localVarDecl.begin(), l_localVarDecl.end(), std::back_inserter(TU));
@@ -253,22 +258,54 @@ void WriteLocalVar(NodeModel* node, std::vector<char> & TU)
 
 void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 {
+	auto l_links = NodeModelManager::GetAllLinkModels();
+
 	std::string l_funcInvocation;
 
 	l_funcInvocation += "\t";
 	l_funcInvocation += node->Desc->FuncMetadata->Name;
 	l_funcInvocation += "(";
 
-	for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
+	int l_index = 0;
+	for (size_t i = 0; i < node->Desc->InputPinCount; i++)
 	{
-		auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
-		l_funcInvocation += node->Desc->FuncMetadata->Name;
-		l_funcInvocation += "_";
-		l_funcInvocation += l_paramMetadata->Name;
+		auto l_inputPin = NodeModelManager::GetPinModel(node->InputPinIndexOffset + (int)i);
 
-		if (i < node->Desc->FuncMetadata->ParamsCount - 1)
+		if (l_inputPin->Desc->Type != PinType::Flow)
 		{
-			l_funcInvocation += ", ";
+			auto l_link = *std::find_if(l_links.begin(), l_links.end(), [&](LinkModel* val) {
+				return val->EndPin == l_inputPin;
+			});
+
+			l_funcInvocation += l_link->StartPin->InstanceName;
+
+			if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
+			{
+				l_funcInvocation += ", ";
+			}
+
+			l_index++;
+		}
+	}
+
+	for (size_t i = 0; i < node->Desc->OutputPinCount; i++)
+	{
+		auto l_outputPin = NodeModelManager::GetPinModel(node->OutputPinIndexOffset + (int)i);
+
+		if (l_outputPin->Desc->Type != PinType::Flow)
+		{
+			auto l_link = *std::find_if(l_links.begin(), l_links.end(), [&](LinkModel* val) {
+				return val->StartPin == l_outputPin;
+			});
+
+			l_funcInvocation += l_link->EndPin->InstanceName;
+
+			if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
+			{
+				l_funcInvocation += ", ";
+			}
+
+			l_index++;
 		}
 	}
 
@@ -296,8 +333,7 @@ void WriteExecutionFlows(std::vector<char>& TU)
 
 	for (auto node : m_NodeOrderInfos)
 	{
-		// Functions without input could be executed at any time, or they are the constant declarations
-		if (node.Model->InputPinCount == 0 && node.Model != m_StartNode)
+		if (node.Model != m_StartNode)
 		{
 			if (node.Model->Desc->Type == NodeType::ConstVar)
 			{
@@ -309,14 +345,6 @@ void WriteExecutionFlows(std::vector<char>& TU)
 
 				WriteFunctionInvocation(node.Model, TU);
 			}
-		}
-	}
-	for (auto node : m_NodeOrderInfos)
-	{
-		// Functions which has the execution order restriction
-		if (node.Model->InputPinCount > 0 && node.Model != m_StartNode)
-		{
-			WriteFunctionInvocation(node.Model, TU);
 		}
 	}
 }
