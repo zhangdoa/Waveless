@@ -230,10 +230,12 @@ namespace Waveless
 		l_result.header = l_WavHeader;
 
 		// load sample
-		auto l_sample = std::vector<char>(l_WavHeader.dataChunk.ckSize);
-		GetData(pbuf, &l_sample[0], l_sample.size());
+		l_result.count = l_WavHeader.dataChunk.ckSize;
+		// @TODO: Memory pool for samples
+		auto l_samples = new char[l_result.count];
+		GetData(pbuf, &l_samples[0], l_result.count);
 
-		l_result.sample = std::move(l_sample);
+		l_result.samples = l_samples;
 
 		PrintWavHeader(&l_result.header);
 
@@ -248,6 +250,7 @@ namespace Waveless
 		std::memcpy(l_header.RIFFChunk.ckID, "RIFF", 4);
 		l_header.RIFFChunk.ckSize = 44 + sampleCount * l_bytesPerSample;
 		std::memcpy(l_header.RIFFChunk.RIFFType, "WAVE", 4);
+		l_header.ChunkValidities[0] = 1;
 
 		std::memcpy(l_header.fmtChunk.ckID, "fmt ", 4);
 		l_header.fmtChunk.ckSize = 16;
@@ -257,19 +260,22 @@ namespace Waveless
 		l_header.fmtChunk.nAvgBytesPerSec = sampleRate * channels * l_bytesPerSample;
 		l_header.fmtChunk.nBlockAlign = channels * l_bytesPerSample;
 		l_header.fmtChunk.wBitsPerSample = bitDepth;
+		l_header.ChunkValidities[2] = 1;
 
 		std::memcpy(l_header.dataChunk.ckID, "data", 4);
 		l_header.dataChunk.ckSize = sampleCount * l_bytesPerSample;
+		l_header.ChunkValidities[5] = 1;
 
 		return l_header;
 	}
 
 	WavObject WaveParser::GenerateWavObject(const WavHeader& header, const ComplexArray& x)
 	{
-		std::vector<char> l_samples;
-		auto l_bytesPerSample = header.fmtChunk.wBitsPerSample / 8;
+		WavObject l_result;
 
-		l_samples.resize(x.size() * l_bytesPerSample);
+		auto l_bytesPerSample = header.fmtChunk.wBitsPerSample / 8;
+		l_result.count = (int)x.size() * l_bytesPerSample;
+		auto l_samples = new char[l_result.count];
 
 		for (size_t i = 0; i < x.size(); i++)
 		{
@@ -279,9 +285,41 @@ namespace Waveless
 			std::memcpy(&l_samples[i * l_bytesPerSample], &l_sample, l_bytesPerSample);
 		}
 
-		WavObject l_result;
 		l_result.header = header;
-		l_result.sample = std::move(l_samples);
+		l_result.samples = l_samples;
+
+		return l_result;
+	}
+
+	ComplexArray WaveParser::GenerateComplexArray(const WavObject& wavObject)
+	{
+		auto l_bytesPerSample = wavObject.header.fmtChunk.wBitsPerSample / 8;
+
+		ComplexArray l_result;
+		l_result.resize(wavObject.count / l_bytesPerSample);
+
+		for (size_t i = 0; i < l_result.size(); i++)
+		{
+			auto l_sampleOrig = &wavObject.samples[i * l_bytesPerSample];
+			Complex l_sample;
+
+			if (l_bytesPerSample == 1)
+			{
+				auto l_sampleTemp = (int8_t*)l_sampleOrig;
+			}
+			else if (l_bytesPerSample == 2)
+			{
+				auto l_sampleTemp = (int16_t*)l_sampleOrig;
+				l_sample = *l_sampleTemp;
+			}
+			else if (l_bytesPerSample == 4)
+			{
+				auto l_sampleTemp = (int32_t*)l_sampleOrig;
+				l_sample = *l_sampleTemp;
+			}
+
+			l_result[i] = l_sample;
+		}
 
 		return l_result;
 	}
@@ -321,7 +359,7 @@ namespace Waveless
 			l_file.write((char*)&wavObject.header.dataChunk, sizeof(wavObject.header.dataChunk));
 		}
 
-		l_file.write((char*)&wavObject.sample[0], wavObject.sample.size());
+		l_file.write((char*)&wavObject.samples[0], wavObject.count);
 
 		l_file.close();
 

@@ -44,8 +44,7 @@ void testOfflineFeatures()
 
 	// test case : get freq bin of wave data
 	// @TODO: Raw sample to ComplexArray
-	std::vector<Complex> l_singal3Temp(l_wavObject.sample.begin(), l_wavObject.sample.end());
-	ComplexArray signal_3(l_singal3Temp.data(), l_singal3Temp.size());
+	auto signal_3 = WaveParser::GenerateComplexArray(l_wavObject);
 	auto signal_3_FFT = Math::FFT(signal_3, l_windowDesc);
 	auto signal_3_bin = Math::FreqDomainSeries2FreqBin(signal_3_FFT, l_sampleRate);
 

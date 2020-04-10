@@ -258,7 +258,7 @@ namespace Waveless
 		l_eventInstance->UUID = l_UUID;
 		l_eventInstance->decoderConfig = l_eventPrototype->decoderConfig;
 
-		if (ma_decoder_init_memory_raw(l_eventPrototype->wavObject->sample.data(), l_eventPrototype->wavObject->sample.size(), &l_eventInstance->decoderConfig, &deviceDecoderConfig, &l_eventInstance->decoder) != MA_SUCCESS)
+		if (ma_decoder_init_memory_raw(l_eventPrototype->wavObject->samples, l_eventPrototype->wavObject->count, &l_eventInstance->decoderConfig, &deviceDecoderConfig, &l_eventInstance->decoder) != MA_SUCCESS)
 		{
 			Logger::Log(LogLevel::Error, "Failed to init decoder.");
 		}

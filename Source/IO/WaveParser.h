@@ -106,7 +106,8 @@ namespace Waveless
 	struct WavObject
 	{
 		WavHeader header;
-		std::vector<char> sample;
+		char* samples;
+		int count;
 	};
 
 	class WaveParser
@@ -119,7 +120,7 @@ namespace Waveless
 
 		static WavHeader GenerateWavHeader(unsigned short channels, unsigned long sampleRate, unsigned short bitDepth, unsigned long sampleCount);
 		static WavObject GenerateWavObject(const WavHeader& header, const ComplexArray& x);
-
+		static ComplexArray GenerateComplexArray(const WavObject& wavObject);
 		static WsResult WriteFile(const char* path, const WavObject& wavObject);
 		static WsResult WriteFile(const char* path, const WavHeader& header, const ComplexArray& x);
 
