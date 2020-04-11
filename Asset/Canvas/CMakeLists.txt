@@ -21,5 +21,7 @@ file(GLOB SOURCES "*.cpp")
 add_library(WsCanvas SHARED ${HEADERS} ${SOURCES})
 
 find_library(AudioEngine WsRuntime)
+find_library(IO WsIO)
 
 target_link_libraries(WsCanvas "${AudioEngine}")
+target_link_libraries(WsCanvas "${IO}")

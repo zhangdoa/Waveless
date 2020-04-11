@@ -1,117 +1,117 @@
 {
-    "Links": [
+  "Links": [
+    {
+      "EndPinID": 2675584393275433913,
+      "ID": 2713639506583876005,
+      "StartPinID": 4248063221603721577
+    },
+    {
+      "EndPinID": 3019382253228135808,
+      "ID": 2645308908121721360,
+      "StartPinID": 2628720381494736269
+    },
+    {
+      "EndPinID": 4522106067715866754,
+      "ID": 3262857484902300162,
+      "StartPinID": 3593452375470679713
+    },
+    {
+      "EndPinID": 3952174242836745955,
+      "ID": 4486716792342724537,
+      "StartPinID": 4083589492290368307
+    }
+  ],
+  "Nodes": [
+    {
+      "ID": 3778246388588691002,
+      "Name": "Input",
+      "NodeType": 1,
+      "Outputs": [
         {
-            "EndPinID": 2675584393275433913,
-            "ID": 2713639506583876005,
-            "StartPinID": 4248063221603721577
+          "ID": 4248063221603721577,
+          "Name": "NoName",
+          "Value": 0
         },
         {
-            "EndPinID": 3019382253228135808,
-            "ID": 2645308908121721360,
-            "StartPinID": 2628720381494736269
-        },
-        {
-            "EndPinID": 4522106067715866754,
-            "ID": 3262857484902300162,
-            "StartPinID": 3593452375470679713
-        },
-        {
-            "EndPinID": 3952174242836745955,
-            "ID": 4486716792342724537,
-            "StartPinID": 4083589492290368307
+          "ID": 2382312547031003415,
+          "Name": "WorldPosition",
+          "Value": 0
         }
-    ],
-    "Nodes": [
+      ],
+      "Position": {
+        "X": 320,
+        "Y": -252
+      }
+    },
+    {
+      "ID": 3384399386836341145,
+      "Inputs": [
         {
-            "ID": 3778246388588691002,
-            "Name": "Input",
-            "NodeType": 1,
-            "Outputs": [
-                {
-                    "ID": 4248063221603721577,
-                    "Name": "NoName",
-                    "Value": 0
-                },
-                {
-                    "ID": 2382312547031003415,
-                    "Name": "WorldPosition",
-                    "Value": 0
-                }
-            ],
-            "Position": {
-                "X": 320,
-                "Y": -252
-            }
+          "ID": 2675584393275433913,
+          "Name": "NoName",
+          "Value": 0
         },
         {
-            "ID": 3384399386836341145,
-            "Inputs": [
-                {
-                    "ID": 2675584393275433913,
-                    "Name": "NoName",
-                    "Value": 0
-                },
-                {
-                    "ID": 4522106067715866754,
-                    "Name": "WaveObject",
-                    "Value": 0
-                },
-                {
-                    "ID": 3952174242836745955,
-                    "Name": "EventID",
-                    "Value": 0
-                }
-            ],
-            "Name": "Output",
-            "NodeType": 1,
-            "Position": {
-                "X": 936,
-                "Y": -256
-            }
+          "ID": 4522106067715866754,
+          "Name": "WaveObject",
+          "Value": 0
         },
         {
-            "ID": 3240228352788388231,
-            "Inputs": [
-                {
-                    "ID": 3019382253228135808,
-                    "Name": "FilePath",
-                    "Value": 0
-                }
-            ],
-            "Name": "WavePlayer",
-            "NodeType": 1,
-            "Outputs": [
-                {
-                    "ID": 3593452375470679713,
-                    "Name": "WaveObject",
-                    "Value": 0
-                },
-                {
-                    "ID": 4083589492290368307,
-                    "Name": "EventID",
-                    "Value": 0
-                }
-            ],
-            "Position": {
-                "X": 568,
-                "Y": -144
-            }
-        },
-        {
-            "ID": 2657503393516650529,
-            "Name": "ConstString",
-            "NodeType": 0,
-            "Outputs": [
-                {
-                    "ID": 2628720381494736269,
-                    "Name": "NoName",
-                    "Value": 0
-                }
-            ],
-            "Position": {
-                "X": 243,
-                "Y": -134
-            }
+          "ID": 3952174242836745955,
+          "Name": "EventID",
+          "Value": 0
         }
-    ]
+      ],
+      "Name": "Output",
+      "NodeType": 1,
+      "Position": {
+        "X": 936,
+        "Y": -256
+      }
+    },
+    {
+      "ID": 3240228352788388231,
+      "Inputs": [
+        {
+          "ID": 3019382253228135808,
+          "Name": "FilePath",
+          "Value": "..//..//Asset//testA.wav"
+        }
+      ],
+      "Name": "WavePlayer",
+      "NodeType": 1,
+      "Outputs": [
+        {
+          "ID": 3593452375470679713,
+          "Name": "WaveObject",
+          "Value": 0
+        },
+        {
+          "ID": 4083589492290368307,
+          "Name": "EventID",
+          "Value": 0
+        }
+      ],
+      "Position": {
+        "X": 568,
+        "Y": -144
+      }
+    },
+    {
+      "ID": 2657503393516650529,
+      "Name": "ConstString",
+      "NodeType": 0,
+      "Outputs": [
+        {
+          "ID": 2628720381494736269,
+          "Name": "NoName",
+          "Value": "..//..//Asset//testA.wav"
+        }
+      ],
+      "Position": {
+        "X": 243,
+        "Y": -134
+      }
+    }
+  ]
 }
