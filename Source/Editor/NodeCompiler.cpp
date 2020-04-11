@@ -3,6 +3,8 @@
 #include "../Core/Logger.h"
 #include "../IO/IOService.h"
 #include "../Core/Math.h"
+#include "../Core/String.h"
+
 #include "NodeDescriptorManager.h"
 #include "NodeModelManager.h"
 
@@ -223,7 +225,17 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 		l_constDecl += " ";
 		l_constDecl += l_pin->InstanceName;
 		l_constDecl += " = ";
-		l_constDecl += std::to_string(l_pin->Value);
+		if (l_pin->Desc->Type == PinType::String)
+		{
+			auto l_string = StringManager::FindString(l_pin->Value);
+			l_constDecl += "\"";
+			l_constDecl += l_string.value;
+			l_constDecl += "\"";
+		}
+		else
+		{
+			l_constDecl += std::to_string(l_pin->Value);
+		}
 		l_constDecl += ";\n";
 	}
 

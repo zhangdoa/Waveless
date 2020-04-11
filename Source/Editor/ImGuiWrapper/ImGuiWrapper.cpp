@@ -2,6 +2,7 @@
 #include "../../Core/Config.h"
 #include "../../Core/stdafx.h"
 #include "../../Core/Math.h"
+#include "../../Core/String.h"
 #include "../../IO/IOService.h"
 #include "../../IO/JSONParser.h"
 #include "../NodeDescriptorManager.h"
@@ -442,7 +443,15 @@ static void SaveCanvas(const char* fileName)
 			json j_input;
 			j_input["ID"] = input.ID.Get();
 			j_input["Name"] = input.Model->Desc->Name;
-			j_input["Value"] = input.Model->Value;
+			if (input.Model->Desc->Type == PinType::String)
+			{
+				j_input["Value"] = StringManager::FindString(input.Model->Value).value;
+			}
+			else
+			{
+				j_input["Value"] = input.Model->Value;
+			}
+
 			j_node["Inputs"].emplace_back(j_input);
 		}
 
@@ -451,7 +460,14 @@ static void SaveCanvas(const char* fileName)
 			json j_output;
 			j_output["ID"] = output.ID.Get();
 			j_output["Name"] = output.Model->Desc->Name;
-			j_output["Value"] = output.Model->Value;
+			if (output.Model->Desc->Type == PinType::String)
+			{
+				j_output["Value"] = StringManager::FindString(output.Model->Value).value;
+			}
+			else
+			{
+				j_output["Value"] = output.Model->Value;
+			}
 			j_node["Outputs"].emplace_back(j_output);
 		}
 
@@ -664,7 +680,7 @@ WsResult ImGuiWrapper::Setup()
 	{
 		return WsResult::NotImplemented;
 	}
-}
+	}
 
 WsResult ImGuiWrapper::Initialize()
 {
@@ -991,7 +1007,15 @@ void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 			}
 			if (output.Model->Desc->Type == PinType::String)
 			{
-				static char buffer[128] = "Content";
+				// @TODO: Multiple buffer
+				static char buffer[128] = "";
+
+				if (output.Model->Value)
+				{
+					auto l_string = StringManager::FindString(output.Model->Value);
+					std::memcpy(buffer, l_string.value, strlen(l_string.value));
+				}
+
 				static bool wasActive = false;
 
 				ImGui::PushItemWidth(100.0f);
@@ -1006,6 +1030,9 @@ void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 				{
 					ed::EnableShortcuts(true);
 					wasActive = false;
+					auto l_UUID = output.Model->Value;
+					StringManager::DeleteString(l_UUID);
+					output.Model->Value = StringManager::SpawnString(&buffer[0]).UUID;
 				}
 				ImGui::Spring(0);
 			}

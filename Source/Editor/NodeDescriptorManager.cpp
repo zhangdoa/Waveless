@@ -70,10 +70,10 @@ void Waveless::NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata
 		auto l_spacePos = s.find_last_of(" ");
 		auto l_type = s.substr(0, l_spacePos);
 		l_type.erase(std::remove_if(l_type.begin(), l_type.end(), isspace), l_type.end());
-		p.Type = StringManager::SpawnString(l_type.c_str());
+		p.Type = StringManager::SpawnString(l_type.c_str()).value;
 
 		auto l_name = s.substr(l_spacePos + 1, std::string::npos);
-		p.Name = StringManager::SpawnString(l_name.c_str());
+		p.Name = StringManager::SpawnString(l_name.c_str()).value;
 
 		if (l_name.find("in_") != std::string::npos)
 		{
@@ -111,14 +111,14 @@ void Waveless::NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* no
 		auto l_funcName = l_fileName;
 		std::replace(l_funcName.begin(), l_funcName.end(), '/', '_');
 		l_funcName = "Execute_" + l_funcName;
-		auto l_funcNameCStr = StringManager::SpawnString(l_funcName.c_str());
+		auto l_funcNameCStr = StringManager::SpawnString(l_funcName.c_str()).value;
 
 		FunctionMetadata l_funcMetadata;
 		l_funcMetadata.Name = l_funcNameCStr;
 
 		auto l_signEndPos = l_codeStr.find_first_of("\n");
 		auto l_funcDefi = l_codeStr.substr(l_signEndPos + 1, std::string::npos);
-		l_funcMetadata.Defi = StringManager::SpawnString(l_funcDefi.c_str());
+		l_funcMetadata.Defi = StringManager::SpawnString(l_funcDefi.c_str()).value;
 
 		auto l_params = l_codeStr.substr(13, l_signEndPos - 14);
 		ParseParams(&l_funcMetadata, l_params);
@@ -144,8 +144,8 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 		if (IOService::getFileExtension(i.c_str()) == ".json")
 		{
 			NodeDescriptor l_nodeDesc;
-			l_nodeDesc.RelativePath = StringManager::SpawnString(i.c_str());
-			l_nodeDesc.Name = StringManager::SpawnString(IOService::getFileName(i.c_str()).c_str());
+			l_nodeDesc.RelativePath = StringManager::SpawnString(i.c_str()).value;
+			l_nodeDesc.Name = StringManager::SpawnString(IOService::getFileName(i.c_str()).c_str()).value;
 
 			json j;
 			JSONParser::loadJsonDataFromDisk((std::string(nodeTemplateDirectoryPath) + i).c_str(), j);
@@ -165,7 +165,7 @@ void Waveless::NodeDescriptorManager::GenerateNodeDescriptors(const char * nodeT
 
 				PinDescriptor pinDesc;
 				pinDesc.Kind = PinKind(pinKind);
-				pinDesc.Name = StringManager::SpawnString(pinName.c_str());
+				pinDesc.Name = StringManager::SpawnString(pinName.c_str()).value;
 				pinDesc.Type = GetPinType(pinType.c_str());
 
 				if (pinKind == 0)

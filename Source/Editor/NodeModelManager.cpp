@@ -8,8 +8,8 @@ using namespace Waveless;
 
 namespace NodeModelManagerNS
 {
-	NodeModel* StartNode;
-	NodeModel* EndNode;
+	NodeModel* m_StartNode;
+	NodeModel* m_EndNode;
 
 	std::vector<NodeModel*> s_Nodes;
 	std::vector<PinModel*> s_Pins;
@@ -39,7 +39,7 @@ NodeModel* Waveless::NodeModelManager::SpawnNodeModel(const char* nodeDescriptor
 			l_pin->Desc = l_pinDesc;
 			l_pin->Owner = l_NodeModel;
 			auto l_instanceName = std::string(l_pinDesc->Name) + "_" + std::to_string(Waveless::Math::GenerateUUID());
-			l_pin->InstanceName = StringManager::SpawnString(l_instanceName.c_str());
+			l_pin->InstanceName = StringManager::SpawnString(l_instanceName.c_str()).value;
 
 			s_Pins.emplace_back(l_pin);
 		}
@@ -58,7 +58,7 @@ NodeModel* Waveless::NodeModelManager::SpawnNodeModel(const char* nodeDescriptor
 			l_pin->Desc = l_pinDesc;
 			l_pin->Owner = l_NodeModel;
 			auto l_instanceName = std::string(l_pinDesc->Name) + "_" + std::to_string(Waveless::Math::GenerateUUID());
-			l_pin->InstanceName = StringManager::SpawnString(l_instanceName.c_str());
+			l_pin->InstanceName = StringManager::SpawnString(l_instanceName.c_str()).value;
 
 			s_Pins.emplace_back(l_pin);
 		}
@@ -167,11 +167,11 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 
 		if (l_nodeName == "Input")
 		{
-			StartNode = node;
+			m_StartNode = node;
 		}
 		else if (l_nodeName == "Output")
 		{
-			EndNode = node;
+			m_EndNode = node;
 		}
 
 		for (auto& j_input : j_node["Inputs"])
@@ -182,7 +182,16 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 				if (l_pin->Desc->Name == j_input["Name"])
 				{
 					l_pin->UUID = j_input["ID"];
-					l_pin->Value = j_input["Value"];
+					if (l_pin->Desc->Type == PinType::String)
+					{
+						std::string l_stringTemp = j_input["Value"];
+						auto l_string = StringManager::SpawnString(l_stringTemp.c_str());
+						l_pin->Value = l_string.UUID;
+					}
+					else
+					{
+						l_pin->Value = j_input["Value"];
+					}
 				}
 			}
 		}
@@ -195,7 +204,16 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 				if (l_pin->Desc->Name == j_output["Name"])
 				{
 					l_pin->UUID = j_output["ID"];
-					l_pin->Value = j_output["Value"];
+					if (l_pin->Desc->Type == PinType::String)
+					{
+						std::string l_stringTemp = j_output["Value"];
+						auto l_string = StringManager::SpawnString(l_stringTemp.c_str());
+						l_pin->Value = l_string.UUID;
+					}
+					else
+					{
+						l_pin->Value = j_output["Value"];
+					}
 				}
 			}
 		}
