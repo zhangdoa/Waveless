@@ -209,7 +209,7 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 	for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
 	{
 		auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
-		l_constDecl += "\tconst ";
+		l_constDecl += "\t";
 
 		std::string l_type = l_paramMetadata->Type;
 		if (!strcmp(&l_type.back(), "&"))
@@ -232,25 +232,35 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 
 void WriteLocalVar(NodeModel* node, std::vector<char> & TU)
 {
+	auto l_links = NodeModelManager::GetAllLinkModels();
+
 	std::string l_localVarDecl;
 
+	int l_offset = 0;
 	for (size_t i = 0; i < node->Desc->FuncMetadata->ParamsCount; i++)
 	{
 		auto l_paramMetadata = NodeDescriptorManager::GetParamMetadata(int(i) + node->Desc->FuncMetadata->ParamsIndexOffset);
-		l_localVarDecl += "\t";
-
-		std::string l_type = l_paramMetadata->Type;
-		if (!strcmp(&l_type.back(), "&"))
+		if (l_paramMetadata->Kind == PinKind::Input)
 		{
-			l_type = l_type.substr(0, l_type.size() - 1);
+			l_offset++;
 		}
+		if (l_paramMetadata->Kind == PinKind::Output)
+		{
+			l_localVarDecl += "\t";
 
-		auto l_pin = NodeModelManager::GetPinModel(node->InputPinIndexOffset + (int)i);
+			std::string l_type = l_paramMetadata->Type;
+			if (!strcmp(&l_type.back(), "&"))
+			{
+				l_type = l_type.substr(0, l_type.size() - 1);
+			}
 
-		l_localVarDecl += l_type;
-		l_localVarDecl += "* ";
-		l_localVarDecl += l_pin->InstanceName;
-		l_localVarDecl += " = 0;\n";
+			auto l_pin = NodeModelManager::GetPinModel(node->OutputPinIndexOffset + (int)i - l_offset);
+
+			l_localVarDecl += l_type;
+			l_localVarDecl += " ";
+			l_localVarDecl += l_pin->InstanceName;
+			l_localVarDecl += ";\n";
+		}
 	}
 
 	std::copy(l_localVarDecl.begin(), l_localVarDecl.end(), std::back_inserter(TU));
@@ -267,7 +277,7 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 	l_funcInvocation += "(";
 
 	int l_index = 0;
-	for (size_t i = 0; i < node->Desc->InputPinCount; i++)
+	for (size_t i = 0; i < node->InputPinCount; i++)
 	{
 		auto l_inputPin = NodeModelManager::GetPinModel(node->InputPinIndexOffset + (int)i);
 
@@ -288,7 +298,7 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 		}
 	}
 
-	for (size_t i = 0; i < node->Desc->OutputPinCount; i++)
+	for (size_t i = 0; i < node->OutputPinCount; i++)
 	{
 		auto l_outputPin = NodeModelManager::GetPinModel(node->OutputPinIndexOffset + (int)i);
 
@@ -298,7 +308,7 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 				return val->StartPin == l_outputPin;
 			});
 
-			l_funcInvocation += l_link->EndPin->InstanceName;
+			l_funcInvocation += l_outputPin->InstanceName;
 
 			if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
 			{

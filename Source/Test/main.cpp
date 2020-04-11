@@ -96,8 +96,13 @@ WS_CANVAS_API void EventScript_MinimalTest(Vector& in_Position);
 
 void testCanvasDLL()
 {
+	AudioEngine::Initialize();
 	Vector in_Position;
+
 	EventScript_MinimalTest(in_Position);
+
+	AudioEngine::Flush();
+	AudioEngine::Terminate();
 }
 
 int main()
