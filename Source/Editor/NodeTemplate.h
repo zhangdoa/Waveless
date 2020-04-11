@@ -39,8 +39,9 @@ namespace Waveless
 
 	struct ParamMetadata
 	{
-		const char* Type;
 		const char* Name;
+		const char* Type;
+		PinKind Kind;
 	};
 
 	struct FunctionMetadata

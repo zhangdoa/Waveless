@@ -75,6 +75,15 @@ void Waveless::NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata
 		auto l_name = s.substr(l_spacePos + 1, std::string::npos);
 		p.Name = StringManager::SpawnString(l_name.c_str());
 
+		if (l_name.find("in_") != std::string::npos)
+		{
+			p.Kind = PinKind::Input;
+		}
+		else
+		{
+			p.Kind = PinKind::Output;
+		}
+
 		m_ParamMetadatas.emplace_back(p);
 
 		index++;
