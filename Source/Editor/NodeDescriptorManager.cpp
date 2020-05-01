@@ -67,12 +67,20 @@ void Waveless::NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata
 	while (std::getline(ss, s, ','))
 	{
 		ParamMetadata p;
-		auto l_spacePos = s.find_last_of(" ");
-		auto l_type = s.substr(0, l_spacePos);
-		l_type.erase(std::remove_if(l_type.begin(), l_type.end(), isspace), l_type.end());
+		auto l_endPos = s.find("in_");
+		auto l_startPos = 0;
+		if (l_endPos == std::string::npos)
+		{
+			l_endPos = s.find("out_");
+		}
+		if (!s.compare(0, 1, " "))
+		{
+			l_startPos = 1;
+		}
+		auto l_type = s.substr(l_startPos, l_endPos - 1 - l_startPos);
 		p.Type = StringManager::SpawnString(l_type.c_str()).value;
 
-		auto l_name = s.substr(l_spacePos + 1, std::string::npos);
+		auto l_name = s.substr(l_endPos, std::string::npos);
 		p.Name = StringManager::SpawnString(l_name.c_str()).value;
 
 		if (l_name.find("in_") != std::string::npos)

@@ -33,27 +33,33 @@ void AddAuxFunctionNodes(NodeModel* node, const std::vector<LinkModel*>& links)
 	{
 		auto l_endPin = NodeModelManager::GetPinModel(node->InputPinIndexOffset + (int)i);
 
-		auto l_link = *std::find_if(links.begin(), links.end(), [l_endPin](LinkModel* val) {
+		auto l_linkIt = std::find_if(links.begin(), links.end(), [l_endPin](LinkModel* val)
+		{
 			return val->EndPin == l_endPin;
 		});
 
-		if (l_link->LinkType == LinkType::Param)
+		if (l_linkIt != links.end())
 		{
-			auto l_startPin = l_link->StartPin;
+			auto l_link = *l_linkIt;
 
-			// Still has dependencies
-			if (l_startPin->Owner->InputPinCount)
+			if (l_link->LinkType == LinkType::Param)
 			{
-				AddAuxFunctionNodes(l_startPin->Owner, links);
-			}
+				auto l_startPin = l_link->StartPin;
 
-			if (l_startPin->Owner->Desc->Type != NodeType::FlowFunc)
-			{
-				NodeOrderInfo l_nodeOrderInfo;
-				l_nodeOrderInfo.Model = l_startPin->Owner;
-				l_nodeOrderInfo.Index = m_CurrentIndex;
-				m_NodeOrderInfos.emplace_back(l_nodeOrderInfo);
-				m_CurrentIndex++;
+				// Still has dependencies
+				if (l_startPin->Owner->InputPinCount)
+				{
+					AddAuxFunctionNodes(l_startPin->Owner, links);
+				}
+
+				if (l_startPin->Owner->Desc->Type != NodeType::FlowFunc)
+				{
+					NodeOrderInfo l_nodeOrderInfo;
+					l_nodeOrderInfo.Model = l_startPin->Owner;
+					l_nodeOrderInfo.Index = m_CurrentIndex;
+					m_NodeOrderInfos.emplace_back(l_nodeOrderInfo);
+					m_CurrentIndex++;
+				}
 			}
 		}
 	}
@@ -295,18 +301,23 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 
 		if (l_inputPin->Desc->Type != PinType::Flow)
 		{
-			auto l_link = *std::find_if(l_links.begin(), l_links.end(), [&](LinkModel* val) {
+			auto l_linkIt = std::find_if(l_links.begin(), l_links.end(), [&](LinkModel* val) {
 				return val->EndPin == l_inputPin;
 			});
 
-			l_funcInvocation += l_link->StartPin->InstanceName;
-
-			if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
+			if (l_linkIt != l_links.end())
 			{
-				l_funcInvocation += ", ";
-			}
+				auto l_link = *l_linkIt;
 
-			l_index++;
+				l_funcInvocation += l_link->StartPin->InstanceName;
+
+				if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
+				{
+					l_funcInvocation += ", ";
+				}
+
+				l_index++;
+			}
 		}
 	}
 
@@ -316,10 +327,6 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 
 		if (l_outputPin->Desc->Type != PinType::Flow)
 		{
-			auto l_link = *std::find_if(l_links.begin(), l_links.end(), [&](LinkModel* val) {
-				return val->StartPin == l_outputPin;
-			});
-
 			l_funcInvocation += l_outputPin->InstanceName;
 
 			if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)

@@ -1,3 +1,3 @@
-void Execute(const char* in_String)
+void Execute(const std::string& in_string)
 {
 }
