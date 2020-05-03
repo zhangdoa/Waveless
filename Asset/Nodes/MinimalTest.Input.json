@@ -19,7 +19,12 @@
       "DefaultValue": false
     },
     {
-      "Name": "WorldPosition",
+      "Name": "ListenerWorldPosition",
+      "PinType": "Vector",
+      "PinKind": 0
+    },
+    {
+      "Name": "EmitterWorldPosition",
       "PinType": "Vector",
       "PinKind": 0
     }

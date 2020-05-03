@@ -1,30 +1,21 @@
 {
-  "NodeType": 1,
+  "NodeType": 2,
   "Parameters": [
     {
-      "Name": "",
-      "PinType": "Flow",
-      "PinKind": 1
-    },
-    {
-      "Name": "WorldPosition",
+      "Name": "ListenerWorldPosition",
       "PinType": "Vector",
       "PinKind": 1
     },
     {
-      "Name": "WaveObject",
-      "PinType": "Object",
+      "Name": "EmitterWorldPosition",
+      "PinType": "Vector",
       "PinKind": 1
     },
     {
-      "Name": "",
-      "PinType": "Flow",
-      "PinKind": 0
-    },
-    {
-      "Name": "WaveObject",
-      "PinType": "Object",
-      "PinKind": 0
+      "Name": "Gain",
+      "PinType": "Float",
+      "PinKind": 0,
+      "DefaultValue": 0
     }
   ],
   "Color": {

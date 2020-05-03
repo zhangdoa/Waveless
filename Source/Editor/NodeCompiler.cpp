@@ -170,11 +170,13 @@ void GetNodeDescriptors()
 void WriteIncludes(std::vector<char>& TU)
 {
 	std::string l_APIExport = "#define WS_CANVAS_EXPORTS\n#include \"../../Source/Core/WsCanvasAPIExport.h\"\n";
+	std::string l_math = "#include \"../../Source/Core/Math.h\"\n";
 	std::string l_waveParser = "#include \"../../Source/IO/WaveParser.h\"\n";
 	std::string l_audioEngine = "#include \"../../Source/Runtime/AudioEngine.h\"\n";
 	std::string l_usingNS = "using namespace Waveless;\n\n";
 
 	std::copy(l_APIExport.begin(), l_APIExport.end(), std::back_inserter(TU));
+	std::copy(l_math.begin(), l_math.end(), std::back_inserter(TU));
 	std::copy(l_waveParser.begin(), l_waveParser.end(), std::back_inserter(TU));
 	std::copy(l_audioEngine.begin(), l_audioEngine.end(), std::back_inserter(TU));
 	std::copy(l_usingNS.begin(), l_usingNS.end(), std::back_inserter(TU));

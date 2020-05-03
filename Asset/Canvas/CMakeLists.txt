@@ -22,6 +22,8 @@ add_library(WsCanvas SHARED ${HEADERS} ${SOURCES})
 
 find_library(AudioEngine WsRuntime)
 find_library(IO WsIO)
+find_library(Core WsCore)
 
 target_link_libraries(WsCanvas "${AudioEngine}")
 target_link_libraries(WsCanvas "${IO}")
+target_link_libraries(WsCanvas "${Core}")

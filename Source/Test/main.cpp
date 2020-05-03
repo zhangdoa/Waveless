@@ -92,14 +92,15 @@ void testRealTimeFeatures()
 }
 
 #include "../Core/WsCanvasAPIExport.h"
-WS_CANVAS_API void EventScript_MinimalTest(bool in_Start, bool in_Stop, Vector& out_WorldPosition);
+WS_CANVAS_API void EventScript_MinimalTest(bool in_Start, bool in_Stop, Vector& out_ListenerWorldPosition, Vector& out_EmitterWorldPosition);
 
 void testCanvasDLL()
 {
 	AudioEngine::Initialize();
-	Vector in_Position;
+	Vector out_ListenerWorldPosition;
+	Vector out_EmitterWorldPosition;
 
-	EventScript_MinimalTest(true, false, in_Position);
+	EventScript_MinimalTest(true, false, out_ListenerWorldPosition, out_EmitterWorldPosition);
 
 	AudioEngine::Flush();
 	AudioEngine::Terminate();
