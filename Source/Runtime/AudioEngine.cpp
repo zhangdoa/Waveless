@@ -31,6 +31,7 @@ namespace Waveless
 		ma_event stopEvent;
 		float sampleStateLPF[8] = { 0 };
 		float sampleStateHPF[8] = { 0 };
+		float gain = 0.0f;
 		float cutOffFreqLPF = 0.0f;
 		float cutOffFreqHPF = 0.0f;
 	};
@@ -44,6 +45,19 @@ namespace Waveless
 	ma_device device;
 	ma_event terminateEvent;
 	const int sizeOfTempBuffer = 4096;
+
+	ma_uint32 gain(ma_uint32 channels, float gain, float* pOutput, ma_uint32 frameCount)
+	{
+		for (ma_uint32 i = 0; i < frameCount; ++i)
+		{
+			for (ma_uint32 j = 0; j < channels; ++j)
+			{
+				pOutput[i * channels + j] *= (float)Math::DB2LinearMag(gain);
+			}
+		}
+
+		return frameCount;
+	}
 
 	ma_uint32 low_pass_filter(ma_uint32 channels, float cutoffFreq, ma_uint32 sampleRate, float* pSampleState, float* pOutput, ma_uint32 frameCount)
 	{
@@ -156,6 +170,11 @@ namespace Waveless
 			if (framesReadThisIteration == 0)
 			{
 				break;
+			}
+
+			if (eventInstance->gain != 0.0f)
+			{
+				gain(deviceDecoderConfig.channels, eventInstance->gain, temp, framesToReadThisIteration);
 			}
 
 			if (eventInstance->cutOffFreqLPF != 0.0f)
@@ -331,6 +350,31 @@ namespace Waveless
 		}
 	}
 
+	WsResult AudioEngine::ApplyGain(uint64_t UUID, float gain)
+	{
+		static const float maxGain = 96.3f;
+
+		auto l_result = g_eventInstances.find(UUID);
+		if (l_result != g_eventInstances.end())
+		{
+			if (gain > maxGain || gain < -maxGain)
+			{
+				Logger::Log(LogLevel::Warning, "Gain is beyond the maximum gain level.");
+				return WsResult::Fail;
+			}
+			else
+			{
+				l_result->second->gain = gain;
+				return WsResult::Success;
+			}
+		}
+		else
+		{
+			Logger::Log(LogLevel::Warning, "Can't find EventInstance.");
+			return WsResult::IDNotFound;
+		}
+	}
+
 	WsResult AudioEngine::ApplyLPF(uint64_t UUID, float cutOffFreq)
 	{
 		auto l_result = g_eventInstances.find(UUID);
@@ -338,7 +382,7 @@ namespace Waveless
 		{
 			if (cutOffFreq * 2.0f > l_result->second->decoderConfig.sampleRate)
 			{
-				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate");
+				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate.");
 				return WsResult::Fail;
 			}
 			else
@@ -361,7 +405,7 @@ namespace Waveless
 		{
 			if (cutOffFreq * 2.0f > l_result->second->decoderConfig.sampleRate)
 			{
-				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate");
+				Logger::Log(LogLevel::Warning, "Cut-off frequency is beyond the sample rate.");
 				return WsResult::Fail;
 			}
 			else

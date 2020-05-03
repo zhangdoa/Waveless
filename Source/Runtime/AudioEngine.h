@@ -37,6 +37,11 @@ namespace Waveless
 		static uint64_t AddEventPrototype(const WavObject& wavObject);
 
 		///
+		/// Apply gain to an event instance
+		///
+		static WsResult ApplyGain(uint64_t UUID, float gain);
+
+		///
 		/// Apply low pass filter to an event instance
 		///
 		static WsResult ApplyLPF(uint64_t UUID, float cutOffFreq);
