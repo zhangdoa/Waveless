@@ -42,15 +42,15 @@ namespace Waveless
 
 	namespace NodeModelManager
 	{
-		NodeModel* SpawnNodeModel(const char* nodeDescriptorName);
-		LinkModel* SpawnLinkModel(PinModel* startPin, PinModel* endPin);
+		WsResult SpawnNodeModel(const char* nodeDescriptorName, NodeModel*& result);
+		WsResult SpawnLinkModel(PinModel* startPin, PinModel* endPin, LinkModel*& result);
 
-		PinModel* GetPinModel(int index);
-		NodeModel* GetNodeModel(int index);
-		LinkModel* GetLinkModel(int index);
+		WsResult GetPinModel(int index, PinModel*& result);
+		WsResult GetNodeModel(int index, NodeModel*& result);
+		WsResult GetLinkModel(int index, LinkModel*& result);
 
-		const std::vector<NodeModel*>& GetAllNodeModels();
-		const std::vector<LinkModel*>& GetAllLinkModels();
+		WsResult GetAllNodeModels(std::vector<NodeModel*>*& result);
+		WsResult GetAllLinkModels(std::vector<LinkModel*>*& result);
 
 		WsResult LoadCanvas(const char * inputFileName);
 	};

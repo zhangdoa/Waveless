@@ -23,7 +23,7 @@ namespace Waveless::NodeDescriptorManager
 
 using namespace Waveless;
 
-Waveless::PinType Waveless::NodeDescriptorManager::GetPinType(const char * pinType)
+PinType NodeDescriptorManager::GetPinType(const char * pinType)
 {
 	if (!strcmp(pinType, "Flow"))
 	{
@@ -61,7 +61,7 @@ Waveless::PinType Waveless::NodeDescriptorManager::GetPinType(const char * pinTy
 	}
 }
 
-NodeDescriptor* Waveless::NodeDescriptorManager::LoadNodeDescriptor(const char * nodeDescriptorPath)
+NodeDescriptor* NodeDescriptorManager::LoadNodeDescriptor(const char * nodeDescriptorPath)
 {
 	auto l_nodeDesc = new NodeDescriptor();
 	l_nodeDesc->RelativePath = StringManager::SpawnString(nodeDescriptorPath).value;
@@ -118,7 +118,7 @@ NodeDescriptor* Waveless::NodeDescriptorManager::LoadNodeDescriptor(const char *
 	return l_nodeDesc;
 }
 
-void Waveless::NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata, const std::string& params)
+void NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata, const std::string& params)
 {
 	std::stringstream ss(params);
 	std::string s;
@@ -164,7 +164,7 @@ void Waveless::NodeDescriptorManager::ParseParams(FunctionMetadata* FuncMetadata
 	}
 }
 
-void Waveless::NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* nodeDesc)
+void NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* nodeDesc)
 {
 	auto l_fileName = std::string(nodeDesc->RelativePath);
 	l_fileName = l_fileName.substr(0, l_fileName.rfind("."));
@@ -199,7 +199,7 @@ void Waveless::NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* no
 	}
 }
 
-void Waveless::NodeDescriptorManager::LoadNewNodeDescriptor(const char * nodeDescriptorPath)
+void NodeDescriptorManager::LoadNewNodeDescriptor(const char * nodeDescriptorPath)
 {
 	auto l_nodeDesc = LoadNodeDescriptor(nodeDescriptorPath);
 
@@ -209,7 +209,7 @@ void Waveless::NodeDescriptorManager::LoadNewNodeDescriptor(const char * nodeDes
 	m_nodeDescriptorsMap.emplace(l_nodeDesc->Name, m_nodeDescriptors.back());
 }
 
-void Waveless::NodeDescriptorManager::LoadAllNodeDescriptors(const char * nodeTemplateDirectoryPath)
+WsResult NodeDescriptorManager::LoadAllNodeDescriptors(const char * nodeTemplateDirectoryPath)
 {
 	// @TODO: Pool them
 	m_nodeDescriptors.reserve(512);
@@ -227,41 +227,48 @@ void Waveless::NodeDescriptorManager::LoadAllNodeDescriptors(const char * nodeTe
 			LoadNewNodeDescriptor((nodeTemplateDirectoryPath + i).c_str());
 		}
 	}
+
+	return WsResult::Success;
 }
 
-const std::vector<NodeDescriptor*>& Waveless::NodeDescriptorManager::GetAllNodeDescriptors()
+WsResult NodeDescriptorManager::GetAllNodeDescriptors(std::vector<NodeDescriptor*>*& result)
 {
-	return m_nodeDescriptors;
+	result = &m_nodeDescriptors;
+	return WsResult::Success;
 }
 
-Waveless::PinDescriptor* Waveless::NodeDescriptorManager::GetPinDescriptor(int pinIndex, PinKind pinKind)
+WsResult NodeDescriptorManager::GetPinDescriptor(int pinIndex, PinKind pinKind, PinDescriptor*& result)
 {
 	if (pinKind == PinKind::Input)
 	{
-		return &m_inputPinDescriptors[pinIndex];
+		result = &m_inputPinDescriptors[pinIndex];
 	}
 	else
 	{
-		return &m_outputPinDescriptors[pinIndex];
+		result = &m_outputPinDescriptors[pinIndex];
 	}
+
+	return WsResult::Success;
 }
 
-Waveless::NodeDescriptor* Waveless::NodeDescriptorManager::GetNodeDescriptor(const char * nodeTemplateName)
+WsResult NodeDescriptorManager::GetNodeDescriptor(const char* nodeTemplateName, NodeDescriptor*& result)
 {
 	auto l_result = m_nodeDescriptorsMap.find(nodeTemplateName);
 
 	if (l_result != m_nodeDescriptorsMap.end())
 	{
-		return l_result->second;
+		result = l_result->second;
+		return WsResult::Success;
 	}
 	else
 	{
-		Logger::Log(LogLevel::Error, "Can't find node descriptor!");
-		return nullptr;
+		Logger::Log(LogLevel::Error, "Can't find node descriptor ", nodeTemplateName, "!");
+		return WsResult::IDNotFound;
 	}
 }
 
-Waveless::ParamMetadata* Waveless::NodeDescriptorManager::GetParamMetadata(int paramMetadataIndex)
+WsResult NodeDescriptorManager::GetParamMetadata(int paramMetadataIndex, ParamMetadata*& result)
 {
-	return &m_ParamMetadatas[paramMetadataIndex];
+	result = &m_ParamMetadatas[paramMetadataIndex];
+	return WsResult::Success;
 }

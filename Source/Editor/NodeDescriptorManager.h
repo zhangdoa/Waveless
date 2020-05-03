@@ -5,10 +5,10 @@ namespace Waveless
 {
 	namespace NodeDescriptorManager
 	{
-		void LoadAllNodeDescriptors(const char* nodeTemplateDirectoryPath);
-		const std::vector<NodeDescriptor*>& GetAllNodeDescriptors();
-		PinDescriptor* GetPinDescriptor(int pinIndex, PinKind pinKind);
-		NodeDescriptor* GetNodeDescriptor(const char* nodeTemplateName);
-		ParamMetadata* GetParamMetadata(int paramMetadataIndex);
+		WsResult LoadAllNodeDescriptors(const char* nodeTemplateDirectoryPath);
+		WsResult GetAllNodeDescriptors(std::vector<NodeDescriptor*>*& result);
+		WsResult GetPinDescriptor(int pinIndex, PinKind pinKind, PinDescriptor*& result);
+		WsResult GetNodeDescriptor(const char* nodeTemplateName, NodeDescriptor*& result);
+		WsResult GetParamMetadata(int paramMetadataIndex, ParamMetadata*& result);
 	};
 }

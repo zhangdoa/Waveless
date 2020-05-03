@@ -18,9 +18,10 @@ namespace NodeModelManagerNS
 
 using namespace NodeModelManagerNS;
 
-NodeModel* Waveless::NodeModelManager::SpawnNodeModel(const char* nodeDescriptorName)
+WsResult Waveless::NodeModelManager::SpawnNodeModel(const char* nodeDescriptorName, NodeModel*& result)
 {
-	auto l_nodeDesc = NodeDescriptorManager::GetNodeDescriptor(nodeDescriptorName);
+	NodeDescriptor* l_nodeDesc;
+	NodeDescriptorManager::GetNodeDescriptor(nodeDescriptorName, l_nodeDesc);
 	auto l_NodeModel = new NodeModel();
 
 	s_Nodes.emplace_back(l_NodeModel);
@@ -33,7 +34,8 @@ NodeModel* Waveless::NodeModelManager::SpawnNodeModel(const char* nodeDescriptor
 
 		for (int i = 0; i < l_nodeDesc->InputPinCount; i++)
 		{
-			auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->InputPinIndexOffset + i, PinKind::Input);
+			PinDescriptor* l_pinDesc;
+			NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->InputPinIndexOffset + i, PinKind::Input, l_pinDesc);
 			auto l_pin = new PinModel();
 
 			l_pin->Desc = l_pinDesc;
@@ -52,7 +54,8 @@ NodeModel* Waveless::NodeModelManager::SpawnNodeModel(const char* nodeDescriptor
 
 		for (int i = 0; i < l_nodeDesc->OutputPinCount; i++)
 		{
-			auto l_pinDesc = NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->OutputPinIndexOffset + i, PinKind::Output);
+			PinDescriptor* l_pinDesc;
+			NodeDescriptorManager::GetPinDescriptor(l_nodeDesc->OutputPinIndexOffset + i, PinKind::Output, l_pinDesc);
 			auto l_pin = new PinModel();
 
 			l_pin->Desc = l_pinDesc;
@@ -64,10 +67,12 @@ NodeModel* Waveless::NodeModelManager::SpawnNodeModel(const char* nodeDescriptor
 		}
 	}
 
-	return l_NodeModel;
+	result = l_NodeModel;
+
+	return WsResult::Success;
 };
 
-LinkModel* Waveless::NodeModelManager::SpawnLinkModel(PinModel* startPin, PinModel* endPin)
+WsResult Waveless::NodeModelManager::SpawnLinkModel(PinModel* startPin, PinModel* endPin, LinkModel*& result)
 {
 	auto l_link = new LinkModel();
 	s_Links.emplace_back(l_link);
@@ -87,32 +92,42 @@ LinkModel* Waveless::NodeModelManager::SpawnLinkModel(PinModel* startPin, PinMod
 	startPin->Owner->ConnectionState = NodeConnectionState::Connected;
 	endPin->Owner->ConnectionState = NodeConnectionState::Connected;
 
-	return l_link;
+	result = l_link;
+
+	return WsResult::Success;
 }
 
-PinModel * Waveless::NodeModelManager::GetPinModel(int index)
+WsResult Waveless::NodeModelManager::GetPinModel(int index, PinModel*& result)
 {
-	return s_Pins[index];
+	result = s_Pins[index];
+
+	return WsResult::Success;
 }
 
-NodeModel * Waveless::NodeModelManager::GetNodeModel(int index)
+WsResult Waveless::NodeModelManager::GetNodeModel(int index, NodeModel*& result)
 {
-	return s_Nodes[index];
+	result = s_Nodes[index];
+
+	return WsResult::Success;
 }
 
-LinkModel * Waveless::NodeModelManager::GetLinkModel(int index)
+WsResult Waveless::NodeModelManager::GetLinkModel(int index, LinkModel*& result)
 {
-	return s_Links[index];
+	result = s_Links[index];
+
+	return WsResult::Success;
 }
 
-const std::vector<NodeModel*>& Waveless::NodeModelManager::GetAllNodeModels()
+WsResult Waveless::NodeModelManager::GetAllNodeModels(std::vector<NodeModel*>*& result)
 {
-	return s_Nodes;
+	result = &s_Nodes;
+	return WsResult::Success;
 }
 
-const std::vector<LinkModel*>& Waveless::NodeModelManager::GetAllLinkModels()
+WsResult Waveless::NodeModelManager::GetAllLinkModels(std::vector<LinkModel*>*& result)
 {
-	return s_Links;
+	result = &s_Links;
+	return WsResult::Success;
 }
 
 static PinModel* FindPinByUUID(uint64_t id)
@@ -163,23 +178,25 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 	for (auto& j_node : j["Nodes"])
 	{
 		auto l_nodeName = std::string(j_node["Name"]);
-		auto node = SpawnNodeModel(l_nodeName.c_str());
-		node->UUID = j_node["ID"];
+		NodeModel* l_node;
+		SpawnNodeModel(l_nodeName.c_str(), l_node);
+		l_node->UUID = j_node["ID"];
 
 		if (l_nodeName == "Input")
 		{
-			m_StartNode = node;
+			m_StartNode = l_node;
 		}
 		else if (l_nodeName == "Output")
 		{
-			m_EndNode = node;
+			m_EndNode = l_node;
 		}
 
 		for (auto& j_input : j_node["Inputs"])
 		{
-			for (uint64_t i = 0; i < node->InputPinCount; i++)
+			for (uint64_t i = 0; i < l_node->InputPinCount; i++)
 			{
-				auto l_pin = GetPinModel(node->InputPinIndexOffset + (int)i);
+				PinModel* l_pin;
+				GetPinModel(l_node->InputPinIndexOffset + (int)i, l_pin);
 				if (l_pin->Desc->Name == j_input["Name"])
 				{
 					l_pin->UUID = j_input["ID"];
@@ -199,9 +216,10 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 
 		for (auto& j_output : j_node["Outputs"])
 		{
-			for (uint64_t i = 0; i < node->OutputPinCount; i++)
+			for (uint64_t i = 0; i < l_node->OutputPinCount; i++)
 			{
-				auto l_pin = GetPinModel(node->OutputPinIndexOffset + (int)i);
+				PinModel* l_pin;
+				GetPinModel(l_node->OutputPinIndexOffset + (int)i, l_pin);
 				if (l_pin->Desc->Name == j_output["Name"])
 				{
 					l_pin->UUID = j_output["ID"];
@@ -219,8 +237,8 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 			}
 		}
 
-		node->InitialPosition[0] = j_node["Position"]["X"];
-		node->InitialPosition[1] = j_node["Position"]["Y"];
+		l_node->InitialPosition[0] = j_node["Position"]["X"];
+		l_node->InitialPosition[1] = j_node["Position"]["Y"];
 	}
 
 	for (auto& j_link : j["Links"])
@@ -228,7 +246,8 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 		auto l_startPin = FindPinByUUID(j_link["StartPinID"]);
 		auto l_endPin = FindPinByUUID(j_link["EndPinID"]);
 
-		auto l_link = SpawnLinkModel(l_startPin, l_endPin);
+		LinkModel* l_link;
+		SpawnLinkModel(l_startPin, l_endPin, l_link);
 		l_link->UUID = j_link["ID"];
 	}
 

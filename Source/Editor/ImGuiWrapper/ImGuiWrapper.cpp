@@ -332,12 +332,14 @@ NodeWidget* SpawnNodeWidget(NodeModel* model)
 
 	for (int i = 0; i < model->Desc->InputPinCount; i++)
 	{
-		auto l_pinModel = NodeModelManager::GetPinModel(model->InputPinIndexOffset + i);
+		PinModel* l_pinModel;
+		NodeModelManager::GetPinModel(model->InputPinIndexOffset + i, l_pinModel);
 		s_Nodes.back().Inputs.emplace_back(GetNextId(), l_pinModel);
 	}
 	for (int i = 0; i < model->Desc->OutputPinCount; i++)
 	{
-		auto l_pinModel = NodeModelManager::GetPinModel(model->OutputPinIndexOffset + i);
+		PinModel* l_pinModel;
+		NodeModelManager::GetPinModel(model->OutputPinIndexOffset + i, l_pinModel);
 		s_Nodes.back().Outputs.emplace_back(GetNextId(), l_pinModel);
 	}
 
@@ -348,7 +350,8 @@ NodeWidget* SpawnNodeWidget(NodeModel* model)
 
 NodeWidget* SpawnNodeWidget(const char* nodeDescriptorName)
 {
-	auto l_nodeModel = NodeModelManager::SpawnNodeModel(nodeDescriptorName);
+	NodeModel* l_nodeModel;
+	NodeModelManager::SpawnNodeModel(nodeDescriptorName, l_nodeModel);
 
 	return SpawnNodeWidget(l_nodeModel);
 };
@@ -401,17 +404,19 @@ static void LoadCanvas(const char* fileName)
 	s_Nodes.shrink_to_fit();
 	s_Links.shrink_to_fit();
 
-	auto l_nodeModels = NodeModelManager::GetAllNodeModels();
+	std::vector<NodeModel*>* l_nodeModels;
+	NodeModelManager::GetAllNodeModels(l_nodeModels);
 
-	for (auto l_nodeModel : l_nodeModels)
+	for (auto l_nodeModel : *l_nodeModels)
 	{
 		auto l_nodeWidget = SpawnNodeWidget(l_nodeModel);
 		ed::SetNodePosition(l_nodeWidget->ID, ImVec2(l_nodeModel->InitialPosition[0], l_nodeModel->InitialPosition[1]));
 	}
 
-	auto l_linkModels = NodeModelManager::GetAllLinkModels();
+	std::vector<LinkModel*>* l_linkModels;
+	NodeModelManager::GetAllLinkModels(l_linkModels);
 
-	for (auto l_linkModel : l_linkModels)
+	for (auto l_linkModel : *l_linkModels)
 	{
 		auto l_startPin = FindPinByUUID(l_linkModel->StartPin->UUID);
 		auto l_endPin = FindPinByUUID(l_linkModel->EndPin->UUID);
@@ -680,7 +685,7 @@ WsResult ImGuiWrapper::Setup()
 	{
 		return WsResult::NotImplemented;
 	}
-	}
+}
 
 WsResult ImGuiWrapper::Initialize()
 {
@@ -810,9 +815,10 @@ void ShowContextMenu()
 
 		NodeWidget* node = nullptr;
 
-		auto l_nodeDescs = NodeDescriptorManager::GetAllNodeDescriptors();
+		std::vector<NodeDescriptor*>* l_nodeDescs;
+		NodeDescriptorManager::GetAllNodeDescriptors(l_nodeDescs);
 
-		for (auto i : l_nodeDescs)
+		for (auto i : *l_nodeDescs)
 		{
 			if (ImGui::MenuItem(i->Name))
 				node = SpawnNodeWidget(i->Name);
