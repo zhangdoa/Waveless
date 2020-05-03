@@ -79,10 +79,10 @@ void GetNodeOrderInfos()
 	NodeModelManager::GetAllLinkModels(l_links);
 
 	auto l_startNodeIt = std::find_if(l_modes->begin(), l_modes->end(), [](NodeModel* val) {
-		return !strcmp(val->Desc->Name, "Input");
+		return strstr(val->Desc->Name, "Input");
 	});
 	auto l_endNodeIt = std::find_if(l_modes->begin(), l_modes->end(), [](NodeModel* val) {
-		return !strcmp(val->Desc->Name, "Output");
+		return strstr(val->Desc->Name, "Output");
 	});
 
 	if (l_startNodeIt == l_modes->end())
@@ -132,6 +132,7 @@ void GetNodeOrderInfos()
 		}
 	}
 
+	// eliminate duplication
 	std::sort(m_NodeOrderInfos.begin(), m_NodeOrderInfos.end(), [](const NodeOrderInfo& lhs, const NodeOrderInfo& rhs)
 	{
 		return lhs.Model < rhs.Model;
@@ -143,6 +144,7 @@ void GetNodeOrderInfos()
 	});
 	m_NodeOrderInfos.resize(std::distance(m_NodeOrderInfos.begin(), it));
 
+	// sort in correct flow index
 	std::sort(m_NodeOrderInfos.begin(), m_NodeOrderInfos.end(), [](const NodeOrderInfo& lhs, const NodeOrderInfo& rhs)
 	{
 		return lhs.Index < rhs.Index;
@@ -320,7 +322,15 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 			{
 				auto l_link = *l_linkIt;
 
-				l_funcInvocation += l_link->StartPin->InstanceName;
+				if (l_link->StartPin->Owner == m_StartNode)
+				{
+					l_funcInvocation += "in_";
+					l_funcInvocation += l_link->StartPin->Desc->Name;
+				}
+				else
+				{
+					l_funcInvocation += l_link->StartPin->InstanceName;
+				}
 
 				if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
 				{
@@ -357,19 +367,35 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 
 void WriteStartNode(std::vector<char>& TU)
 {
+	int l_index = 0;
 	std::string l_funcInvocation;
 
 	l_funcInvocation += "\t";
 	l_funcInvocation += m_StartNode->Desc->FuncMetadata->Name;
-	l_funcInvocation += "(in_Position);\n";
+	l_funcInvocation += "(";
+
+	for (size_t i = 0; i < m_StartNode->Desc->FuncMetadata->ParamsCount; i++)
+	{
+		ParamMetadata* l_paramMetadata;
+		NodeDescriptorManager::GetParamMetadata(int(i) + m_StartNode->Desc->FuncMetadata->ParamsIndexOffset, l_paramMetadata);
+
+		l_funcInvocation += l_paramMetadata->Name;
+
+		if (l_index < m_StartNode->Desc->FuncMetadata->ParamsCount - 1)
+		{
+			l_funcInvocation += ", ";
+		}
+
+		l_index++;
+	}
+
+	l_funcInvocation += ");\n";
 
 	std::copy(l_funcInvocation.begin(), l_funcInvocation.end(), std::back_inserter(TU));
 }
 
 void WriteExecutionFlows(std::vector<char>& TU)
 {
-	std::unordered_map<uint64_t, std::string> l_localVarDecls;
-
 	WriteStartNode(TU);
 
 	for (auto node : m_NodeOrderInfos)
@@ -390,6 +416,34 @@ void WriteExecutionFlows(std::vector<char>& TU)
 	}
 }
 
+void WriteScriptSignature(const char * inputFileName, std::vector<char> &l_TU)
+{
+	int l_index = 0;
+	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
+	l_scriptSign += "(";
+
+	for (size_t i = 0; i < m_StartNode->Desc->FuncMetadata->ParamsCount; i++)
+	{
+		ParamMetadata* l_paramMetadata;
+		NodeDescriptorManager::GetParamMetadata(int(i) + m_StartNode->Desc->FuncMetadata->ParamsIndexOffset, l_paramMetadata);
+
+		std::string l_type = l_paramMetadata->Type;
+
+		l_scriptSign += l_type;
+		l_scriptSign += " ";
+		l_scriptSign += l_paramMetadata->Name;
+
+		if (l_index < m_StartNode->Desc->FuncMetadata->ParamsCount - 1)
+		{
+			l_scriptSign += ", ";
+		}
+
+		l_index++;
+	}
+	l_scriptSign += ")";
+	std::copy(l_scriptSign.begin(), l_scriptSign.end(), std::back_inserter(l_TU));
+}
+
 WsResult GenerateCPPFile(const char* inputFileName, const char* outputFileName)
 {
 	GetNodeOrderInfos();
@@ -401,10 +455,9 @@ WsResult GenerateCPPFile(const char* inputFileName, const char* outputFileName)
 
 	WriteFunctionDefinitions(l_TU);
 
-	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
-	std::copy(l_scriptSign.begin(), l_scriptSign.end(), std::back_inserter(l_TU));
+	WriteScriptSignature(inputFileName, l_TU);
 
-	std::string l_scriptBodyBegin = "(Vector& in_Position)\n{\n";
+	std::string l_scriptBodyBegin = "\n{\n";
 	std::copy(l_scriptBodyBegin.begin(), l_scriptBodyBegin.end(), std::back_inserter(l_TU));
 
 	WriteExecutionFlows(l_TU);

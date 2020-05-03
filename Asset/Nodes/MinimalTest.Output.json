@@ -4,12 +4,12 @@
     {
       "Name": "",
       "PinType": "Flow",
-      "PinKind": 0
+      "PinKind": 1
     },
     {
-      "Name": "WorldPosition",
-      "PinType": "Vector",
-      "PinKind": 0
+      "Name": "EventInstanceID",
+      "PinType": "Int",
+      "PinKind": 1
     }
   ],
   "Color": {

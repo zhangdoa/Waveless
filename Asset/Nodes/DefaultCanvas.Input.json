@@ -1,0 +1,31 @@
+{
+  "NodeType": 1,
+  "Parameters": [
+    {
+      "Name": "",
+      "PinType": "Flow",
+      "PinKind": 0
+    },
+    {
+      "Name": "Start",
+      "PinType": "Bool",
+      "PinKind": 0
+    },
+    {
+      "Name": "Stop",
+      "PinType": "Bool",
+      "PinKind": 0
+    },
+    {
+      "Name": "WorldPosition",
+      "PinType": "Vector",
+      "PinKind": 0
+    }
+  ],
+  "Color": {
+    "R": 255,
+    "G": 128,
+    "B": 128,
+    "A": 255
+  }
+}

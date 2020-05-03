@@ -202,9 +202,12 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 					l_pin->UUID = j_input["ID"];
 					if (l_pin->Desc->Type == PinType::String)
 					{
-						std::string l_stringTemp = j_input["Value"];
-						auto l_string = StringManager::SpawnString(l_stringTemp.c_str());
-						l_pin->Value = l_string.UUID;
+						if (j_input.find("Value") != j_input.end())
+						{
+							std::string l_stringTemp = j_input["Value"];
+							auto l_string = StringManager::SpawnString(l_stringTemp.c_str());
+							l_pin->Value = l_string.UUID;
+						}
 					}
 					else
 					{
@@ -225,9 +228,12 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 					l_pin->UUID = j_output["ID"];
 					if (l_pin->Desc->Type == PinType::String)
 					{
-						std::string l_stringTemp = j_output["Value"];
-						auto l_string = StringManager::SpawnString(l_stringTemp.c_str());
-						l_pin->Value = l_string.UUID;
+						if (j_output.find("Value") != j_output.end())
+						{
+							std::string l_stringTemp = j_output["Value"];
+							auto l_string = StringManager::SpawnString(l_stringTemp.c_str());
+							l_pin->Value = l_string.UUID;
+						}
 					}
 					else
 					{

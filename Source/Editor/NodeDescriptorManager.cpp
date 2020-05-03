@@ -176,8 +176,10 @@ void NodeDescriptorManager::LoadFunctionDefinitions(NodeDescriptor* nodeDesc)
 	{
 		std::string l_codeStr = &l_code[0];
 
-		auto l_funcName = l_fileName;
+		auto l_funcName = IOService::getFileName(l_filePath.c_str());
 		std::replace(l_funcName.begin(), l_funcName.end(), '/', '_');
+		std::replace(l_funcName.begin(), l_funcName.end(), '.', '_');
+
 		l_funcName = "Execute_" + l_funcName;
 		auto l_funcNameCStr = StringManager::SpawnString(l_funcName.c_str()).value;
 

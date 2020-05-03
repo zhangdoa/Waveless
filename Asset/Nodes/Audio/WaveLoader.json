@@ -2,22 +2,17 @@
   "NodeType": 2,
   "Parameters": [
     {
-      "Name": "Start",
-      "PinType": "Bool",
+      "Name": "FilePath",
+      "PinType": "String",
       "PinKind": 1
     },
     {
-      "Name": "Stop",
-      "PinType": "Bool",
-      "PinKind": 1
+      "Name": "WaveObject",
+      "PinType": "Object",
+      "PinKind": 0
     },
     {
       "Name": "EventPrototypeID",
-      "PinType": "Int",
-      "PinKind": 1
-    },
-    {
-      "Name": "EventInstanceID",
       "PinType": "Int",
       "PinKind": 0
     }

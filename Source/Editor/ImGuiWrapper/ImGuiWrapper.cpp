@@ -450,7 +450,10 @@ static void SaveCanvas(const char* fileName)
 			j_input["Name"] = input.Model->Desc->Name;
 			if (input.Model->Desc->Type == PinType::String)
 			{
-				j_input["Value"] = StringManager::FindString(input.Model->Value).value;
+				if (input.Model->Value)
+				{
+					j_input["Value"] = StringManager::FindString(input.Model->Value).value;
+				}
 			}
 			else
 			{
@@ -467,7 +470,10 @@ static void SaveCanvas(const char* fileName)
 			j_output["Name"] = output.Model->Desc->Name;
 			if (output.Model->Desc->Type == PinType::String)
 			{
-				j_output["Value"] = StringManager::FindString(output.Model->Value).value;
+				if (output.Model->Value)
+				{
+					j_output["Value"] = StringManager::FindString(output.Model->Value).value;
+				}
 			}
 			else
 			{

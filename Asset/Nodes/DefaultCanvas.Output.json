@@ -7,12 +7,7 @@
       "PinKind": 1
     },
     {
-      "Name": "WaveObject",
-      "PinType": "Object",
-      "PinKind": 1
-    },
-    {
-      "Name": "EventID",
+      "Name": "EventInstanceID",
       "PinType": "Int",
       "PinKind": 1
     }
