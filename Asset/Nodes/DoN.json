@@ -9,7 +9,8 @@
     {
       "Name": "N",
       "PinType": "Int",
-      "PinKind": 1
+      "PinKind": 1,
+      "DefaultValue": 0
     },
     {
       "Name": "Reset",
@@ -24,7 +25,8 @@
     {
       "Name": "Counter",
       "PinType": "Int",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": 0
     }
   ],
   "Color": {

@@ -1,3 +1,3 @@
-void Execute(uint64_t& in_eventInstanceID)
+void Execute(uint64_t in_eventInstanceID)
 {
 }

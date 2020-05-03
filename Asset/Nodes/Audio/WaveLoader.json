@@ -14,7 +14,8 @@
     {
       "Name": "EventPrototypeID",
       "PinType": "Int",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": 0
     }
   ],
   "Color": {

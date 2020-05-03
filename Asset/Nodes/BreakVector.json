@@ -4,17 +4,20 @@
     {
       "Name": "X",
       "PinType": "Float",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": 0.0
     },
     {
       "Name": "Y",
       "PinType": "Float",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": 0.0
     },
     {
       "Name": "Z",
       "PinType": "Float",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": 0.0
     },
     {
       "Name": "",

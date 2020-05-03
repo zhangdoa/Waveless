@@ -9,12 +9,14 @@
     {
       "Name": "Start",
       "PinType": "Bool",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": false
     },
     {
       "Name": "Stop",
       "PinType": "Bool",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": false
     },
     {
       "Name": "WorldPosition",

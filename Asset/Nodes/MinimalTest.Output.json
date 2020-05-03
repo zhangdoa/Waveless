@@ -9,7 +9,8 @@
     {
       "Name": "EventInstanceID",
       "PinType": "Int",
-      "PinKind": 1
+      "PinKind": 1,
+      "DefaultValue": 0
     }
   ],
   "Color": {

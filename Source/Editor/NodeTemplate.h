@@ -30,11 +30,14 @@ namespace Waveless
 		Comment
 	};
 
+	using PinValue = uint64_t;
+
 	struct PinDescriptor : public Object
 	{
 		const char* Name;
 		PinType Type;
 		PinKind Kind;
+		PinValue DefaultValue;
 	};
 
 	struct ParamMetadata

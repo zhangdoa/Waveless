@@ -6,8 +6,6 @@ namespace Waveless
 {
 	struct NodeModel;
 
-	using PinValue = uint64_t;
-
 	struct PinModel : public Object
 	{
 		PinDescriptor* Desc;

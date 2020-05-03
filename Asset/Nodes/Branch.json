@@ -9,7 +9,8 @@
     {
       "Name": "Condition",
       "PinType": "Bool",
-      "PinKind": 1
+      "PinKind": 1,
+      "DefaultValue": false
     },
     {
       "Name": "True",

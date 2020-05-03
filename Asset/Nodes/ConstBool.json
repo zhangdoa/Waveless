@@ -4,7 +4,8 @@
     {
       "Name": "",
       "PinType": "Bool",
-      "PinKind": 0
+      "PinKind": 0,
+      "DefaultValue": false
     }
   ],
   "Color": {

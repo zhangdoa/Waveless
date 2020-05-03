@@ -9,7 +9,8 @@
     {
       "Name": "In String",
       "PinType": "String",
-      "PinKind": 1
+      "PinKind": 1,
+      "DefaultValue": 0
     },
     {
       "Name": "",

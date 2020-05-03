@@ -248,6 +248,14 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 			l_constDecl += l_string.value;
 			l_constDecl += "\"";
 		}
+		else if (l_pin->Desc->Type == PinType::Bool)
+		{
+			l_constDecl += std::to_string((bool)l_pin->Value);
+		}
+		else if (l_pin->Desc->Type == PinType::Float)
+		{
+			l_constDecl += std::to_string((float)l_pin->Value);
+		}
 		else
 		{
 			l_constDecl += std::to_string(l_pin->Value);
@@ -331,14 +339,18 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 				{
 					l_funcInvocation += l_link->StartPin->InstanceName;
 				}
-
-				if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
-				{
-					l_funcInvocation += ", ";
-				}
-
-				l_index++;
 			}
+			else // pin not connected, use default value
+			{
+				l_funcInvocation += std::to_string(l_inputPin->Desc->DefaultValue);
+			}
+
+			if (l_index < node->Desc->FuncMetadata->ParamsCount - 1)
+			{
+				l_funcInvocation += ", ";
+			}
+
+			l_index++;
 		}
 	}
 
