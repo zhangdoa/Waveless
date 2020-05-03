@@ -7,13 +7,13 @@ namespace Waveless
 	enum class ObjectState
 	{
 		Created,
-		Active,
+		Activated,
 		Terminated
 	};
 
 	struct Object
 	{
-		uint64_t UUID;
+		uint64_t UUID = 0;
 		ObjectState objectState = ObjectState::Created;
 	};
 }

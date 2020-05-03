@@ -38,7 +38,7 @@ WsString StringManager::SpawnString(const char * rhs)
 
 	WsString l_instance;
 	l_instance.UUID = l_id;
-	l_instance.objectState = ObjectState::Active;
+	l_instance.objectState = ObjectState::Activated;
 	l_instance.value = FindRawString(l_id);
 
 	m_WsStringPool.emplace(l_id, l_instance);

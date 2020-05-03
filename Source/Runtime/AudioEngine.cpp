@@ -188,7 +188,7 @@ namespace Waveless
 	{
 		for (auto i : g_eventInstances)
 		{
-			if (i.second->objectState == ObjectState::Active)
+			if (i.second->objectState == ObjectState::Activated)
 			{
 				auto l_frame = read_and_mix_pcm_frames(i.second, reinterpret_cast<float*>(pOutput), frameCount);
 
@@ -241,7 +241,7 @@ namespace Waveless
 		while (g_untriggeredEventInstances.size())
 		{
 			auto i = g_untriggeredEventInstances.front();
-			i->objectState = ObjectState::Active;
+			i->objectState = ObjectState::Activated;
 			g_untriggeredEventInstances.pop();
 		}
 
