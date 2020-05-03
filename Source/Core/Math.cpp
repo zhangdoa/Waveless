@@ -391,4 +391,73 @@ namespace Waveless
 		IFFT_SingleFrame(l_X);
 		return l_X;
 	}
+
+	Vector::Vector(float in_x, float in_y, float in_z, float in_w)
+	{
+		x = in_x;
+		y = in_y;
+		z = in_z;
+		w = in_w;
+	}
+
+	Vector::Vector(float in_x, float in_y, float in_z) : Vector(in_x, in_y, in_z, 1.0f) {};
+
+	Vector::Vector() : Vector(0.0f, 0.0f, 0.0f) {};
+
+	Vector Vector::operator+(const Vector & rhs)
+	{
+		return Vector(rhs.x + x, rhs.y + y, rhs.z + z, rhs.w + w);
+	}
+	Vector & Vector::operator+=(const Vector & rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+		z += rhs.z;
+		w += rhs.w;
+
+		return *this;
+	}
+	Vector Vector::operator-(const Vector & rhs)
+	{
+		return Vector(rhs.x - x, rhs.y - y, rhs.z - z, rhs.w - w);
+	}
+	Vector & Vector::operator-=(const Vector & rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+		z -= rhs.z;
+		w -= rhs.w;
+
+		return *this;
+	}
+	Vector Vector::operator*(const Vector & rhs)
+	{
+		return Vector(rhs.x * x, rhs.y * y, rhs.z * z, rhs.w * w);
+	}
+	Vector & Vector::operator*=(const Vector & rhs)
+	{
+		x *= rhs.x;
+		y *= rhs.y;
+		z *= rhs.z;
+		w *= rhs.w;
+
+		return *this;
+	}
+	Vector Vector::operator/(const Vector & rhs)
+	{
+		return Vector(rhs.x / x, rhs.y / y, rhs.z / z, rhs.w / w);
+	}
+	Vector & Vector::operator/=(const Vector & rhs)
+	{
+		x /= rhs.x;
+		y /= rhs.y;
+		z /= rhs.z;
+		w /= rhs.w;
+
+		return *this;
+	}
+	float Vector::Length()
+	{
+		return std::sqrt(x * x + y * y + z * z + w * w);
+	}
 }

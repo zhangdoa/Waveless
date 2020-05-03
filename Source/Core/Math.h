@@ -12,6 +12,21 @@ namespace Waveless
 		float y;
 		float z;
 		float w;
+
+		Vector(float in_x, float in_y, float in_z, float in_w);
+		Vector(float in_x, float in_y, float in_z);
+		Vector();
+
+		Vector operator+(const Vector& rhs);
+		Vector& operator+=(const Vector& rhs);
+		Vector operator-(const Vector& rhs);
+		Vector& operator-=(const Vector& rhs);
+		Vector operator*(const Vector& rhs);
+		Vector& operator*=(const Vector& rhs);
+		Vector operator/(const Vector& rhs);
+		Vector& operator/=(const Vector& rhs);
+
+		float Length();
 	};
 
 	using Complex = std::complex<double>;
