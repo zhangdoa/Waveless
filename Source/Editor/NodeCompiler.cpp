@@ -250,11 +250,18 @@ void WriteConstant(NodeModel* node, std::vector<char> & TU)
 		}
 		else if (l_pin->Desc->Type == PinType::Bool)
 		{
-			l_constDecl += std::to_string((bool)l_pin->Value);
+			bool value = *reinterpret_cast<bool*>(&l_pin->Value);
+			l_constDecl += std::to_string(value);
+		}
+		else if (l_pin->Desc->Type == PinType::Int)
+		{
+			int32_t value = *reinterpret_cast<int32_t*>(&l_pin->Value);
+			l_constDecl += std::to_string(value);
 		}
 		else if (l_pin->Desc->Type == PinType::Float)
 		{
-			l_constDecl += std::to_string((float)l_pin->Value);
+			float value = *reinterpret_cast<float*>(&l_pin->Value);
+			l_constDecl += std::to_string(value);
 		}
 		else
 		{

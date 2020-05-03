@@ -3,7 +3,7 @@ void Execute(bool in_Start, bool in_Stop, uint64_t in_eventPrototypeID, float in
 	if (in_Start)
 	{
 		out_eventInstanceID = AudioEngine::Trigger(in_eventPrototypeID);
-		if (in_LPFCutOff != 0.0f)
+		if (in_LPFCutOff != 20000.0f)
 		{
 			AudioEngine::ApplyLPF(out_eventInstanceID, in_LPFCutOff);
 		}

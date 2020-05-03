@@ -209,9 +209,20 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 							l_pin->Value = l_string.UUID;
 						}
 					}
-					else
+					else if (l_pin->Desc->Type == PinType::Bool)
 					{
-						l_pin->Value = j_input["Value"];
+						bool value = j_input["Value"];
+						std::memcpy(&l_pin->Value, &value, sizeof(value));
+					}
+					else if (l_pin->Desc->Type == PinType::Int)
+					{
+						int32_t value = j_input["Value"];
+						std::memcpy(&l_pin->Value, &value, sizeof(value));
+					}
+					else if (l_pin->Desc->Type == PinType::Float)
+					{
+						float value = j_input["Value"];
+						std::memcpy(&l_pin->Value, &value, sizeof(value));
 					}
 				}
 			}
@@ -235,9 +246,20 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 							l_pin->Value = l_string.UUID;
 						}
 					}
-					else
+					else if (l_pin->Desc->Type == PinType::Bool)
 					{
-						l_pin->Value = j_output["Value"];
+						bool value = j_output["Value"];
+						std::memcpy(&l_pin->Value, &value, sizeof(value));
+					}
+					else if (l_pin->Desc->Type == PinType::Int)
+					{
+						int32_t value = j_output["Value"];
+						std::memcpy(&l_pin->Value, &value, sizeof(value));
+					}
+					else if (l_pin->Desc->Type == PinType::Float)
+					{
+						float value = j_output["Value"];
+						std::memcpy(&l_pin->Value, &value, sizeof(value));
 					}
 				}
 			}

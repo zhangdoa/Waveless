@@ -455,6 +455,21 @@ static void SaveCanvas(const char* fileName)
 					j_input["Value"] = StringManager::FindString(input.Model->Value).value;
 				}
 			}
+			else if (input.Model->Desc->Type == PinType::Bool)
+			{
+				bool value = *reinterpret_cast<bool*>(&input.Model->Value);
+				j_input["Value"] = value;
+			}
+			else if (input.Model->Desc->Type == PinType::Int)
+			{
+				int32_t value = *reinterpret_cast<int32_t*>(&input.Model->Value);
+				j_input["Value"] = value;
+			}
+			else if (input.Model->Desc->Type == PinType::Float)
+			{
+				float value = *reinterpret_cast<float*>(&input.Model->Value);
+				j_input["Value"] = value;
+			}
 			else
 			{
 				j_input["Value"] = input.Model->Value;
@@ -474,6 +489,21 @@ static void SaveCanvas(const char* fileName)
 				{
 					j_output["Value"] = StringManager::FindString(output.Model->Value).value;
 				}
+			}
+			else if (output.Model->Desc->Type == PinType::Bool)
+			{
+				bool value = *reinterpret_cast<bool*>(&output.Model->Value);
+				j_output["Value"] = value;
+			}
+			else if (output.Model->Desc->Type == PinType::Int)
+			{
+				int32_t value = *reinterpret_cast<int32_t*>(&output.Model->Value);
+				j_output["Value"] = value;
+			}
+			else if (output.Model->Desc->Type == PinType::Float)
+			{
+				float value = *reinterpret_cast<float*>(&output.Model->Value);
+				j_output["Value"] = value;
 			}
 			else
 			{
