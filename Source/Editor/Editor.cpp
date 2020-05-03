@@ -9,7 +9,7 @@ using namespace Waveless;
 WsResult Editor::Setup()
 {
 	StringManager::Setup();
-	NodeDescriptorManager::GenerateNodeDescriptors("..//..//Asset//Nodes//");
+	NodeDescriptorManager::LoadAllNodeDescriptors("..//..//Asset//Nodes//");
 	return ImGuiWrapper::get().Setup();
 }
 

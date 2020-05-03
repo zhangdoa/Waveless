@@ -152,9 +152,10 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 	s_Pins.shrink_to_fit();
 	s_Links.shrink_to_fit();
 
+	auto l_filePath = "..//..//Asset//Canvas//" + std::string(inputFileName);
 	json j;
 
-	if (JSONParser::loadJsonDataFromDisk(("..//..//Asset//Canvas//" + std::string(inputFileName)).c_str(), j) != WsResult::Success)
+	if (JSONParser::loadJsonDataFromDisk(l_filePath.c_str(), j) != WsResult::Success)
 	{
 		return WsResult::Fail;
 	};

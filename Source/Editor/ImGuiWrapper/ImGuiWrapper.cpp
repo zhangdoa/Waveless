@@ -809,53 +809,14 @@ void ShowContextMenu()
 		auto newNodePostion = openPopupPosition;
 
 		NodeWidget* node = nullptr;
-		if (ImGui::MenuItem("BreakVector"))
-			node = SpawnNodeWidget("BreakVector");
 
-		ImGui::Separator();
+		auto l_nodeDescs = NodeDescriptorManager::GetAllNodeDescriptors();
 
-		if (ImGui::MenuItem("Input"))
-			node = SpawnNodeWidget("Input");
-		if (ImGui::MenuItem("Output"))
-			node = SpawnNodeWidget("Output");
-
-		ImGui::Separator();
-
-		if (ImGui::MenuItem("Const Bool"))
-			node = SpawnNodeWidget("ConstBool");
-		if (ImGui::MenuItem("Const Int"))
-			node = SpawnNodeWidget("ConstInt");
-		if (ImGui::MenuItem("Const Float"))
-			node = SpawnNodeWidget("ConstFloat");
-		if (ImGui::MenuItem("Const String"))
-			node = SpawnNodeWidget("ConstString");
-
-		ImGui::Separator();
-
-		if (ImGui::MenuItem("WavePlayer"))
-			node = SpawnNodeWidget("WavePlayer");
-		if (ImGui::MenuItem("Sequencer"))
-			node = SpawnNodeWidget("Sequencer");
-		if (ImGui::MenuItem("Selector"))
-			node = SpawnNodeWidget("Selector");
-		if (ImGui::MenuItem("Attenuator"))
-			node = SpawnNodeWidget("Attenuator");
-		if (ImGui::MenuItem("Mixer"))
-			node = SpawnNodeWidget("Mixer");
-
-		ImGui::Separator();
-
-		if (ImGui::MenuItem("Branch"))
-			node = SpawnNodeWidget("Branch");
-		if (ImGui::MenuItem("Do N"))
-			node = SpawnNodeWidget("DoN");
-		if (ImGui::MenuItem("Print String"))
-			node = SpawnNodeWidget("PrintString");
-
-		ImGui::Separator();
-
-		if (ImGui::MenuItem("Comment"))
-			node = SpawnComment();
+		for (auto i : l_nodeDescs)
+		{
+			if (ImGui::MenuItem(i->Name))
+				node = SpawnNodeWidget(i->Name);
+		}
 
 		if (node)
 		{
