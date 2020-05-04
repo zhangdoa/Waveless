@@ -13,6 +13,7 @@ namespace Waveless
 		static WsResult Update();
 		static WsResult Terminate();
 
-		static WsResult LoadPlugin(const char* pluginName, void* userData);
+		static WsResult LoadPlugin(const char* pluginName, uint64_t& UUID);
+		static WsResult UploadUserData(uint64_t UUID, void* userData);
 	};
 }

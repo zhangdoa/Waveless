@@ -9,8 +9,6 @@ namespace Waveless
 		NodeCompiler() = default;
 		~NodeCompiler() = default;
 
-		static WsResult Compile(const char* inputFileName, const char* outputFileName);
+		static WsResult Compile(const char* inputFileName, const char* outputFileName, uint64_t& pluginUUID);
 	};
 }
-
-void WriteScriptSign(const char * inputFileName, std::vector<char> &l_TU);

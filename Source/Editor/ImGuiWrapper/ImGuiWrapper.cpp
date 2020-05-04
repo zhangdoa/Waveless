@@ -142,6 +142,8 @@ namespace ImGuiWrapperNS
 
 	const float s_TouchTime = 1.0f;
 	std::map<ed::NodeId, float, NodeIdLess> s_NodeTouchTime;
+
+	uint64_t m_pluginUUID = 0;
 }
 
 using namespace ImGuiWrapperNS;
@@ -654,7 +656,7 @@ static void ShowLeftPane(float paneWidth)
 	ImGui::BeginHorizontal("Compiler Function", ImVec2(paneWidth, 0));
 	if (ImGui::Button("Compile"))
 	{
-		NodeCompiler::Compile(&buffer[0], &buffer[0]);
+		NodeCompiler::Compile(&buffer[0], &buffer[0], m_pluginUUID);
 	}
 	ImGui::Spring();
 	ImGui::EndHorizontal();
@@ -662,12 +664,8 @@ static void ShowLeftPane(float paneWidth)
 	ImGui::BeginHorizontal("Simulator Function", ImVec2(paneWidth, 0));
 	if (ImGui::Button("Trigger"))
 	{
-		if (m_StartNode != nullptr)
+		if (m_pluginUUID)
 		{
-			for (auto i : m_StartNode->Outputs)
-			{
-				i.Model->Value;
-			}
 		}
 	}
 	ImGui::Spring();

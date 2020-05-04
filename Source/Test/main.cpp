@@ -91,26 +91,10 @@ void testRealTimeFeatures()
 	AudioEngine::Terminate();
 }
 
-#include "../Core/WsCanvasAPIExport.h"
-WS_CANVAS_API void EventScript_MinimalTest(bool in_Start, bool in_Stop, Vector& out_ListenerWorldPosition, Vector& out_EmitterWorldPosition);
-
-void testCanvasDLL()
-{
-	AudioEngine::Initialize();
-	Vector out_ListenerWorldPosition;
-	Vector out_EmitterWorldPosition;
-
-	EventScript_MinimalTest(true, false, out_ListenerWorldPosition, out_EmitterWorldPosition);
-
-	AudioEngine::Flush();
-	AudioEngine::Terminate();
-}
-
 int main()
 {
 	//testOfflineFeatures();
 	//testRealTimeFeatures();
-	testCanvasDLL();
 
 	return 0;
 }

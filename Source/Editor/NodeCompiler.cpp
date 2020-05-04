@@ -183,11 +183,9 @@ void WriteHeaderIncludes(std::vector<char>& TU)
 	std::copy(l_usingNS.begin(), l_usingNS.end(), std::back_inserter(TU));
 }
 
-void WriteScriptSignature(const char * inputFileName, std::vector<char> &l_TU)
+void WriteInputStructure(const char * inputFileName, std::vector<char> &l_TU)
 {
-	int l_index = 0;
-	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
-	l_scriptSign += "(";
+	auto l_inputStruct = "struct " + IOService::getFileName(inputFileName) + "_InputData\n{\n";
 
 	for (size_t i = 0; i < m_StartNode->Desc->FuncMetadata->ParamsCount; i++)
 	{
@@ -196,18 +194,25 @@ void WriteScriptSignature(const char * inputFileName, std::vector<char> &l_TU)
 
 		std::string l_type = l_paramMetadata->Type;
 
-		l_scriptSign += l_type;
-		l_scriptSign += " ";
-		l_scriptSign += l_paramMetadata->Name;
-
-		if (l_index < m_StartNode->Desc->FuncMetadata->ParamsCount - 1)
-		{
-			l_scriptSign += ", ";
-		}
-
-		l_index++;
+		l_inputStruct += "\t";
+		l_inputStruct += l_type;
+		l_inputStruct += " ";
+		l_inputStruct += l_paramMetadata->Name;
+		l_inputStruct += ";\n";
 	}
+	l_inputStruct += "};\n\n";
+
+	std::copy(l_inputStruct.begin(), l_inputStruct.end(), std::back_inserter(l_TU));
+}
+
+void WriteScriptSignature(const char * inputFileName, std::vector<char> &l_TU)
+{
+	int l_index = 0;
+	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
+	l_scriptSign += "(";
+	l_scriptSign += IOService::getFileName(inputFileName) + "_InputData inputData";
 	l_scriptSign += ")";
+
 	std::copy(l_scriptSign.begin(), l_scriptSign.end(), std::back_inserter(l_TU));
 }
 
@@ -379,7 +384,7 @@ void WriteFunctionInvocation(NodeModel* node, std::vector<char> & TU)
 
 				if (l_link->StartPin->Owner == m_StartNode)
 				{
-					l_funcInvocation += "in_";
+					l_funcInvocation += "inputData.in_";
 					l_funcInvocation += l_link->StartPin->Desc->Name;
 				}
 				else
@@ -438,7 +443,7 @@ void WriteStartNode(std::vector<char>& TU)
 		ParamMetadata* l_paramMetadata;
 		NodeDescriptorManager::GetParamMetadata(int(i) + m_StartNode->Desc->FuncMetadata->ParamsIndexOffset, l_paramMetadata);
 
-		l_funcInvocation += l_paramMetadata->Name;
+		l_funcInvocation += std::string("inputData.") + l_paramMetadata->Name;
 
 		if (l_index < m_StartNode->Desc->FuncMetadata->ParamsCount - 1)
 		{
@@ -480,6 +485,8 @@ WsResult GenerateHeaderFile(const char* inputFileName, const char* outputFileNam
 	std::vector<char> l_TU;
 
 	WriteHeaderIncludes(l_TU);
+
+	WriteInputStructure(inputFileName, l_TU);
 
 	WriteScriptSignature(inputFileName, l_TU);
 
@@ -551,7 +558,7 @@ WsResult BuildPlugin()
 	return WsResult::Success;
 }
 
-WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
+WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName, uint64_t& pluginUUID)
 {
 	GetNodeOrderInfos();
 	GetNodeDescriptors();
@@ -573,7 +580,7 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 	{
 		return WsResult::Fail;
 	}
-	if (PluginManager::LoadPlugin("WsCanvas", m_StartNode) != WsResult::Success)
+	if (PluginManager::LoadPlugin("WsCanvas", pluginUUID) != WsResult::Success)
 	{
 		return WsResult::Fail;
 	}
