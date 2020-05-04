@@ -167,7 +167,7 @@ void GetNodeDescriptors()
 	m_NodeDescriptors.resize(std::distance(m_NodeDescriptors.begin(), it));
 }
 
-void WriteIncludes(std::vector<char>& TU)
+void WriteHeaderIncludes(std::vector<char>& TU)
 {
 	std::string l_APIExport = "#define WS_CANVAS_EXPORTS\n#include \"../../Source/Core/WsCanvasAPIExport.h\"\n";
 	std::string l_math = "#include \"../../Source/Core/Math.h\"\n";
@@ -180,6 +180,43 @@ void WriteIncludes(std::vector<char>& TU)
 	std::copy(l_waveParser.begin(), l_waveParser.end(), std::back_inserter(TU));
 	std::copy(l_audioEngine.begin(), l_audioEngine.end(), std::back_inserter(TU));
 	std::copy(l_usingNS.begin(), l_usingNS.end(), std::back_inserter(TU));
+}
+
+void WriteScriptSignature(const char * inputFileName, std::vector<char> &l_TU)
+{
+	int l_index = 0;
+	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
+	l_scriptSign += "(";
+
+	for (size_t i = 0; i < m_StartNode->Desc->FuncMetadata->ParamsCount; i++)
+	{
+		ParamMetadata* l_paramMetadata;
+		NodeDescriptorManager::GetParamMetadata(int(i) + m_StartNode->Desc->FuncMetadata->ParamsIndexOffset, l_paramMetadata);
+
+		std::string l_type = l_paramMetadata->Type;
+
+		l_scriptSign += l_type;
+		l_scriptSign += " ";
+		l_scriptSign += l_paramMetadata->Name;
+
+		if (l_index < m_StartNode->Desc->FuncMetadata->ParamsCount - 1)
+		{
+			l_scriptSign += ", ";
+		}
+
+		l_index++;
+	}
+	l_scriptSign += ")";
+	std::copy(l_scriptSign.begin(), l_scriptSign.end(), std::back_inserter(l_TU));
+}
+
+void WriteSourceIncludes(std::vector<char>& TU, const char* fileName)
+{
+	std::string l_header = "#include \"";
+	l_header += fileName;
+	l_header += ".h\"\n";
+
+	std::copy(l_header.begin(), l_header.end(), std::back_inserter(TU));
 }
 
 void WriteFunctionDefinitions(std::vector<char>& TU)
@@ -437,42 +474,31 @@ void WriteExecutionFlows(std::vector<char>& TU)
 	}
 }
 
-void WriteScriptSignature(const char * inputFileName, std::vector<char> &l_TU)
+WsResult GenerateHeaderFile(const char* inputFileName, const char* outputFileName)
 {
-	int l_index = 0;
-	auto l_scriptSign = "WS_CANVAS_API void EventScript_" + IOService::getFileName(inputFileName);
-	l_scriptSign += "(";
-
-	for (size_t i = 0; i < m_StartNode->Desc->FuncMetadata->ParamsCount; i++)
-	{
-		ParamMetadata* l_paramMetadata;
-		NodeDescriptorManager::GetParamMetadata(int(i) + m_StartNode->Desc->FuncMetadata->ParamsIndexOffset, l_paramMetadata);
-
-		std::string l_type = l_paramMetadata->Type;
-
-		l_scriptSign += l_type;
-		l_scriptSign += " ";
-		l_scriptSign += l_paramMetadata->Name;
-
-		if (l_index < m_StartNode->Desc->FuncMetadata->ParamsCount - 1)
-		{
-			l_scriptSign += ", ";
-		}
-
-		l_index++;
-	}
-	l_scriptSign += ")";
-	std::copy(l_scriptSign.begin(), l_scriptSign.end(), std::back_inserter(l_TU));
-}
-
-WsResult GenerateCPPFile(const char* inputFileName, const char* outputFileName)
-{
-	GetNodeOrderInfos();
-	GetNodeDescriptors();
-
 	std::vector<char> l_TU;
 
-	WriteIncludes(l_TU);
+	WriteHeaderIncludes(l_TU);
+
+	WriteScriptSignature(inputFileName, l_TU);
+
+	std::string l_headerEnd = ";";
+	std::copy(l_headerEnd.begin(), l_headerEnd.end(), std::back_inserter(l_TU));
+
+	auto l_outputPath = "..//..//Asset//Canvas//" + std::string(inputFileName) + ".h";
+
+	if (IOService::saveFile(l_outputPath.c_str(), l_TU, IOService::IOMode::Text) != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+	return WsResult::Success;
+}
+
+WsResult GenerateSourceFile(const char* inputFileName, const char* outputFileName)
+{
+	std::vector<char> l_TU;
+
+	WriteSourceIncludes(l_TU, inputFileName);
 
 	WriteFunctionDefinitions(l_TU);
 
@@ -502,10 +528,21 @@ WsResult BuildDLL()
 	std::string l_command = "mkdir \"" + l_cd + "../../Build-Canvas\"";
 	std::system(l_command.c_str());
 
+#ifdef _DEBUG
 	l_command = "cmake -DCMAKE_BUILD_TYPE=Debug -G \"Visual Studio 15 Win64\" -S ../../Asset/Canvas -B ../../Build-Canvas";
+#else
+	l_command = "cmake -DCMAKE_BUILD_TYPE=Release -G \"Visual Studio 15 Win64\" -S ../../Asset/Canvas -B ../../Build-Canvas";
+#endif // _DEBUG
+
 	std::system(l_command.c_str());
 
 	l_command = "\"\"%VS2017INSTALLDIR%/MSBuild/15.0/Bin/msbuild.exe\" ../../Build-Canvas/Waveless-Canvas.sln\"";
+
+#ifdef _DEBUG
+	l_command = "xcopy /y ..\\..\\Build-Canvas\\Bin\\Debug\\* ..\\..\\Build\\Bin\\Debug\\";
+#else
+	l_command = "xcopy /y ..\\..\\Build-Canvas\\Bin\\Release\\* ..\\..\\Build\\Bin\\Release\\";
+#endif // _DEBUG
 
 	std::system(l_command.c_str());
 
@@ -514,7 +551,14 @@ WsResult BuildDLL()
 
 WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFileName)
 {
-	if (GenerateCPPFile(inputFileName, outputFileName) != WsResult::Success)
+	GetNodeOrderInfos();
+	GetNodeDescriptors();
+
+	if (GenerateHeaderFile(inputFileName, outputFileName) != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+	if (GenerateSourceFile(inputFileName, outputFileName) != WsResult::Success)
 	{
 		return WsResult::Fail;
 	}
