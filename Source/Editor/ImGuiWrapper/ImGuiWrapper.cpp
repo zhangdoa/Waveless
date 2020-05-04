@@ -131,10 +131,12 @@ namespace ImGuiWrapperNS
 	PinWidget* newLinkPin = nullptr;
 
 	const int s_PinIconSize = 24;
-	std::vector<NodeWidget> s_Nodes;
+	std::vector<NodeWidget*> s_Nodes;
 	std::vector<PinWidget> s_InputPins;
 	std::vector<PinWidget> s_OutputPins;
 	std::vector<LinkWidget> s_Links;
+
+	NodeWidget* m_StartNode;
 
 	ImTextureID s_HeaderBackground = nullptr;
 
@@ -230,9 +232,9 @@ static void UpdateTouch()
 
 static NodeWidget* FindNode(ed::NodeId id)
 {
-	for (auto& node : s_Nodes)
-		if (node.ID == id)
-			return &node;
+	for (auto node : s_Nodes)
+		if (node->ID == id)
+			return node;
 
 	return nullptr;
 }
@@ -251,13 +253,13 @@ static PinWidget* FindPin(ed::PinId id)
 	if (!id)
 		return nullptr;
 
-	for (auto& node : s_Nodes)
+	for (auto node : s_Nodes)
 	{
-		for (auto& pin : node.Inputs)
+		for (auto& pin : node->Inputs)
 			if (pin.ID == id)
 				return &pin;
 
-		for (auto& pin : node.Outputs)
+		for (auto& pin : node->Outputs)
 			if (pin.ID == id)
 				return &pin;
 	}
@@ -272,11 +274,11 @@ static PinWidget* FindPinByUUID(uint64_t id)
 
 	for (auto& node : s_Nodes)
 	{
-		for (auto& pin : node.Inputs)
+		for (auto& pin : node->Inputs)
 			if (pin.Model->UUID == id)
 				return &pin;
 
-		for (auto& pin : node.Outputs)
+		for (auto& pin : node->Outputs)
 			if (pin.Model->UUID == id)
 				return &pin;
 	}
@@ -328,24 +330,26 @@ static void BuildNode(NodeWidget* node)
 
 NodeWidget* SpawnNodeWidget(NodeModel* model)
 {
-	s_Nodes.emplace_back(GetNextId(), model);
+	auto l_widget = new NodeWidget(GetNextId(), model);
+
+	s_Nodes.emplace_back(l_widget);
 
 	for (int i = 0; i < model->Desc->InputPinCount; i++)
 	{
 		PinModel* l_pinModel;
 		NodeModelManager::GetPinModel(model->InputPinIndexOffset + i, l_pinModel);
-		s_Nodes.back().Inputs.emplace_back(GetNextId(), l_pinModel);
+		s_Nodes.back()->Inputs.emplace_back(GetNextId(), l_pinModel);
 	}
 	for (int i = 0; i < model->Desc->OutputPinCount; i++)
 	{
 		PinModel* l_pinModel;
 		NodeModelManager::GetPinModel(model->OutputPinIndexOffset + i, l_pinModel);
-		s_Nodes.back().Outputs.emplace_back(GetNextId(), l_pinModel);
+		s_Nodes.back()->Outputs.emplace_back(GetNextId(), l_pinModel);
 	}
 
-	BuildNode(&s_Nodes.back());
+	BuildNode(s_Nodes.back());
 
-	return &s_Nodes.back();
+	return s_Nodes.back();
 }
 
 NodeWidget* SpawnNodeWidget(const char* nodeDescriptorName)
@@ -367,8 +371,8 @@ LinkWidget* SpawnLinkWidget(PinWidget* startPin, PinWidget* endPin)
 static NodeWidget* SpawnComment()
 {
 	//s_Nodes.emplace_back(GetNextId(), "New Comment");
-	//s_Nodes.back().Model->Desc->Type = NodeType::Comment;
-	//s_Nodes.back().Size = ImVec2(300, 200);
+	//s_Nodes.back()->Model->Desc->Type = NodeType::Comment;
+	//s_Nodes.back()->Size = ImVec2(300, 200);
 
 	//return &s_Nodes.back();
 	return nullptr;
@@ -376,9 +380,9 @@ static NodeWidget* SpawnComment()
 
 static void BuildNodes()
 {
-	for (auto& node : s_Nodes)
+	for (auto node : s_Nodes)
 	{
-		BuildNode(&node);
+		BuildNode(node);
 	}
 }
 
@@ -386,14 +390,18 @@ static void LoadCanvas(const char* fileName)
 {
 	NodeModelManager::LoadCanvas(fileName);
 
-	for (auto& node : s_Nodes)
-	{
-		node.Inputs.clear();
-		node.Outputs.clear();
-		node.Inputs.shrink_to_fit();
-		node.Outputs.shrink_to_fit();
+	NodeModel* l_startNodeModel;
+	NodeModelManager::GetStartNodeModel(l_startNodeModel);
 
-		ed::DeleteNode(node.ID);
+	for (auto node : s_Nodes)
+	{
+		node->Inputs.clear();
+		node->Outputs.clear();
+		node->Inputs.shrink_to_fit();
+		node->Outputs.shrink_to_fit();
+
+		delete node;
+		ed::DeleteNode(node->ID);
 	}
 	for (auto& link : s_Links)
 	{
@@ -410,6 +418,11 @@ static void LoadCanvas(const char* fileName)
 	for (auto l_nodeModel : *l_nodeModels)
 	{
 		auto l_nodeWidget = SpawnNodeWidget(l_nodeModel);
+		if (l_startNodeModel == l_nodeModel)
+		{
+			m_StartNode = l_nodeWidget;
+		}
+
 		ed::SetNodePosition(l_nodeWidget->ID, ImVec2(l_nodeModel->InitialPosition[0], l_nodeModel->InitialPosition[1]));
 	}
 
@@ -435,15 +448,15 @@ static void SaveCanvas(const char* fileName)
 
 	for (auto& node : s_Nodes)
 	{
-		auto l_pos = ed::GetNodePosition(node.ID);
+		auto l_pos = ed::GetNodePosition(node->ID);
 		json j_node;
-		j_node["ID"] = node.ID.Get();
-		j_node["Name"] = node.Model->Desc->Name;
-		j_node["NodeType"] = node.Model->Desc->Type;
+		j_node["ID"] = node->ID.Get();
+		j_node["Name"] = node->Model->Desc->Name;
+		j_node["NodeType"] = node->Model->Desc->Type;
 		j_node["Position"]["X"] = (int)l_pos.x;
 		j_node["Position"]["Y"] = (int)l_pos.y;
 
-		for (auto& input : node.Inputs)
+		for (auto& input : node->Inputs)
 		{
 			json j_input;
 			j_input["ID"] = input.ID.Get();
@@ -478,7 +491,7 @@ static void SaveCanvas(const char* fileName)
 			j_node["Inputs"].emplace_back(j_input);
 		}
 
-		for (auto& output : node.Outputs)
+		for (auto& output : node->Outputs)
 		{
 			json j_output;
 			j_output["ID"] = output.ID.Get();
@@ -527,6 +540,64 @@ static void SaveCanvas(const char* fileName)
 	Waveless::JSONParser::saveJsonDataToDisk(("..//..//Asset//Canvas//" + std::string(fileName)).c_str(), j);
 }
 
+void EditConstVar(PinWidget & output)
+{
+	if (output.Model->Desc->Type == PinType::Bool)
+	{
+		ImGui::PushItemWidth(100.0f);
+		ImGui::Checkbox("", reinterpret_cast<bool*>(&output.Model->Value));
+		ImGui::PopItemWidth();
+	}
+	if (output.Model->Desc->Type == PinType::Int)
+	{
+		ImGui::PushItemWidth(100.0f);
+		ImGui::InputInt("", reinterpret_cast<int32_t*>(&output.Model->Value));
+		ImGui::PopItemWidth();
+	}
+	if (output.Model->Desc->Type == PinType::Float)
+	{
+		ImGui::PushItemWidth(100.0f);
+		ImGui::InputFloat("", reinterpret_cast<float*>(&output.Model->Value));
+		ImGui::PopItemWidth();
+	}
+	if (output.Model->Desc->Type == PinType::Vector)
+	{
+		ImGui::PushItemWidth(200.0f);
+		ImGui::InputFloat3("", reinterpret_cast<float*>(&output.Model->Value));
+		ImGui::PopItemWidth();
+	}
+	if (output.Model->Desc->Type == PinType::String)
+	{
+		// @TODO: Multiple buffer
+		static char buffer[128] = "";
+
+		if (output.Model->Value)
+		{
+			auto l_string = StringManager::FindString(output.Model->Value);
+			std::memcpy(buffer, l_string.value, strlen(l_string.value));
+		}
+
+		static bool wasActive = false;
+
+		ImGui::PushItemWidth(100.0f);
+		ImGui::InputText("##edit", buffer, 127);
+		ImGui::PopItemWidth();
+		if (ImGui::IsItemActive() && !wasActive)
+		{
+			ed::EnableShortcuts(false);
+			wasActive = true;
+		}
+		else if (!ImGui::IsItemActive() && wasActive)
+		{
+			ed::EnableShortcuts(true);
+			wasActive = false;
+			auto l_UUID = output.Model->Value;
+			StringManager::DeleteString(l_UUID);
+			output.Model->Value = StringManager::SpawnString(&buffer[0]).UUID;
+		}
+	}
+}
+
 static bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
 {
 	using namespace ImGui;
@@ -543,11 +614,13 @@ static void ShowLeftPane(float paneWidth)
 {
 	auto& io = ImGui::GetIO();
 
-	ImGui::BeginChild("Nodes", ImVec2(paneWidth, 0));
+	ImGui::BeginChild("ControlPane", ImVec2(paneWidth, 0));
 
 	paneWidth = ImGui::GetContentRegionAvailWidth();
 
-	static char buffer[128] = "DefaultCanvas.json";
+	static char buffer[128] = "MinimalTest.json";
+	//static char buffer[128] = "DefaultCanvas.json";
+
 	static bool wasActive = false;
 
 	ImGui::PushItemWidth(200.0f);
@@ -589,8 +662,16 @@ static void ShowLeftPane(float paneWidth)
 	ImGui::BeginHorizontal("Simulator Function", ImVec2(paneWidth, 0));
 	if (ImGui::Button("Trigger"))
 	{
+		if (m_StartNode != nullptr)
+		{
+			for (auto i : m_StartNode->Outputs)
+			{
+				i.Model->Value;
+			}
+		}
 	}
 	ImGui::Spring();
+
 	ImGui::EndHorizontal();
 
 	ImGui::BeginHorizontal("Canvas Function", ImVec2(paneWidth, 0));
@@ -598,7 +679,7 @@ static void ShowLeftPane(float paneWidth)
 	{
 		ed::NavigateToContent();
 	}
-	ImGui::Spring(0.0f);
+	ImGui::Spring();
 	if (ImGui::Button("Show Flow"))
 	{
 		for (auto& link : s_Links)
@@ -609,6 +690,24 @@ static void ShowLeftPane(float paneWidth)
 	ImGui::Spring();
 	ImGui::EndHorizontal();
 
+	////
+	if (m_StartNode != nullptr)
+	{
+		ImGui::GetWindowDrawList()->AddRectFilled(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+			ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]), ImGui::GetTextLineHeight() * 0.25f);
+		ImGui::Spacing();
+		ImGui::SameLine();
+		ImGui::TextUnformatted("Input Parameters");
+
+		for (auto i : m_StartNode->Outputs)
+		{
+			ImGui::Text(i.Model->Desc->Name);
+			ImGui::SameLine();
+			EditConstVar(i);
+		}
+	}
+
+	////
 	std::vector<ed::NodeId> selectedNodes;
 	std::vector<ed::LinkId> selectedLinks;
 	selectedNodes.resize(ed::GetSelectedObjectCount());
@@ -620,49 +719,40 @@ static void ShowLeftPane(float paneWidth)
 	selectedNodes.resize(nodeCount);
 	selectedLinks.resize(linkCount);
 
-	ImGui::GetWindowDrawList()->AddRectFilled(
-		ImGui::GetCursorScreenPos(),
-		ImGui::GetCursorScreenPos() + ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+	ImGui::GetWindowDrawList()->AddRectFilled(ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + ImVec2(paneWidth, ImGui::GetTextLineHeight()),
 		ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]), ImGui::GetTextLineHeight() * 0.25f);
-	ImGui::Spacing(); ImGui::SameLine();
+	ImGui::Spacing();
+	ImGui::SameLine();
 	ImGui::TextUnformatted("Nodes");
-	ImGui::Indent();
 	for (auto& node : s_Nodes)
 	{
-		ImGui::PushID(node.ID.AsPointer());
+		ImGui::PushID(node->ID.AsPointer());
 		auto start = ImGui::GetCursorScreenPos();
 
-		if (const auto progress = GetTouchProgress(node.ID))
+		if (const auto progress = GetTouchProgress(node->ID))
 		{
-			ImGui::GetWindowDrawList()->AddLine(
-				start + ImVec2(-8, 0),
-				start + ImVec2(-8, ImGui::GetTextLineHeight()),
-				IM_COL32(255, 0, 0, 255 - (int)(255 * progress)), 4.0f);
+			ImGui::GetWindowDrawList()->AddLine(start + ImVec2(-8, 0), start + ImVec2(-8, ImGui::GetTextLineHeight()), IM_COL32(255, 0, 0, 255 - (int)(255 * progress)), 4.0f);
 		}
 
-		bool isSelected = std::find(selectedNodes.begin(), selectedNodes.end(), node.ID) != selectedNodes.end();
-		if (ImGui::Selectable((std::string(node.Model->Desc->Name) + "##" + std::to_string(reinterpret_cast<uintptr_t>(node.ID.AsPointer()))).c_str(), &isSelected))
+		bool isSelected = std::find(selectedNodes.begin(), selectedNodes.end(), node->ID) != selectedNodes.end();
+		if (ImGui::Selectable((std::string(node->Model->Desc->Name) + "##" + std::to_string(reinterpret_cast<uintptr_t>(node->ID.AsPointer()))).c_str(), &isSelected))
 		{
 			if (io.KeyCtrl)
 			{
 				if (isSelected)
-					ed::SelectNode(node.ID, true);
+					ed::SelectNode(node->ID, true);
 				else
-					ed::DeselectNode(node.ID);
+					ed::DeselectNode(node->ID);
 			}
 			else
-				ed::SelectNode(node.ID, false);
+				ed::SelectNode(node->ID, false);
 
 			ed::NavigateToSelection();
 		}
-		auto id = std::string("(") + std::to_string(reinterpret_cast<uintptr_t>(node.ID.AsPointer())) + ")";
+		auto id = std::string("(") + std::to_string(reinterpret_cast<uintptr_t>(node->ID.AsPointer())) + ")";
 		auto textSize = ImGui::CalcTextSize(id.c_str(), nullptr);
-		auto iconPanelPos = start + ImVec2(
-			paneWidth - ImGui::GetStyle().FramePadding.x - ImGui::GetStyle().IndentSpacing - ImGui::GetStyle().ItemInnerSpacing.x * 1,
-			(ImGui::GetTextLineHeight()) / 2);
-		ImGui::GetWindowDrawList()->AddText(
-			ImVec2(iconPanelPos.x - textSize.x - ImGui::GetStyle().ItemInnerSpacing.x, start.y),
-			IM_COL32(255, 255, 255, 255), id.c_str(), nullptr);
+		auto iconPanelPos = start + ImVec2(paneWidth - ImGui::GetStyle().FramePadding.x - ImGui::GetStyle().IndentSpacing - ImGui::GetStyle().ItemInnerSpacing.x * 1, (ImGui::GetTextLineHeight()) / 2);
+		ImGui::GetWindowDrawList()->AddText(ImVec2(iconPanelPos.x - textSize.x - ImGui::GetStyle().ItemInnerSpacing.x, start.y), IM_COL32(255, 255, 255, 255), id.c_str(), nullptr);
 
 		ImGui::PopID();
 	}
@@ -895,25 +985,25 @@ void ShowContextMenu()
 	ed::Resume();
 }
 
-void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
+void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget* node)
 {
 	bool hasOutputDelegates = false;
-	for (auto& output : node.Outputs)
+	for (auto& output : node->Outputs)
 		if (output.Model->Desc->Type == PinType::Delegate)
 			hasOutputDelegates = true;
 
-	builder.Begin(node.ID);
+	builder.Begin(node->ID);
 
-	builder.Header(node.Color);
+	builder.Header(node->Color);
 	ImGui::Spring(0);
-	ImGui::TextUnformatted(node.Model->Desc->Name);
+	ImGui::TextUnformatted(node->Model->Desc->Name);
 	ImGui::Spring(1);
 	ImGui::Dummy(ImVec2(0, 28));
 	if (hasOutputDelegates)
 	{
 		ImGui::BeginVertical("delegates", ImVec2(0, 28));
 		ImGui::Spring(1, 0);
-		for (auto& output : node.Outputs)
+		for (auto& output : node->Outputs)
 		{
 			if (output.Model->Desc->Type != PinType::Delegate)
 				continue;
@@ -948,7 +1038,7 @@ void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 	}
 	builder.EndHeader();
 
-	for (auto& input : node.Inputs)
+	for (auto& input : node->Inputs)
 	{
 		auto alpha = ImGui::GetStyle().Alpha;
 		if (newLinkPin && !CanCreateLink(newLinkPin, &input) && &input != newLinkPin)
@@ -971,7 +1061,7 @@ void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 		builder.EndInput();
 	}
 
-	for (auto& output : node.Outputs)
+	for (auto& output : node->Outputs)
 	{
 		if (output.Model->Desc->Type == PinType::Delegate)
 			continue;
@@ -985,60 +1075,9 @@ void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 		builder.Output(output.ID);
 
-		if (strstr(node.Model->Desc->Name, "Const") != nullptr)
+		if (node->Model->Desc->Type == NodeType::ConstVar)
 		{
-			if (output.Model->Desc->Type == PinType::Bool)
-			{
-				ImGui::PushItemWidth(100.0f);
-				ImGui::Checkbox("", reinterpret_cast<bool*>(&output.Model->Value));
-				ImGui::PopItemWidth();
-				ImGui::Spring(0);
-			}
-			if (output.Model->Desc->Type == PinType::Int)
-			{
-				ImGui::PushItemWidth(100.0f);
-				ImGui::InputInt("", reinterpret_cast<int32_t*>(&output.Model->Value));
-				ImGui::PopItemWidth();
-				ImGui::Spring(0);
-			}
-			if (output.Model->Desc->Type == PinType::Float)
-			{
-				ImGui::PushItemWidth(100.0f);
-				ImGui::InputFloat("", reinterpret_cast<float*>(&output.Model->Value));
-				ImGui::PopItemWidth();
-				ImGui::Spring(0);
-			}
-			if (output.Model->Desc->Type == PinType::String)
-			{
-				// @TODO: Multiple buffer
-				static char buffer[128] = "";
-
-				if (output.Model->Value)
-				{
-					auto l_string = StringManager::FindString(output.Model->Value);
-					std::memcpy(buffer, l_string.value, strlen(l_string.value));
-				}
-
-				static bool wasActive = false;
-
-				ImGui::PushItemWidth(100.0f);
-				ImGui::InputText("##edit", buffer, 127);
-				ImGui::PopItemWidth();
-				if (ImGui::IsItemActive() && !wasActive)
-				{
-					ed::EnableShortcuts(false);
-					wasActive = true;
-				}
-				else if (!ImGui::IsItemActive() && wasActive)
-				{
-					ed::EnableShortcuts(true);
-					wasActive = false;
-					auto l_UUID = output.Model->Value;
-					StringManager::DeleteString(l_UUID);
-					output.Model->Value = StringManager::SpawnString(&buffer[0]).UUID;
-				}
-				ImGui::Spring(0);
-			}
+			EditConstVar(output);
 		}
 
 		if (strcmp(output.Model->Desc->Name, ""))
@@ -1055,29 +1094,29 @@ void ShowFunctionsAndVars(util::BlueprintNodeBuilder& builder, NodeWidget& node)
 	builder.End();
 }
 
-void ShowComments(util::BlueprintNodeBuilder& builder, const NodeWidget& node)
+void ShowComments(util::BlueprintNodeBuilder& builder, NodeWidget* node)
 {
 	const float commentAlpha = 0.75f;
 
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, commentAlpha);
 	ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(255, 255, 255, 64));
 	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(255, 255, 255, 64));
-	ed::BeginNode(node.ID);
-	ImGui::PushID(node.ID.AsPointer());
+	ed::BeginNode(node->ID);
+	ImGui::PushID(node->ID.AsPointer());
 	ImGui::BeginVertical("content");
 	ImGui::BeginHorizontal("horizontal");
 	ImGui::Spring(1);
-	ImGui::TextUnformatted(node.Model->Desc->Name);
+	ImGui::TextUnformatted(node->Model->Desc->Name);
 	ImGui::Spring(1);
 	ImGui::EndHorizontal();
-	ed::Group(node.Size);
+	ed::Group(node->Size);
 	ImGui::EndVertical();
 	ImGui::PopID();
 	ed::EndNode();
 	ed::PopStyleColor(2);
 	ImGui::PopStyleVar();
 
-	if (ed::BeginGroupHint(node.ID))
+	if (ed::BeginGroupHint(node->ID))
 	{
 		auto bgAlpha = static_cast<int>(ImGui::GetStyle().Alpha * 255);
 
@@ -1085,7 +1124,7 @@ void ShowComments(util::BlueprintNodeBuilder& builder, const NodeWidget& node)
 
 		ImGui::SetCursorScreenPos(min - ImVec2(-8, ImGui::GetTextLineHeightWithSpacing() + 4));
 		ImGui::BeginGroup();
-		ImGui::TextUnformatted(node.Model->Desc->Name);
+		ImGui::TextUnformatted(node->Model->Desc->Name);
 		ImGui::EndGroup();
 
 		auto drawList = ed::GetHintBackgroundDrawList();
@@ -1217,7 +1256,7 @@ void DeleteNodes()
 		{
 			if (ed::AcceptDeletedItem())
 			{
-				auto id = std::find_if(s_Nodes.begin(), s_Nodes.end(), [nodeId](auto& node) { return node.ID == nodeId; });
+				auto id = std::find_if(s_Nodes.begin(), s_Nodes.end(), [nodeId](auto& node) { return node->ID == nodeId; });
 				if (id != s_Nodes.end())
 					s_Nodes.erase(id);
 			}
@@ -1234,9 +1273,9 @@ void ShowEditorCanvas()
 
 		util::BlueprintNodeBuilder builder(s_HeaderBackground, ImGuiWrapperNS::m_rendererImpl->GetTextureWidth(s_HeaderBackground), ImGuiWrapperNS::m_rendererImpl->GetTextureHeight(s_HeaderBackground));
 
-		for (auto& node : s_Nodes)
+		for (auto node : s_Nodes)
 		{
-			if (node.Model->Desc->Type == NodeType::Comment)
+			if (node->Model->Desc->Type == NodeType::Comment)
 			{
 				ShowComments(builder, node);
 			}

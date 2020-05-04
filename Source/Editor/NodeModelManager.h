@@ -47,6 +47,9 @@ namespace Waveless
 		WsResult GetNodeModel(int index, NodeModel*& result);
 		WsResult GetLinkModel(int index, LinkModel*& result);
 
+		WsResult GetStartNodeModel(NodeModel*& result);
+		WsResult GetEndNodeModel(NodeModel*& result);
+
 		WsResult GetAllNodeModels(std::vector<NodeModel*>*& result);
 		WsResult GetAllLinkModels(std::vector<LinkModel*>*& result);
 

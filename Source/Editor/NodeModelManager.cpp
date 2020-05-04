@@ -93,28 +93,36 @@ WsResult Waveless::NodeModelManager::SpawnLinkModel(PinModel* startPin, PinModel
 	endPin->Owner->ConnectionState = NodeConnectionState::Connected;
 
 	result = l_link;
-
 	return WsResult::Success;
 }
 
 WsResult Waveless::NodeModelManager::GetPinModel(int index, PinModel*& result)
 {
 	result = s_Pins[index];
-
 	return WsResult::Success;
 }
 
 WsResult Waveless::NodeModelManager::GetNodeModel(int index, NodeModel*& result)
 {
 	result = s_Nodes[index];
-
 	return WsResult::Success;
 }
 
 WsResult Waveless::NodeModelManager::GetLinkModel(int index, LinkModel*& result)
 {
 	result = s_Links[index];
+	return WsResult::Success;
+}
 
+WsResult Waveless::NodeModelManager::GetStartNodeModel(NodeModel *& result)
+{
+	result = m_StartNode;
+	return WsResult::Success;
+}
+
+WsResult Waveless::NodeModelManager::GetEndNodeModel(NodeModel *& result)
+{
+	result = m_EndNode;
 	return WsResult::Success;
 }
 
@@ -182,11 +190,11 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 		SpawnNodeModel(l_nodeName.c_str(), l_node);
 		l_node->UUID = j_node["ID"];
 
-		if (l_nodeName == "Input")
+		if (strstr(l_nodeName.c_str(), "Input"))
 		{
 			m_StartNode = l_node;
 		}
-		else if (l_nodeName == "Output")
+		else if (strstr(l_nodeName.c_str(), "Output"))
 		{
 			m_EndNode = l_node;
 		}
