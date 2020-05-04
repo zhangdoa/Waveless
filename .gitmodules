@@ -17,3 +17,6 @@
 	path = GitSubmodules/json
 	url = https://github.com/nlohmann/json
 	ignore = dirty
+[submodule "GitSubmodules/cr"]
+	path = GitSubmodules/cr
+	url = https://github.com/fungos/cr

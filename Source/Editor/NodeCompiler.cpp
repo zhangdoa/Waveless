@@ -4,6 +4,7 @@
 #include "../IO/IOService.h"
 #include "../Core/Math.h"
 #include "../Core/String.h"
+#include "../Runtime/PluginManager.h"
 
 #include "NodeDescriptorManager.h"
 #include "NodeModelManager.h"
@@ -521,7 +522,7 @@ WsResult GenerateSourceFile(const char* inputFileName, const char* outputFileNam
 	return WsResult::Success;
 }
 
-WsResult BuildDLL()
+WsResult BuildPlugin()
 {
 	auto l_cd = IOService::getWorkingDirectory();
 
@@ -537,6 +538,7 @@ WsResult BuildDLL()
 	std::system(l_command.c_str());
 
 	l_command = "\"\"%VS2017INSTALLDIR%/MSBuild/15.0/Bin/msbuild.exe\" ../../Build-Canvas/Waveless-Canvas.sln\"";
+	std::system(l_command.c_str());
 
 #ifdef _DEBUG
 	l_command = "xcopy /y ..\\..\\Build-Canvas\\Bin\\Debug\\* ..\\..\\Build\\Bin\\Debug\\";
@@ -554,17 +556,27 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 	GetNodeOrderInfos();
 	GetNodeDescriptors();
 
-	if (GenerateHeaderFile(inputFileName, outputFileName) != WsResult::Success)
+	std::string l_inputFileName = inputFileName;
+	l_inputFileName = l_inputFileName.substr(0, l_inputFileName.find_last_of("."));
+	std::string l_outputFileName = outputFileName;
+	l_outputFileName = l_outputFileName.substr(0, l_outputFileName.find_last_of("."));
+
+	if (GenerateHeaderFile(l_inputFileName.c_str(), l_outputFileName.c_str()) != WsResult::Success)
 	{
 		return WsResult::Fail;
 	}
-	if (GenerateSourceFile(inputFileName, outputFileName) != WsResult::Success)
+	if (GenerateSourceFile(l_inputFileName.c_str(), l_outputFileName.c_str()) != WsResult::Success)
 	{
 		return WsResult::Fail;
 	}
-	if (BuildDLL() != WsResult::Success)
+	if (BuildPlugin() != WsResult::Success)
 	{
 		return WsResult::Fail;
 	}
+	if (PluginManager::LoadPlugin("WsCanvas", m_StartNode) != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+
 	return WsResult::Success;
 }
