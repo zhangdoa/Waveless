@@ -87,6 +87,7 @@ NodeDescriptor* NodeDescriptorManager::LoadNodeDescriptor(const char * nodeDescr
 		pinDesc.Kind = PinKind(pinKind);
 		pinDesc.Name = StringManager::SpawnString(pinName.c_str()).value;
 		pinDesc.Type = GetPinType(pinType.c_str());
+
 		if (pinDesc.Type == PinType::Bool)
 		{
 			pinDesc.DefaultValue = (bool)k["DefaultValue"];
@@ -99,6 +100,7 @@ NodeDescriptor* NodeDescriptorManager::LoadNodeDescriptor(const char * nodeDescr
 		{
 			pinDesc.DefaultValue = k["DefaultValue"];
 		}
+		pinDesc.ParamIndex = k["ParamIndex"];
 
 		if (pinDesc.Kind == PinKind::Output)
 		{

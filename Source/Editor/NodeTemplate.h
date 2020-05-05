@@ -38,6 +38,7 @@ namespace Waveless
 		PinType Type;
 		PinKind Kind;
 		PinValue DefaultValue;
+		int ParamIndex;
 	};
 
 	struct ParamMetadata

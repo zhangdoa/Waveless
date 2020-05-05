@@ -5,24 +5,28 @@
       "Name": "X",
       "PinType": "Float",
       "PinKind": 0,
-      "DefaultValue": 0.0
+      "DefaultValue": 0.0,
+      "ParamIndex": 1
     },
     {
       "Name": "Y",
       "PinType": "Float",
       "PinKind": 0,
-      "DefaultValue": 0.0
+      "DefaultValue": 0.0,
+      "ParamIndex": 2
     },
     {
       "Name": "Z",
       "PinType": "Float",
       "PinKind": 0,
-      "DefaultValue": 0.0
+      "DefaultValue": 0.0,
+      "ParamIndex": 3
     },
     {
       "Name": "",
       "PinType": "Vector",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": 0
     }
   ],
   "Color": {

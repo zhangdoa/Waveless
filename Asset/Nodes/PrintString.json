@@ -4,18 +4,21 @@
     {
       "Name": "",
       "PinType": "Flow",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": -1
     },
     {
       "Name": "In String",
       "PinType": "String",
       "PinKind": 1,
-      "DefaultValue": 0
+      "DefaultValue": 0,
+      "ParamIndex": 0
     },
     {
       "Name": "",
       "PinType": "Flow",
-      "PinKind": 0
+      "PinKind": 0,
+      "ParamIndex": -1
     }
   ],
   "Color": {

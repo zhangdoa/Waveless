@@ -5,7 +5,8 @@
       "Name": "",
       "PinType": "Int",
       "PinKind": 0,
-      "DefaultValue": 0
+      "DefaultValue": 0,
+      "ParamIndex": 0
     }
   ],
   "Color": {

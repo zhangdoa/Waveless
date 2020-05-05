@@ -5,7 +5,8 @@
       "Name": "",
       "PinType": "Float",
       "PinKind": 0,
-      "DefaultValue": 0.0
+      "DefaultValue": 0.0,
+      "ParamIndex": 0
     }
   ],
   "Color": {

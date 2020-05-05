@@ -4,13 +4,15 @@
     {
       "Name": "",
       "PinType": "Flow",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": -1
     },
     {
       "Name": "EventInstanceID",
       "PinType": "Int",
       "PinKind": 1,
-      "DefaultValue": 0
+      "DefaultValue": 0,
+      "ParamIndex": 0
     }
   ],
   "Color": {

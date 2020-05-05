@@ -5,43 +5,50 @@
       "Name": "Start",
       "PinType": "Bool",
       "PinKind": 1,
-      "DefaultValue": false
+      "DefaultValue": false,
+      "ParamIndex": 0
     },
     {
       "Name": "Stop",
       "PinType": "Bool",
       "PinKind": 1,
-      "DefaultValue": false
+      "DefaultValue": false,
+      "ParamIndex": 1
     },
     {
       "Name": "EventPrototypeID",
       "PinType": "Int",
       "PinKind": 1,
-      "DefaultValue": 0
+      "DefaultValue": 0,
+      "ParamIndex": 2
     },
     {
       "Name": "Gain",
       "PinType": "Float",
       "PinKind": 1,
-      "DefaultValue": 0.0
+      "DefaultValue": 0.0,
+      "ParamIndex": 3
     },
     {
       "Name": "LPFCutOff",
       "PinType": "Float",
       "PinKind": 1,
-      "DefaultValue": 20000.0
+      "DefaultValue": 20000.0,
+      "ParamIndex": 4
     },
     {
       "Name": "HPFCutOff",
       "PinType": "Float",
       "PinKind": 1,
-      "DefaultValue": 0.0
+      "DefaultValue": 0.0,
+      "ParamIndex": 5
     },
     {
       "Name": "EventInstanceID",
       "PinType": "Int",
       "PinKind": 0,
-      "DefaultValue": 0.0
+      "DefaultValue": 0.0,
+      "ParamIndex": 6
     }
   ],
   "Color": {

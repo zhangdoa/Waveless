@@ -4,23 +4,27 @@
     {
       "Name": "",
       "PinType": "Flow",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": -1
     },
     {
       "Name": "Condition",
       "PinType": "Bool",
       "PinKind": 1,
-      "DefaultValue": false
+      "DefaultValue": false,
+      "ParamIndex": 0
     },
     {
       "Name": "True",
       "PinType": "Flow",
-      "PinKind": 0
+      "PinKind": 0,
+      "ParamIndex": -1
     },
     {
       "Name": "False",
       "PinType": "Flow",
-      "PinKind": 0
+      "PinKind": 0,
+      "ParamIndex": -1
     }
   ],
   "Color": {

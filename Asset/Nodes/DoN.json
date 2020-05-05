@@ -4,29 +4,34 @@
     {
       "Name": "Enter",
       "PinType": "Flow",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": -1
     },
     {
       "Name": "N",
       "PinType": "Int",
       "PinKind": 1,
-      "DefaultValue": 0
+      "DefaultValue": 0,
+      "ParamIndex": 0
     },
     {
       "Name": "Reset",
       "PinType": "Flow",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": -1
     },
     {
       "Name": "Exit",
       "PinType": "Flow",
-      "PinKind": 0
+      "PinKind": 0,
+      "ParamIndex": -1
     },
     {
       "Name": "Counter",
       "PinType": "Int",
       "PinKind": 0,
-      "DefaultValue": 0
+      "DefaultValue": 0,
+      "ParamIndex": 1
     }
   ],
   "Color": {

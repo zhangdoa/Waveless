@@ -4,29 +4,34 @@
     {
       "Name": "",
       "PinType": "Flow",
-      "PinKind": 0
+      "PinKind": 0,
+      "ParamIndex": -1
     },
     {
       "Name": "Start",
       "PinType": "Bool",
       "PinKind": 0,
-      "DefaultValue": false
+      "DefaultValue": false,
+      "ParamIndex": 0
     },
     {
       "Name": "Stop",
       "PinType": "Bool",
       "PinKind": 0,
-      "DefaultValue": false
+      "DefaultValue": false,
+      "ParamIndex": 1
     },
     {
       "Name": "ListenerWorldPosition",
       "PinType": "Vector",
-      "PinKind": 0
+      "PinKind": 0,
+      "ParamIndex": 2
     },
     {
       "Name": "EmitterWorldPosition",
       "PinType": "Vector",
-      "PinKind": 0
+      "PinKind": 0,
+      "ParamIndex": 3
     }
   ],
   "Color": {

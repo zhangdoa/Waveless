@@ -4,18 +4,21 @@
     {
       "Name": "ListenerWorldPosition",
       "PinType": "Vector",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": 0
     },
     {
       "Name": "EmitterWorldPosition",
       "PinType": "Vector",
-      "PinKind": 1
+      "PinKind": 1,
+      "ParamIndex": 1
     },
     {
       "Name": "Gain",
       "PinType": "Float",
       "PinKind": 0,
-      "DefaultValue": 0
+      "DefaultValue": 0,
+      "ParamIndex": 2
     }
   ],
   "Color": {
