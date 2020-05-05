@@ -80,6 +80,7 @@ WsResult Waveless::PluginManager::LoadPlugin(const char* pluginName, uint64_t& U
 
 		cr_plugin_open(l_plugin.ctx, l_pluginPath.c_str());
 		l_plugin.objectState = ObjectState::Activated;
+		l_plugin.ctx.userdata = 0;
 
 		m_pluginFilePaths.emplace(l_pluginPath, l_plugin.UUID);
 		m_pluginInstances.emplace(l_plugin.UUID, l_plugin);
