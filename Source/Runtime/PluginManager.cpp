@@ -9,8 +9,9 @@ namespace Waveless
 {
 	struct Plugin : public Object
 	{
-		cr_plugin ctx;
-		std::string filePath;
+		bool m_NeedUpdate = false;
+		cr_plugin m_Context = cr_plugin{};
+		std::string m_FilePath;
 	};
 
 	std::unordered_map<std::string, uint64_t> m_pluginFilePaths;
@@ -28,7 +29,11 @@ WsResult Waveless::PluginManager::Update()
 {
 	for (auto& i : m_pluginInstances)
 	{
-		cr_plugin_update(i.second.ctx);
+		if (i.second.m_NeedUpdate)
+		{
+			cr_plugin_update(i.second.m_Context);
+			i.second.m_NeedUpdate = false;
+		}
 	}
 
 	return WsResult::Success;
@@ -38,7 +43,7 @@ WsResult Waveless::PluginManager::Terminate()
 {
 	for (auto& i : m_pluginInstances)
 	{
-		cr_plugin_close(i.second.ctx);
+		cr_plugin_close(i.second.m_Context);
 	}
 
 	return WsResult::Success;
@@ -76,11 +81,11 @@ WsResult Waveless::PluginManager::LoadPlugin(const char* pluginName, uint64_t& U
 	{
 		Plugin l_plugin;
 		l_plugin.UUID = Math::GenerateUUID();
-		l_plugin.filePath = l_pluginPath;
+		l_plugin.m_FilePath = l_pluginPath;
 
-		cr_plugin_open(l_plugin.ctx, l_pluginPath.c_str());
+		cr_plugin_open(l_plugin.m_Context, l_pluginPath.c_str());
 		l_plugin.objectState = ObjectState::Activated;
-		l_plugin.ctx.userdata = 0;
+		l_plugin.m_Context.userdata = 0;
 
 		m_pluginFilePaths.emplace(l_pluginPath, l_plugin.UUID);
 		m_pluginInstances.emplace(l_plugin.UUID, l_plugin);
@@ -96,7 +101,8 @@ WsResult Waveless::PluginManager::UploadUserData(uint64_t UUID, void* userData)
 
 	if (l_result != m_pluginInstances.end())
 	{
-		l_result->second.ctx.userdata = userData;
+		l_result->second.m_Context.userdata = userData;
+		l_result->second.m_NeedUpdate = true;
 		return WsResult::Success;
 	}
 	return WsResult::IDNotFound;

@@ -3,7 +3,6 @@
 #include "PluginName.h"
 
 static unsigned int CR_STATE version = 1;
-static bool CR_STATE triggered = false;
 
 CR_EXPORT int cr_main(struct cr_plugin *ctx, enum cr_op operation)
 {
@@ -23,23 +22,13 @@ CR_EXPORT int cr_main(struct cr_plugin *ctx, enum cr_op operation)
 		Logger::Log(LogLevel::Verbose, "A rollback happened due to failure: ", ctx->failure);
 	}
 
-	// after reload
-	if (ctx->version > version)
-	{
-		triggered = false;
-	}
-
 	version = ctx->version;
 
 	auto l_inputData = reinterpret_cast<PluginName_InputData*>(ctx->userdata);
 
 	if (l_inputData != nullptr)
 	{
-		if (!triggered)
-		{
-			EventScript_PluginName(*l_inputData);
-			triggered = true;
-		}
+		EventScript_PluginName(*l_inputData);
 	}
 
 	return 0;
