@@ -2,6 +2,7 @@
 #include "NodeDescriptorManager.h"
 #include "../Core/Math.h"
 #include "../Core/String.h"
+#include "../Core/Vector.h"
 #include "../IO/JSONParser.h"
 
 using namespace Waveless;
@@ -232,6 +233,19 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 						float value = j_input["Value"];
 						std::memcpy(&l_pin->Value, &value, sizeof(value));
 					}
+					else if (l_pin->Desc->Type == PinType::Vector)
+					{
+						if (j_input.find("Value") != j_input.end())
+						{
+							auto l_x = j_input["Value"]["X"];
+							auto l_y = j_input["Value"]["Y"];
+							auto l_z = j_input["Value"]["Z"];
+							auto l_w = j_input["Value"]["W"];
+
+							auto l_vector = VectorManager::SpawnVector(l_x, l_y, l_z, l_w);
+							l_pin->Value = l_vector.UUID;
+						}
+					}
 				}
 			}
 		}
@@ -268,6 +282,19 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 					{
 						float value = j_output["Value"];
 						std::memcpy(&l_pin->Value, &value, sizeof(value));
+					}
+					else if (l_pin->Desc->Type == PinType::Vector)
+					{
+						if (j_output.find("Value") != j_output.end())
+						{
+							auto l_x = j_output["Value"]["X"];
+							auto l_y = j_output["Value"]["Y"];
+							auto l_z = j_output["Value"]["Z"];
+							auto l_w = j_output["Value"]["W"];
+
+							auto l_vector = VectorManager::SpawnVector(l_x, l_y, l_z, l_w);
+							l_pin->Value = l_vector.UUID;
+						}
 					}
 				}
 			}

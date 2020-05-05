@@ -3,6 +3,7 @@
 #include "../../Core/stdafx.h"
 #include "../../Core/Math.h"
 #include "../../Core/String.h"
+#include "../../Core/Vector.h"
 #include "../../IO/IOService.h"
 #include "../../IO/JSONParser.h"
 #include "../NodeDescriptorManager.h"
@@ -485,6 +486,17 @@ static void SaveCanvas(const char* fileName)
 				float value = *reinterpret_cast<float*>(&input.Model->Value);
 				j_input["Value"] = value;
 			}
+			else if (input.Model->Desc->Type == PinType::Vector)
+			{
+				if (input.Model->Value)
+				{
+					auto l_vector = VectorManager::FindVector(input.Model->Value);
+					j_input["Value"]["X"] = l_vector.value->x;
+					j_input["Value"]["Y"] = l_vector.value->y;
+					j_input["Value"]["Z"] = l_vector.value->z;
+					j_input["Value"]["W"] = l_vector.value->w;
+				}
+			}
 			else
 			{
 				j_input["Value"] = input.Model->Value;
@@ -520,6 +532,17 @@ static void SaveCanvas(const char* fileName)
 				float value = *reinterpret_cast<float*>(&output.Model->Value);
 				j_output["Value"] = value;
 			}
+			else if (output.Model->Desc->Type == PinType::Vector)
+			{
+				if (output.Model->Value)
+				{
+					auto l_vector = VectorManager::FindVector(output.Model->Value);
+					j_output["Value"]["X"] = l_vector.value->x;
+					j_output["Value"]["Y"] = l_vector.value->y;
+					j_output["Value"]["Z"] = l_vector.value->z;
+					j_output["Value"]["W"] = l_vector.value->w;
+				}
+			}
 			else
 			{
 				j_output["Value"] = output.Model->Value;
@@ -547,26 +570,30 @@ void EditConstVar(PinWidget & output)
 	if (output.Model->Desc->Type == PinType::Bool)
 	{
 		ImGui::PushItemWidth(100.0f);
-		ImGui::Checkbox("", reinterpret_cast<bool*>(&output.Model->Value));
+		ImGui::Checkbox(output.Model->Desc->Name, reinterpret_cast<bool*>(&output.Model->Value));
 		ImGui::PopItemWidth();
 	}
 	if (output.Model->Desc->Type == PinType::Int)
 	{
 		ImGui::PushItemWidth(100.0f);
-		ImGui::InputInt("", reinterpret_cast<int32_t*>(&output.Model->Value));
+		ImGui::InputInt(output.Model->Desc->Name, reinterpret_cast<int32_t*>(&output.Model->Value));
 		ImGui::PopItemWidth();
 	}
 	if (output.Model->Desc->Type == PinType::Float)
 	{
 		ImGui::PushItemWidth(100.0f);
-		ImGui::InputFloat("", reinterpret_cast<float*>(&output.Model->Value));
+		ImGui::InputFloat(output.Model->Desc->Name, reinterpret_cast<float*>(&output.Model->Value));
 		ImGui::PopItemWidth();
 	}
 	if (output.Model->Desc->Type == PinType::Vector)
 	{
-		ImGui::PushItemWidth(200.0f);
-		ImGui::InputFloat3("", reinterpret_cast<float*>(&output.Model->Value));
-		ImGui::PopItemWidth();
+		if (output.Model->Value)
+		{
+			auto l_vector = VectorManager::FindVector(output.Model->Value);
+			ImGui::PushItemWidth(200.0f);
+			ImGui::InputFloat3(output.Model->Desc->Name, reinterpret_cast<float*>(l_vector.value));
+			ImGui::PopItemWidth();
+		}
 	}
 	if (output.Model->Desc->Type == PinType::String)
 	{
@@ -582,7 +609,7 @@ void EditConstVar(PinWidget & output)
 		static bool wasActive = false;
 
 		ImGui::PushItemWidth(100.0f);
-		ImGui::InputText("##edit", buffer, 127);
+		ImGui::InputText(output.Model->Desc->Name, buffer, 127);
 		ImGui::PopItemWidth();
 		if (ImGui::IsItemActive() && !wasActive)
 		{
@@ -699,8 +726,6 @@ static void ShowLeftPane(float paneWidth)
 
 		for (auto i : m_StartNode->Outputs)
 		{
-			ImGui::Text(i.Model->Desc->Name);
-			ImGui::SameLine();
 			EditConstVar(i);
 		}
 	}
