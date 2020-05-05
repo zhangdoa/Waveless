@@ -9,8 +9,9 @@ using namespace Waveless;
 
 namespace NodeModelManagerNS
 {
-	NodeModel* m_StartNode;
-	NodeModel* m_EndNode;
+	NodeModel* m_StartNode = 0;
+	NodeModel* m_EndNode = 0;
+	uint64_t m_InputDataSize = 0;
 
 	std::vector<NodeModel*> s_Nodes;
 	std::vector<PinModel*> s_Pins;
@@ -314,5 +315,47 @@ WsResult Waveless::NodeModelManager::LoadCanvas(const char * inputFileName)
 		l_link->UUID = j_link["ID"];
 	}
 
+	for (int i = 0; i < m_StartNode->OutputPinCount; i++)
+	{
+		PinDescriptor* l_pinDesc;
+		NodeDescriptorManager::GetPinDescriptor(m_StartNode->OutputPinIndexOffset + i, PinKind::Input, l_pinDesc);
+
+		switch (l_pinDesc->Type)
+		{
+		case Waveless::PinType::Flow:
+			break;
+		case Waveless::PinType::Bool:
+			m_InputDataSize += sizeof(bool);
+			break;
+		case Waveless::PinType::Int:
+			m_InputDataSize += sizeof(int32_t);
+			break;
+		case Waveless::PinType::Float:
+			m_InputDataSize += sizeof(float);
+			break;
+		case Waveless::PinType::String:
+			m_InputDataSize += sizeof(char*);
+			break;
+		case Waveless::PinType::Vector:
+			m_InputDataSize += sizeof(Vector);
+			break;
+		case Waveless::PinType::Object:
+			m_InputDataSize += sizeof(void*);
+			break;
+		case Waveless::PinType::Function:
+			break;
+		case Waveless::PinType::Delegate:
+			break;
+		default:
+			break;
+		}
+	}
+
+	return WsResult::Success;
+}
+
+WsResult Waveless::NodeModelManager::GetInputDataSize(uint64_t & size)
+{
+	size = m_InputDataSize;
 	return WsResult::Success;
 }

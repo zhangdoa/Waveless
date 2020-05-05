@@ -6,6 +6,7 @@
 #include "../../Core/Vector.h"
 #include "../../IO/IOService.h"
 #include "../../IO/JSONParser.h"
+#include "../../Runtime/PluginManager.h"
 #include "../NodeDescriptorManager.h"
 #include "../NodeModelManager.h"
 #include "../NodeCompiler.h"
@@ -145,6 +146,8 @@ namespace ImGuiWrapperNS
 	std::map<ed::NodeId, float, NodeIdLess> s_NodeTouchTime;
 
 	uint64_t m_pluginUUID = 0;
+	std::vector<char> m_pluginInputData;
+	std::vector<PinModel*> m_sortedStartNodePinModels;
 }
 
 using namespace ImGuiWrapperNS;
@@ -396,6 +399,9 @@ static void LoadCanvas(const char* fileName)
 	NodeModel* l_startNodeModel;
 	NodeModelManager::GetStartNodeModel(l_startNodeModel);
 
+	m_pluginInputData.resize(l_startNodeModel->OutputPinCount);
+	m_sortedStartNodePinModels.resize(l_startNodeModel->OutputPinCount);
+
 	for (auto node : s_Nodes)
 	{
 		node->Inputs.clear();
@@ -627,6 +633,71 @@ void EditConstVar(PinWidget & output)
 	}
 }
 
+void GenerateInputData()
+{
+	if (m_pluginUUID)
+	{
+		uint64_t m_pluginInputDataSize;
+		NodeModelManager::GetInputDataSize(m_pluginInputDataSize);
+
+		if (m_pluginInputDataSize)
+		{
+			auto l_offset = 0;
+
+			for (size_t i = 0; i < m_StartNode->Outputs.size(); i++)
+			{
+				m_sortedStartNodePinModels[i] = m_StartNode->Outputs[i].Model;
+			}
+
+			std::sort(m_sortedStartNodePinModels.begin(), m_sortedStartNodePinModels.end(), [&](PinModel* lhs, PinModel* rhs)
+			{
+				return lhs->Desc->ParamIndex < rhs->Desc->ParamIndex;
+			});
+
+			for (auto i : m_sortedStartNodePinModels)
+			{
+				switch (i->Desc->Type)
+				{
+				case Waveless::PinType::Flow:
+					break;
+				case Waveless::PinType::Bool:
+					std::memcpy(m_pluginInputData.data() + l_offset, &i->Value, sizeof(bool));
+					l_offset += sizeof(bool);
+					break;
+				case Waveless::PinType::Int:
+					std::memcpy(m_pluginInputData.data() + l_offset, &i->Value, sizeof(int32_t));
+					l_offset += sizeof(int32_t);
+					break;
+				case Waveless::PinType::Float:
+					std::memcpy(m_pluginInputData.data() + l_offset, &i->Value, sizeof(float));
+					l_offset += sizeof(float);
+					break;
+				case Waveless::PinType::String:
+					break;
+				case Waveless::PinType::Vector:
+					if (i->Value)
+					{
+						auto l_vector = VectorManager::FindVector(i->Value);
+						std::memcpy(m_pluginInputData.data() + l_offset, l_vector.value, sizeof(Vector));
+					}
+					l_offset += sizeof(Vector);
+					break;
+				case Waveless::PinType::Object:
+					break;
+				case Waveless::PinType::Function:
+					break;
+				case Waveless::PinType::Delegate:
+					break;
+				default:
+					break;
+				}
+			}
+
+			PluginManager::UploadUserData(m_pluginUUID, m_pluginInputData.data());
+		}
+	}
+}
+
 static bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
 {
 	using namespace ImGui;
@@ -683,6 +754,11 @@ static void ShowLeftPane(float paneWidth)
 	ImGui::BeginHorizontal("Compiler Function", ImVec2(paneWidth, 0));
 	if (ImGui::Button("Compile"))
 	{
+		// clean user data
+		if (m_pluginUUID)
+		{
+			PluginManager::UploadUserData(m_pluginUUID, nullptr);
+		}
 		NodeCompiler::Compile(&buffer[0], &buffer[0], m_pluginUUID);
 	}
 	ImGui::Spring();
@@ -691,10 +767,9 @@ static void ShowLeftPane(float paneWidth)
 	ImGui::BeginHorizontal("Simulator Function", ImVec2(paneWidth, 0));
 	if (ImGui::Button("Trigger"))
 	{
-		if (m_pluginUUID)
-		{
-		}
+		GenerateInputData();
 	}
+
 	ImGui::Spring();
 
 	ImGui::EndHorizontal();

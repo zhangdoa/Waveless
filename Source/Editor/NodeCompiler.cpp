@@ -185,7 +185,8 @@ void WriteHeaderIncludes(std::vector<char>& TU)
 
 void WriteInputStructure(const char * inputFileName, std::vector<char> &l_TU)
 {
-	auto l_inputStruct = "struct " + IOService::getFileName(inputFileName) + "_InputData\n{\n";
+	auto l_inputStruct = std::string("#pragma pack(push, 1)\n");
+	l_inputStruct += "struct " + IOService::getFileName(inputFileName) + "_InputData\n{\n";
 
 	for (size_t i = 0; i < m_StartNode->Desc->FuncMetadata->ParamsCount; i++)
 	{
@@ -200,7 +201,7 @@ void WriteInputStructure(const char * inputFileName, std::vector<char> &l_TU)
 		l_inputStruct += l_paramMetadata->Name;
 		l_inputStruct += ";\n";
 	}
-	l_inputStruct += "};\n\n";
+	l_inputStruct += "};\n#pragma pack(pop)\n";
 
 	std::copy(l_inputStruct.begin(), l_inputStruct.end(), std::back_inserter(l_TU));
 }
@@ -529,6 +530,29 @@ WsResult GenerateSourceFile(const char* inputFileName, const char* outputFileNam
 	return WsResult::Success;
 }
 
+WsResult GeneratePluginSourceFile(const char* inputFileName, const char* outputFileName)
+{
+	std::vector<char> l_TU;
+
+	if (IOService::loadFile("..//..//Source//Core//PluginEntryTemplate.inl", l_TU, IOService::IOMode::Text) != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+
+	std::string l_TUStr = l_TU.data();
+	l_TUStr = std::regex_replace(l_TUStr, std::regex("PluginName"), inputFileName);
+	l_TU.resize(l_TUStr.size());
+	std::memcpy(l_TU.data(), l_TUStr.data(), l_TUStr.size());
+
+	auto l_outputPath = "..//..//Asset//Canvas//" + std::string(inputFileName) + ".plugin.cpp";
+
+	if (IOService::saveFile(l_outputPath.c_str(), l_TU, IOService::IOMode::Text) != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+	return WsResult::Success;
+}
+
 WsResult BuildPlugin()
 {
 	auto l_cd = IOService::getWorkingDirectory();
@@ -573,6 +597,10 @@ WsResult NodeCompiler::Compile(const char* inputFileName, const char* outputFile
 		return WsResult::Fail;
 	}
 	if (GenerateSourceFile(l_inputFileName.c_str(), l_outputFileName.c_str()) != WsResult::Success)
+	{
+		return WsResult::Fail;
+	}
+	if (GeneratePluginSourceFile(l_inputFileName.c_str(), l_outputFileName.c_str()) != WsResult::Success)
 	{
 		return WsResult::Fail;
 	}

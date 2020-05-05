@@ -2,6 +2,7 @@
 #include <complex>
 #include <algorithm>
 #include <random>
+#include <regex>
 #include <string>
 #include <iomanip>
 #include <iostream>

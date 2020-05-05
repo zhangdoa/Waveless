@@ -54,5 +54,6 @@ namespace Waveless
 		WsResult GetAllLinkModels(std::vector<LinkModel*>*& result);
 
 		WsResult LoadCanvas(const char * inputFileName);
+		WsResult GetInputDataSize(uint64_t& size);
 	};
 }
