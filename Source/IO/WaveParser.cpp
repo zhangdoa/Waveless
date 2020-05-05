@@ -5,20 +5,20 @@ namespace Waveless
 {
 	void printRIFFChunk(RIFFChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", std::string(&rhs.ckID[0], sizeof(rhs.ckID)).c_str());
 		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
-		Logger::Log(LogLevel::Verbose, "RIFFType: ", rhs.RIFFType);
+		Logger::Log(LogLevel::Verbose, "RIFFType: ", std::string(&rhs.RIFFType[0], sizeof(rhs.RIFFType)).c_str());
 	}
 
 	void printJunkChunk(JunkChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", std::string(&rhs.ckID[0], sizeof(rhs.ckID)).c_str());
 		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 	}
 
 	void printFmtChunk(fmtChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", std::string(&rhs.ckID[0], sizeof(rhs.ckID)).c_str());
 		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 		Logger::Log(LogLevel::Verbose, "AudioFormat: ", (uint16_t)rhs.wFormatTag);
 		Logger::Log(LogLevel::Verbose, "NumOfChan: ", (uint16_t)rhs.nChannels);
@@ -35,30 +35,30 @@ namespace Waveless
 			{
 				Logger::Log(LogLevel::Verbose, "ValidBitsPerSample: ", (uint16_t)rhs.wValidBitsPerSample);
 				Logger::Log(LogLevel::Verbose, "ChannelMask: ", (uint32_t)rhs.dwChannelMask);
-				Logger::Log(LogLevel::Verbose, "SubFormat: ", rhs.SubFormat);
+				Logger::Log(LogLevel::Verbose, "SubFormat: ", std::string(&rhs.SubFormat[0], sizeof(rhs.SubFormat)).c_str());
 			}
 		}
 	}
 	void printFactChunk(factChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", std::string(&rhs.ckID[0], sizeof(rhs.ckID)).c_str());
 		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 		Logger::Log(LogLevel::Verbose, "SampleLength: ", (uint32_t)rhs.dwSampleLength);
 	}
 
 	void printBextChunk(bextChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", std::string(&rhs.ckID[0], sizeof(rhs.ckID)).c_str());
 		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
-		Logger::Log(LogLevel::Verbose, "Description: ", rhs.Description);
-		Logger::Log(LogLevel::Verbose, "Originator: ", rhs.Originator);
-		Logger::Log(LogLevel::Verbose, "OriginatorReference: ", rhs.OriginatorReference);
-		Logger::Log(LogLevel::Verbose, "OriginationDate: ", rhs.OriginationDate);
-		Logger::Log(LogLevel::Verbose, "OriginationTime: ", rhs.OriginationTime);
+		Logger::Log(LogLevel::Verbose, "Description: ", std::string(&rhs.Description[0], sizeof(rhs.Description)).c_str());
+		Logger::Log(LogLevel::Verbose, "Originator: ", std::string(&rhs.Originator[0], sizeof(rhs.Originator)).c_str());
+		Logger::Log(LogLevel::Verbose, "OriginatorReference: ", std::string(&rhs.OriginatorReference[0], sizeof(rhs.OriginatorReference)).c_str());
+		Logger::Log(LogLevel::Verbose, "OriginationDate: ", std::string(&rhs.OriginationDate[0], sizeof(rhs.OriginationDate)).c_str());
+		Logger::Log(LogLevel::Verbose, "OriginationTime: ", std::string(&rhs.OriginationTime[0], sizeof(rhs.OriginationTime)).c_str());
 		Logger::Log(LogLevel::Verbose, "TimeReferenceLow: ", (uint32_t)rhs.TimeReferenceLow);
 		Logger::Log(LogLevel::Verbose, "TimeReferenceHigh: ", (uint32_t)rhs.TimeReferenceHigh);
 		Logger::Log(LogLevel::Verbose, "Version: ", (uint16_t)rhs.Version);
-		Logger::Log(LogLevel::Verbose, "UMID: ", rhs.UMID);
+		Logger::Log(LogLevel::Verbose, "UMID: ", std::string(&rhs.UMID[0], sizeof(rhs.UMID)).c_str());
 		Logger::Log(LogLevel::Verbose, "LoudnessValue: ", (uint16_t)rhs.LoudnessValue);
 		Logger::Log(LogLevel::Verbose, "LoudnessRange: ", (uint16_t)rhs.LoudnessRange);
 		Logger::Log(LogLevel::Verbose, "MaxTruePeakLevel: ", (uint16_t)rhs.MaxTruePeakLevel);
@@ -68,7 +68,7 @@ namespace Waveless
 
 	void printDataChunk(dataChunk rhs)
 	{
-		Logger::Log(LogLevel::Verbose, "ChunkID: ", rhs.ckID);
+		Logger::Log(LogLevel::Verbose, "ChunkID: ", std::string(&rhs.ckID[0], sizeof(rhs.ckID)).c_str());
 		Logger::Log(LogLevel::Verbose, "ChunkSize: ", (uint32_t)rhs.ckSize);
 	}
 
